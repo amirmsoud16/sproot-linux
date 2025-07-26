@@ -32,18 +32,31 @@ print_header() {
     echo -e "${BLUE}================================${NC}"
 }
 
-# Function to download file
+# Function to download file with retry
 download_file() {
     local url="$1"
     local output="$2"
+    local max_retries=3
+    local retry_count=0
     
-    if command -v curl >/dev/null 2>&1; then
-        curl -L -o "$output" "$url"
-    else
-        print_error "curl is not available. Please install it first:"
-        print_error "pkg install curl"
-        exit 1
-    fi
+    while [ $retry_count -lt $max_retries ]; do
+        if command -v curl >/dev/null 2>&1; then
+            if curl -L --connect-timeout 30 --max-time 300 -o "$output" "$url" 2>/dev/null; then
+                return 0
+            fi
+        else
+            print_error "curl is not available. Please install it first:"
+            print_error "pkg install curl"
+            exit 1
+        fi
+        
+        retry_count=$((retry_count + 1))
+        print_warning "Download failed (attempt $retry_count/$max_retries), retrying in 5 seconds..."
+        sleep 5
+    done
+    
+    print_error "Failed to download after $max_retries attempts: $url"
+    return 1
 }
 
 # Check if running on Termux
@@ -86,13 +99,15 @@ for i in "${!REPOSITORIES[@]}"; do
     # Set repository
     echo "deb $REPO_URL stable main" > $PREFIX/etc/apt/sources.list
     
-    # Test if repository works
-    if pkg update >/dev/null 2>&1; then
+    # Test if repository works with timeout
+    print_status "Testing $REPO_NAME connection..."
+    if timeout 60 pkg update >/dev/null 2>&1; then
         print_status "✅ $REPO_NAME is working!"
         WORKING_REPO="$REPO_NAME"
         break
     else
-        print_warning "❌ $REPO_NAME failed, trying next..."
+        print_warning "❌ $REPO_NAME failed or timeout, trying next..."
+        sleep 3
     fi
 done
 
@@ -162,7 +177,30 @@ mkdir -p "$UBUNTU_DIR"
 # Download Ubuntu rootfs
 print_status "Downloading Ubuntu 22.04 rootfs..."
 cd "$UBUNTU_DIR"
-download_file "https://github.com/AndronixApp/AndronixOrigin/raw/master/Rootfs/Ubuntu/ubuntu-rootfs.tar.xz" "ubuntu-rootfs.tar.xz"
+
+# Try different sources for Ubuntu rootfs
+UBUNTU_SOURCES=(
+    "https://github.com/AndronixApp/AndronixOrigin/raw/master/Rootfs/Ubuntu/ubuntu-rootfs.tar.xz"
+    "https://raw.githubusercontent.com/AndronixApp/AndronixOrigin/master/Rootfs/Ubuntu/ubuntu-rootfs.tar.xz"
+)
+
+UBUNTU_DOWNLOADED=false
+for source in "${UBUNTU_SOURCES[@]}"; do
+    print_status "Trying to download from: $source"
+    if download_file "$source" "ubuntu-rootfs.tar.xz"; then
+        print_status "✅ Ubuntu rootfs downloaded successfully!"
+        UBUNTU_DOWNLOADED=true
+        break
+    else
+        print_warning "❌ Download failed from this source, trying next..."
+    fi
+done
+
+if [ "$UBUNTU_DOWNLOADED" = false ]; then
+    print_error "Failed to download Ubuntu rootfs from all sources."
+    print_error "Please check your internet connection and try again."
+    exit 1
+fi
 
 # Extract Ubuntu rootfs
 print_status "Extracting Ubuntu rootfs..."
