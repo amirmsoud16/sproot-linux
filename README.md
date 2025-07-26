@@ -22,13 +22,8 @@ A unified script for installing and managing Ubuntu on Termux with VNC support.
 
 ### 🔧 Install Prerequisites:
 ```bash
-# Update Termux packages
 pkg update && pkg upgrade
-
-# Install required packages
 pkg install -y curl tar xz-utils
-
-# Install Git (for cloning repository)
 pkg install -y git
 ```
 
