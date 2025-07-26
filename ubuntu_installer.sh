@@ -62,7 +62,46 @@ pkg upgrade -y
 
 # Set up repository if needed
 print_status "Setting up Termux repository..."
-termux-change-repo
+# Try different repositories automatically
+REPOSITORIES=(
+    "https://grimler.se/termux-packages-24"
+    "https://mirror.quantum5.ca/termux/termux-main"
+    "https://packages.termux.dev/apt/termux-main"
+)
+
+REPO_NAMES=(
+    "Grimler (Europe)"
+    "Quantum5 (Canada)"
+    "Termux Official"
+)
+
+WORKING_REPO=""
+
+for i in "${!REPOSITORIES[@]}"; do
+    REPO_URL="${REPOSITORIES[$i]}"
+    REPO_NAME="${REPO_NAMES[$i]}"
+    
+    print_status "Testing $REPO_NAME..."
+    
+    # Set repository
+    echo "deb $REPO_URL stable main" > $PREFIX/etc/apt/sources.list
+    
+    # Test if repository works
+    if pkg update >/dev/null 2>&1; then
+        print_status "✅ $REPO_NAME is working!"
+        WORKING_REPO="$REPO_NAME"
+        break
+    else
+        print_warning "❌ $REPO_NAME failed, trying next..."
+    fi
+done
+
+if [ -z "$WORKING_REPO" ]; then
+    print_error "All repositories failed. Please check your internet connection."
+    exit 1
+fi
+
+print_status "Using repository: $WORKING_REPO"
 
 # Install essential packages
 print_status "Installing essential packages..."

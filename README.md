@@ -19,7 +19,7 @@ pkg install curl
 curl -s https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/ubuntu_installer.sh | bash
 ```
 
-**Note:** The installer will automatically set up the Termux repository if needed.
+**Note:** The installer will automatically find and set up the best working repository for your location.
 
 ## 📱 Features
 
@@ -119,6 +119,12 @@ After installation:
 
 ## 🗑️ Uninstall
 
+### Easy Uninstall (Recommended)
+```bash
+curl -s https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/ubuntu_uninstaller.sh | bash
+```
+
+### Manual Uninstall
 ```bash
 rm -rf ~/ubuntu
 rm ~/ubuntu
