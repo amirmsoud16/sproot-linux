@@ -19,6 +19,8 @@ pkg install curl
 curl -s https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/ubuntu_installer.sh | bash
 ```
 
+**Note:** The installer will automatically set up the Termux repository if needed.
+
 ## 📱 Features
 
 - ✅ Ubuntu 22.04 LTS with chroot

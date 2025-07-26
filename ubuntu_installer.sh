@@ -60,6 +60,10 @@ print_status "Updating Termux packages and installing essential tools..."
 pkg update -y
 pkg upgrade -y
 
+# Set up repository if needed
+print_status "Setting up Termux repository..."
+termux-change-repo
+
 # Install essential packages
 print_status "Installing essential packages..."
 pkg install -y curl proot tar xz-utils pulseaudio
