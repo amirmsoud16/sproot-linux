@@ -4,12 +4,17 @@ Install Ubuntu with desktop environment on Termux with just one command!
 
 ## 🚀 Quick Install
 
-### Step 1: Install curl (if not installed)
+### Step 1: Update Termux packages
+```bash
+pkg update && pkg upgrade
+```
+
+### Step 2: Install curl (if not installed)
 ```bash
 pkg install curl
 ```
 
-### Step 2: Run the installer
+### Step 3: Run the installer
 ```bash
 curl -s https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/ubuntu_installer.sh | bash
 ```
