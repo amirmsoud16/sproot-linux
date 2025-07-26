@@ -16,13 +16,8 @@ pkg install curl
 
 ### Step 3: Run the installer
 ```bash
-curl -s https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/ubuntu_installer.sh | bash
+curl -s https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/install_ubuntu.sh | bash
 ```
-
-**Note:** The installer will automatically find and set up the best working repository for your location.
-
-### If you get package errors:
-The installer will try alternative packages if the main ones are not available. Ubuntu will still work with basic VNC functionality.
 
 ## 📱 Features
 
@@ -39,7 +34,7 @@ The installer will try alternative packages if the main ones are not available. 
 Just copy and paste this command in Termux:
 
 ```bash
-curl -s https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/ubuntu_installer.sh | bash
+curl -s https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/install_ubuntu.sh | bash
 ```
 
 ## 📋 Requirements
