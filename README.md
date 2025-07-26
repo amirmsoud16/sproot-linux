@@ -43,7 +43,7 @@ A powerful Ubuntu installer for Termux that uses real chroot for maximum perform
 
 ```bash
 # Install prerequisites and run installer
-pkg update -y && pkg upgrade -y && pkg install -y curl proot tar xz-utils pulseaudio tigervnc git && git clone https://github.com/amirmsoud16/ubuntu-chroot-pk-.git && cd ubuntu-chroot-pk- && chmod +x ubuntu_installer.sh && su -c './ubuntu_installer.sh'
+pkg update -y && pkg upgrade -y && pkg install -y curl proot tar xz-utils pulseaudio git && git clone https://github.com/amirmsoud16/ubuntu-chroot-pk-.git && cd ubuntu-chroot-pk- && chmod +x ubuntu_installer.sh && su -c './ubuntu_installer.sh'
 ```
 
 ## 🛠️ Installation
@@ -54,7 +54,7 @@ pkg update -y && pkg upgrade -y && pkg install -y curl proot tar xz-utils pulsea
 pkg update -y && pkg upgrade -y
 
 # Install required packages
-pkg install -y curl proot tar xz-utils pulseaudio tigervnc git
+pkg install -y curl proot tar xz-utils pulseaudio git
 
 # Install additional useful packages
 pkg install -y wget nano vim
@@ -158,12 +158,12 @@ Ubuntu will be installed to:
 - `tar` - Archive utility
 - `xz-utils` - Compression
 - `pulseaudio` - Audio support
-- `tigervnc` - VNC server for remote desktop
+- `proot` - Process isolation
 
 ### Ubuntu Packages
 - `xfce4` - Desktop environment
 - `xfce4-goodies` - Additional XFCE tools
-- `tightvncserver` - VNC server
+- `tightvncserver` - VNC server (installed inside Ubuntu)
 - `dbus-x11` - Desktop bus
 - `firefox-esr` - Web browser
 - `gedit` - Text editor

@@ -81,8 +81,8 @@ install_ubuntu() {
     pkg upgrade -y
     
     # Install required packages
-    print_info "Installing required packages..."
-    pkg install -y curl proot tar xz-utils pulseaudio tigervnc
+print_info "Installing required packages..."
+pkg install -y curl proot tar xz-utils pulseaudio
     
     # Create Ubuntu directory
     print_info "Creating Ubuntu directory at: $UBUNTU_PATH"
@@ -368,7 +368,7 @@ uninstall_ubuntu() {
     echo "  ✅ PATH modifications"
     echo ""
     print_warn "Note: Termux packages (curl, proot, etc.) were not removed."
-    print_warn "If you want to remove them too, run: pkg remove curl proot tar xz-utils pulseaudio tigervnc"
+    print_warn "If you want to remove them too, run: pkg remove curl proot tar xz-utils pulseaudio"
     echo ""
     print_info "Thank you for using Ubuntu on Termux!"
     
