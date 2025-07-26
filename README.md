@@ -1,158 +1,178 @@
-# 🐧 Ubuntu for Termux
+# Ubuntu Manager for Termux
 
-Install Ubuntu with desktop environment on Termux with just one command!
+A unified script for installing and managing Ubuntu on Termux with VNC support.
 
-## 🚀 Quick Install
+## 🚀 Features
 
-### Step 1: Update Termux packages
-```bash
-pkg update && pkg upgrade
-```
-
-### Step 2: Install curl (if not installed)
-```bash
-pkg install curl
-```
-
-### Step 3: Run the installer
-```bash
-curl -s https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/install_ubuntu.sh | bash
-```
-
-## 📱 Features
-
-- ✅ Ubuntu 22.04 LTS with chroot
-- ✅ XFCE Desktop Environment
-- ✅ VNC Server for remote desktop access
-- ✅ Simple command: `ubuntu` to start
-- ✅ Command line and desktop modes
-- ✅ Service management
-- ✅ Desktop shortcut
-
-## 🎯 One Command Installation
-
-Just copy and paste this command in Termux:
-
-```bash
-curl -s https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/install_ubuntu.sh | bash
-```
+- **Easy Installation** - One-click Ubuntu installation on Termux
+- **Interactive Menu** - User-friendly menu-driven interface
+- **VNC Support** - Remote desktop access via VNC
+- **Complete Management** - Install, uninstall, and status checking
+- **XFCE Desktop** - Lightweight desktop environment
+- **Service Management** - Start/stop Ubuntu as a service
 
 ## 📋 Requirements
 
-- Android device with Termux
-- Internet connection
-- At least 2GB free space
-- VNC Viewer app (for desktop access)
+- Android device with Termux installed
+- **Rooted device** (required for chroot)
+- Internet connection for download
+- At least 2GB free storage space
 
-## 🔧 First Time Setup
+## 🛠️ Installation
 
-After installation:
-
-1. **Start Ubuntu CLI:**
-   ```bash
-   ubuntu cli
-   ```
-
-2. **Run initialization:**
-   ```bash
-   ./init-ubuntu.sh
-   ```
-
-3. **Exit and start desktop:**
-   ```bash
-   exit
-   ubuntu desktop
-   ```
-
-## 🎮 Usage
-
-### Basic Commands
-
-- `ubuntu` - Start Ubuntu with desktop
-- `ubuntu cli` - Start Ubuntu command line
-- `ubuntu stop` - Stop VNC server
-- `ubuntu help` - Show help
-
-### Service Management
-
-- `ubuntu-service start` - Start as background service
-- `ubuntu-service stop` - Stop service
-- `ubuntu-service status` - Check status
-
-## 🖥️ VNC Connection
-
-1. Install VNC Viewer app
-2. Connect to: `your-device-ip:5901`
-3. Default resolution: 1280x720
-
-## 📁 File Locations
-
-```
-~/ubuntu/           # Ubuntu rootfs
-~/ubuntu            # Main command
-~/ubuntu-service    # Service manager
-~/.shortcuts/Ubuntu # Desktop shortcut
+1. **Clone the repository:**
+```bash
+git clone https://github.com/yourusername/ubuntu-manager-termux.git
+cd ubuntu-manager-termux
 ```
 
-## 🛠️ Troubleshooting
+2. **Make the script executable:**
+```bash
+chmod +x ubuntu_manager.sh
+```
+
+3. **Run the manager as root:**
+```bash
+su -c './ubuntu_manager.sh'
+```
+
+## 🎯 Usage
+
+### Interactive Menu Mode (Recommended)
+```bash
+su -c './ubuntu_manager.sh'
+```
+This will show an interactive menu with options:
+- **1)** Install Ubuntu
+- **2)** Uninstall Ubuntu
+- **3)** Check Status
+- **4)** Help
+- **5)** Exit
+
+### Command Line Mode
+```bash
+# Install Ubuntu
+su -c './ubuntu_manager.sh install'
+
+# Uninstall Ubuntu
+su -c './ubuntu_manager.sh uninstall'
+
+# Check status
+su -c './ubuntu_manager.sh status'
+
+# Show help
+su -c './ubuntu_manager.sh help'
+```
+
+## 🖥️ After Installation
+
+### First Time Setup
+1. Run: `ubuntu cli`
+2. Inside Ubuntu, run: `./init-ubuntu.sh`
+3. Exit Ubuntu and run: `ubuntu desktop`
+
+### Using Ubuntu
+```bash
+# Start Ubuntu with desktop (VNC)
+ubuntu
+
+# Start Ubuntu command line
+ubuntu cli
+
+# Stop VNC server
+ubuntu stop
+
+# Show Ubuntu help
+ubuntu help
+```
+
+### VNC Connection
+- **Port:** 5901
+- **Connect to:** `your-device-ip:5901`
+- **Password:** (set during first run)
+
+## 📁 Project Structure
+
+```
+ubuntu-manager-termux/
+├── ubuntu_manager.sh      # Main manager script
+├── install_ubuntu.sh      # Original installer (legacy)
+├── ubuntu_uninstaller.sh  # Original uninstaller (legacy)
+├── LICENSE               # License file
+└── README.md            # This file
+```
+
+## 🔧 What Gets Installed
+
+### Termux Packages
+- `curl` - Download manager
+- `tar` - Archive utility
+- `xz-utils` - Compression
+- `pulseaudio` - Audio support
+
+### Ubuntu Packages
+- `xfce4` - Desktop environment
+- `xfce4-goodies` - Additional XFCE tools
+- `tightvncserver` - VNC server
+- `dbus-x11` - Desktop bus
+- `firefox-esr` - Web browser
+- `gedit` - Text editor
+- `gimp` - Image editor
+- `vlc` - Media player
+
+## 🗂️ Files Created
+
+- `~/ubuntu/` - Ubuntu rootfs directory
+- `~/ubuntu` - Ubuntu command script
+- `~/ubuntu-service` - Service management script
+- `~/.shortcuts/Ubuntu` - Desktop shortcut
+- `~/.vnc/` - VNC configuration
+
+## 🚨 Troubleshooting
 
 ### Common Issues
 
-1. **VNC not connecting:**
-   ```bash
-   ubuntu-service status
-   ubuntu stop && ubuntu desktop
-   ```
+**VNC Connection Failed**
+- Check if VNC server is running: `vncserver -list`
+- Restart VNC: `vncserver -kill :1 && vncserver -localhost no`
 
-2. **Desktop not starting:**
-   ```bash
-   ubuntu cli
-   ./init-ubuntu.sh
-   ```
+**Ubuntu Won't Start**
+- Check status: `su -c './ubuntu_manager.sh status'`
+- Reinstall: `su -c './ubuntu_manager.sh uninstall && ./ubuntu_manager.sh install'`
 
-3. **Permission denied:**
-   ```bash
-   chmod +x ~/ubuntu
-   ```
+**Permission Denied**
+- Make script executable: `chmod +x ubuntu_manager.sh`
+- Run as root: `su -c './ubuntu_manager.sh'`
 
-## 🗑️ Uninstall
-
-### Easy Uninstall (Recommended)
-```bash
-curl -s https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/ubuntu_uninstaller.sh | bash
-```
-
-### Manual Uninstall
-```bash
-rm -rf ~/ubuntu
-rm ~/ubuntu
-rm ~/ubuntu-service
-rm ~/.shortcuts/Ubuntu
-```
-
-## 📊 System Info
-
-- **OS**: Ubuntu 22.04 LTS
-- **Desktop**: XFCE
-- **VNC Port**: 5901
-- **Architecture**: ARM64/x86_64
-- **Size**: ~2-3GB
+### Logs
+- Ubuntu logs: `~/ubuntu.log`
+- VNC logs: `~/.vnc/`
 
 ## 🤝 Contributing
 
-Feel free to contribute by:
-- Reporting bugs
-- Suggesting features
-- Improving documentation
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature-name`
+3. Commit changes: `git commit -am 'Add feature'`
+4. Push to branch: `git push origin feature-name`
+5. Submit a pull request
 
 ## 📄 License
 
-This project is open source and available under the MIT License.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## ⭐ Star This Repo
+## 🙏 Acknowledgments
 
-If this project helped you, please give it a star! ⭐
+- [Andronix](https://github.com/AndronixApp) for Ubuntu rootfs
+- Termux community for Android Linux support
+- XFCE team for lightweight desktop environment
+
+## 📞 Support
+
+If you encounter any issues:
+1. Check the troubleshooting section
+2. Search existing issues
+3. Create a new issue with detailed information
 
 ---
 
-**Made with ❤️ for Termux users** 
+**⭐ Star this repository if it helped you!** 
