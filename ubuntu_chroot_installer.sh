@@ -30,8 +30,8 @@ WHITE='\033[1;37m'
 NC='\033[0m' # No Color
 
 # Paths
-CHROOT_PATH="/data/local/tmp/chrootubuntu"
-STARTUP_SCRIPT="/data/local/tmp/startu.sh"
+CHROOT_PATH="/data/data/com.termux/files/home/ubuntu"
+STARTUP_SCRIPT="/data/data/com.termux/files/home/ubuntu/startu.sh"
 WIDGET_SCRIPT="$HOME/.shortcuts/start_chrootubuntu.sh"
 UBUNTU_VERSION="24.04.2"
 UBUNTU_CODENAME="noble"
@@ -120,6 +120,10 @@ install_packages() {
     # Install additional packages for better experience
     pkg install -y wget curl tar xz-utils || print_warn "Some packages failed to install"
     
+    # Install virglrenderer for hardware acceleration
+    print_info "Installing virglrenderer for hardware acceleration..."
+    pkg install -y virglrenderer-android || print_warn "virglrenderer installation failed"
+    
     print_success "Packages installation completed"
 }
 
@@ -186,7 +190,7 @@ create_startup_script() {
 # Based on: https://ivonblog.com/en-us/posts/termux-chroot-ubuntu/
 
 # The path of Ubuntu rootfs
-UBUNTUPATH="/data/local/tmp/chrootubuntu"
+UBUNTUPATH="/data/data/com.termux/files/home/ubuntu"
 
 # Check if chroot directory exists
 if [ ! -d "$UBUNTUPATH" ]; then
@@ -254,7 +258,7 @@ killall -9 termux-x11 Xwayland pulseaudio virgl_test_server_android termux-wake-
 am start --user 0 -n com.termux.x11/com.termux.x11.MainActivity
 
 # Mount tmp directory
-sudo busybox mount --bind $PREFIX/tmp /data/local/tmp/chrootubuntu/tmp
+sudo busybox mount --bind $PREFIX/tmp /data/data/com.termux/files/home/ubuntu/tmp
 
 # Start X11 server
 XDG_RUNTIME_DIR=${TMPDIR} termux-x11 :0 -ac &
@@ -266,10 +270,12 @@ pulseaudio --start --exit-idle-time=-1
 pacmd load-module module-native-protocol-tcp auth-ip-acl=127.0.0.1 auth-anonymous=1
 
 # Start virgl server for hardware acceleration
+print_info "Starting virgl server for hardware acceleration..."
 virgl_test_server_android &
+print_success "Hardware acceleration enabled"
 
 # Execute chroot Ubuntu script with desktop
-su -c "sh /data/local/tmp/startu.sh"
+su -c "sh /data/data/com.termux/files/home/ubuntu/startu.sh"
 EOF
     
     chmod +x "$WIDGET_SCRIPT"
@@ -419,7 +425,7 @@ create_desktop_command() {
 #!/bin/sh
 
 # Ubuntu Chroot Startup Script with Desktop
-UBUNTUPATH="/data/local/tmp/chrootubuntu"
+UBUNTUPATH="/data/data/com.termux/files/home/ubuntu"
 
 # Fix setuid issue
 busybox mount -o remount,dev,suid /data
@@ -555,7 +561,7 @@ show_help() {
     echo
     echo -e "${WHITE}After Installation:${NC}"
     echo "  1. Install Termux Widget for one-click startup"
-    echo "  2. Run: sh /data/local/tmp/startu.sh"
+    echo "  2. Run: sh /data/data/com.termux/files/home/ubuntu/startu.sh"
     echo "  3. For desktop: Use the widget script"
     echo
     echo -e "${WHITE}SSH Access:${NC}"
