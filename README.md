@@ -15,22 +15,24 @@ A unified script for installing and managing Ubuntu on Termux with VNC support.
 
 **⚠️ Important Prerequisites:**
 - **Rooted Android device** (essential for chroot functionality)
-- **Termux app** installed from F-Droid or GitHub
+- **Linux distribution with apt** (Ubuntu, Debian, etc.)
 - **Internet connection** for downloading Ubuntu rootfs (~2GB)
 - **At least 3GB free storage** (Ubuntu + packages)
 - **VNC Viewer app** for desktop access (optional but recommended)
 
 ### 🔧 Install Prerequisites:
 ```bash
-# Update Termux packages
-pkg update && pkg upgrade
+# Update system packages
+apt update && apt upgrade
 
 # Install required packages
-pkg install -y curl tar xz-utils pulseaudio tigervnc
+apt install -y curl tar xz-utils pulseaudio tigervnc-standalone-server
 
 # Install Git (for cloning repository)
-pkg install -y git
+apt install -y git
 ```
+
+**⚠️ Important:** Make sure you're running this on a Linux distribution with apt support.
 
 ## 🛠️ Installation
 
@@ -47,6 +49,10 @@ chmod +x ubuntu_manager.sh
 
 3. **Run the manager as root:**
 ```bash
+# Direct execution
+sudo ./ubuntu_manager.sh
+
+# Or with su
 su -c './ubuntu_manager.sh'
 ```
 
@@ -54,7 +60,7 @@ su -c './ubuntu_manager.sh'
 
 ### Interactive Menu Mode (Recommended)
 ```bash
-su -c './ubuntu_manager.sh'
+sudo ./ubuntu_manager.sh
 ```
 This will show an interactive menu with options:
 - **1)** Install Ubuntu
@@ -66,16 +72,16 @@ This will show an interactive menu with options:
 ### Command Line Mode
 ```bash
 # Install Ubuntu
-su -c './ubuntu_manager.sh install'
+sudo ./ubuntu_manager.sh install
 
 # Uninstall Ubuntu
-su -c './ubuntu_manager.sh uninstall'
+sudo ./ubuntu_manager.sh uninstall
 
 # Check status
-su -c './ubuntu_manager.sh status'
+sudo ./ubuntu_manager.sh status
 
 # Show help
-su -c './ubuntu_manager.sh help'
+sudo ./ubuntu_manager.sh help
 ```
 
 ## 🖥️ After Installation
@@ -120,12 +126,12 @@ ubuntu-chroot-pk-/
 
 ## 🔧 What Gets Installed
 
-### Termux Packages
+### System Packages
 - `curl` - Download manager
 - `tar` - Archive utility
 - `xz-utils` - Compression
 - `pulseaudio` - Audio support
-- `tigervnc` - VNC server for remote desktop
+- `tigervnc-standalone-server` - VNC server for remote desktop
 
 ### Ubuntu Packages
 - `xfce4` - Desktop environment
@@ -154,12 +160,16 @@ ubuntu-chroot-pk-/
 - Restart VNC: `vncserver -kill :1 && vncserver -localhost no`
 
 **Ubuntu Won't Start**
-- Check status: `su -c './ubuntu_manager.sh status'`
-- Reinstall: `su -c './ubuntu_manager.sh uninstall && ./ubuntu_manager.sh install'`
+- Check status: `sudo ./ubuntu_manager.sh status`
+- Reinstall: `sudo ./ubuntu_manager.sh uninstall && ./ubuntu_manager.sh install`
 
 **Permission Denied**
 - Make script executable: `chmod +x ubuntu_manager.sh`
-- Run as root: `su -c './ubuntu_manager.sh'`
+- Run as root: `sudo ./ubuntu_manager.sh`
+
+**apt: command not found**
+- Make sure you're running on a Linux distribution with apt support
+- Install Ubuntu, Debian, or similar distribution
 
 ### Logs
 - Ubuntu logs: `~/ubuntu.log`

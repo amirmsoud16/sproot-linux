@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - XFCE 4.16 desktop environment
 - TightVNC server for remote access
 - **Real chroot** (requires rooted device)
+- **apt package manager** (Linux distributions)
 - PulseAudio for audio support
 - Automatic PATH configuration
 - Comprehensive error handling

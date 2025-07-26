@@ -35,12 +35,6 @@ print_menu() {
     echo -e "${CYAN}$1${NC}"
 }
 
-# Check if running on Termux
-if [ ! -d "/data/data/com.termux" ]; then
-    print_error "This script must be run on Termux!"
-    exit 1
-fi
-
 # Check if device is rooted
 if ! command -v su >/dev/null 2>&1; then
     print_error "This script requires a rooted device for chroot!"
@@ -55,18 +49,25 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
+# Check if apt is available
+if ! command -v apt >/dev/null 2>&1; then
+    print_error "apt command not found!"
+    print_error "Please make sure you have a Linux distribution with apt installed."
+    exit 1
+fi
+
 # Function to install Ubuntu
 install_ubuntu() {
     print_header "Installing Ubuntu on Termux"
     
-    # Update Termux
-    print_info "Updating Termux packages..."
-    pkg update -y
-    pkg upgrade -y
-    
-    # Install required packages
+    # Update system packages
+print_info "Updating system packages..."
+apt update -y
+apt upgrade -y
+
+# Install required packages
 print_info "Installing required packages..."
-pkg install -y curl tar xz-utils pulseaudio tigervnc
+apt install -y curl tar xz-utils pulseaudio tigervnc-standalone-server
     
     # Create Ubuntu directory
     UBUNTU_DIR="$HOME/ubuntu"
@@ -351,8 +352,8 @@ fi
     echo "  ✅ Log files"
     echo "  ✅ PATH modifications"
     echo ""
-    print_warn "Note: Termux packages (curl, etc.) were not removed."
-    print_warn "If you want to remove them too, run: pkg remove curl tar xz-utils pulseaudio tigervnc"
+    print_warn "Note: System packages (curl, etc.) were not removed."
+    print_warn "If you want to remove them too, run: apt remove curl tar xz-utils pulseaudio tigervnc-standalone-server"
     echo ""
     print_info "Thank you for using Ubuntu on Termux!"
     
