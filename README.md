@@ -22,8 +22,13 @@ A unified script for installing and managing Ubuntu on Termux with VNC support.
 
 ### 🔧 Install Prerequisites:
 ```bash
+# Update Termux packages
 pkg update && pkg upgrade
-pkg install -y curl tar xz-utils
+
+# Install required packages
+pkg install -y curl tar xz-utils pulseaudio tigervnc
+
+# Install Git (for cloning repository)
 pkg install -y git
 ```
 
@@ -31,8 +36,8 @@ pkg install -y git
 
 1. **Clone the repository:**
 ```bash
-git clone https://github.com/yourusername/ubuntu-manager-termux.git
-cd ubuntu-manager-termux
+git clone https://github.com/amirmsoud16/ubuntu-chroot-pk-.git
+cd ubuntu-chroot-pk-
 ```
 
 2. **Make the script executable:**
@@ -103,11 +108,13 @@ ubuntu help
 ## 📁 Project Structure
 
 ```
-ubuntu-manager-termux/
+ubuntu-chroot-pk-/
 ├── ubuntu_manager.sh      # Main manager script
-├── install_ubuntu.sh      # Original installer (legacy)
-├── ubuntu_uninstaller.sh  # Original uninstaller (legacy)
 ├── LICENSE               # License file
+├── CONTRIBUTING.md       # Contribution guidelines
+├── CHANGELOG.md          # Version history
+├── SECURITY.md           # Security policy
+├── .gitignore           # Git ignore rules
 └── README.md            # This file
 ```
 
@@ -160,7 +167,7 @@ ubuntu-manager-termux/
 
 ## 🤝 Contributing
 
-1. Fork the repository
+1. Fork the repository: [https://github.com/amirmsoud16/ubuntu-chroot-pk-](https://github.com/amirmsoud16/ubuntu-chroot-pk-)
 2. Create a feature branch: `git checkout -b feature-name`
 3. Commit changes: `git commit -am 'Add feature'`
 4. Push to branch: `git push origin feature-name`
@@ -175,12 +182,13 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Andronix](https://github.com/AndronixApp) for Ubuntu rootfs
 - Termux community for Android Linux support
 - XFCE team for lightweight desktop environment
+- [amirmsoud16](https://github.com/amirmsoud16) for the original project
 
 ## 📞 Support
 
 If you encounter any issues:
 1. Check the troubleshooting section
-2. Search existing issues
+2. Search existing issues at [GitHub Issues](https://github.com/amirmsoud16/ubuntu-chroot-pk-/issues)
 3. Create a new issue with detailed information
 
 ---

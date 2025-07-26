@@ -61,4 +61,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-For detailed information about each release, see the [GitHub releases page](https://github.com/yourusername/ubuntu-manager-termux/releases). 
+For detailed information about each release, see the [GitHub releases page](https://github.com/amirmsoud16/ubuntu-chroot-pk-/releases). 
