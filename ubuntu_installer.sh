@@ -122,50 +122,46 @@ print_status "Using repository: $WORKING_REPO"
 print_status "Installing essential packages..."
 pkg install -y curl proot tar xz-utils pulseaudio
 
-# Install desktop packages manually
-print_status "Installing desktop packages manually..."
+# Install desktop packages with repository switching
+print_status "Installing desktop packages..."
 
-# Create packages directory
-mkdir -p "$HOME/ubuntu-packages"
-cd "$HOME/ubuntu-packages"
+# Switch to Termux Official repository for desktop packages
+print_status "Switching to Termux Official repository for desktop packages..."
+echo "deb https://packages.termux.dev/apt/termux-main stable main" > $PREFIX/etc/apt/sources.list
+pkg update
 
-# Download and install tigervnc manually
-print_status "Downloading and installing tigervnc..."
-# Try different sources for tigervnc
-TIGERVNC_SOURCES=(
-    "https://packages.termux.dev/apt/termux-main/pool/main/t/tigervnc/tigervnc_1.13.1_aarch64.deb"
-    "https://grimler.se/termux-packages-24/pool/main/t/tigervnc/tigervnc_1.13.1_aarch64.deb"
-    "https://mirror.quantum5.ca/termux/termux-main/pool/main/t/tigervnc/tigervnc_1.13.1_aarch64.deb"
-)
-
-TIGERVNC_INSTALLED=false
-for source in "${TIGERVNC_SOURCES[@]}"; do
-    if download_file "$source" "tigervnc.deb" 2>/dev/null; then
-        if dpkg -i tigervnc.deb 2>/dev/null; then
-            print_status "✅ tigervnc installed successfully!"
-            TIGERVNC_INSTALLED=true
-            break
-        fi
+# Try to install with pkg first
+if pkg install -y tigervnc xfce4 xfce4-terminal 2>/dev/null; then
+    print_status "✅ Desktop packages installed successfully with pkg!"
+else
+    print_warning "pkg installation failed, trying alternative methods..."
+    
+    # Try installing just tigervnc
+    if pkg install -y tigervnc 2>/dev/null; then
+        print_status "✅ tigervnc installed successfully!"
+    else
+        print_warning "tigervnc not available, Ubuntu will work in command line mode only."
     fi
-done
-
-if [ "$TIGERVNC_INSTALLED" = false ]; then
-    print_warning "tigervnc installation failed, will try alternative method"
+    
+    # Try installing xfce4-terminal separately
+    if pkg install -y xfce4-terminal 2>/dev/null; then
+        print_status "✅ xfce4-terminal installed successfully!"
+    else
+        print_warning "xfce4-terminal not available."
+    fi
+    
+    # Try installing xfce4 separately
+    if pkg install -y xfce4 2>/dev/null; then
+        print_status "✅ xfce4 installed successfully!"
+    else
+        print_warning "xfce4 not available, will use basic desktop."
+    fi
 fi
 
-# Download and install xfce4-terminal manually
-print_status "Downloading and installing xfce4-terminal..."
-download_file "https://packages.termux.dev/apt/termux-main/pool/main/x/xfce4-terminal/xfce4-terminal_1.1.4_aarch64.deb" "xfce4-terminal.deb"
-dpkg -i xfce4-terminal.deb 2>/dev/null || print_warning "xfce4-terminal installation failed"
-
-# Try to install xfce4 if available
-print_status "Trying to install xfce4..."
-download_file "https://packages.termux.dev/apt/termux-main/pool/main/x/xfce4/xfce4_4.18.4_aarch64.deb" "xfce4.deb"
-dpkg -i xfce4.deb 2>/dev/null || print_warning "xfce4 installation failed, will use basic VNC"
-
-# Clean up downloaded packages
-cd "$HOME"
-rm -rf "$HOME/ubuntu-packages"
+# Switch back to working repository for other operations
+print_status "Switching back to working repository..."
+echo "deb $REPO_URL stable main" > $PREFIX/etc/apt/sources.list
+pkg update
 
 print_status "Desktop packages installation completed!"
 
