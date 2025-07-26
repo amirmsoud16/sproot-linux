@@ -42,14 +42,14 @@ This installer uses **real chroot** (not proot) for maximum performance. Root ac
 
 ```bash
 # Download and run installer
-curl -fsSL https://raw.githubusercontent.com/yourusername/ubuntu-chroot-installer/main/ubuntu_chroot_installer.sh | su -c 'bash -s install xfce'
+curl -fsSL https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/ubuntu_chroot_installer.sh | su -c 'bash -s install xfce'
 ```
 
 ### **Manual Installation:**
 
 ```bash
 # 1. Download the script
-wget https://raw.githubusercontent.com/yourusername/ubuntu-chroot-installer/main/ubuntu_chroot_installer.sh
+wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/ubuntu_chroot_installer.sh
 
 # 2. Make executable
 chmod +x ubuntu_chroot_installer.sh
@@ -378,7 +378,7 @@ Stay updated with the latest features and improvements:
 
 ```bash
 # Check for updates
-wget -O ubuntu_chroot_installer.sh https://raw.githubusercontent.com/yourusername/ubuntu-chroot-installer/main/ubuntu_chroot_installer.sh
+wget -O ubuntu_chroot_installer.sh https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/ubuntu_chroot_installer.sh
 
 # Reinstall with latest version
 su -c './ubuntu_chroot_installer.sh uninstall'
