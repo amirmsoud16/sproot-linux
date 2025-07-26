@@ -1,0 +1,47 @@
+# Ubuntu Chroot Installer .gitignore
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Ubuntu chroot directory (if accidentally created in repo)
+chrootubuntu/
+/data/local/tmp/chrootubuntu/
+
+# Termux specific
+.termux/
+termux.properties
+
+# Scripts that might be generated
+startu.sh
+start_chrootubuntu.sh
+
+# Log files
+*.log
+logs/
+
+# Cache directories
+.cache/
+cache/ 

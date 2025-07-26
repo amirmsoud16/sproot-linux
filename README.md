@@ -1,256 +1,392 @@
-# Ubuntu Installer for Linux (Root Required)
+# Ubuntu Chroot Installer for Android
 
-A powerful Ubuntu installer for Linux distributions that uses real chroot for maximum performance and compatibility.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Platform: Android](https://img.shields.io/badge/Platform-Android-green.svg)](https://www.android.com/)
+[![Termux](https://img.shields.io/badge/Termux-Supported-blue.svg)](https://termux.com/)
 
-## 🚀 Features
+A comprehensive, professional Ubuntu chroot installer for Android devices with Termux. This script provides a complete Ubuntu environment with desktop support, hardware acceleration, and one-click startup capabilities.
 
-- **Real chroot** - Full root access and performance
-- **Interactive Menu** - User-friendly menu-driven interface
-- **VNC Support** - Remote desktop access via VNC
+## 🌟 Features
+
+- **Real Chroot Environment** - Full root access and maximum performance
+- **Multiple Desktop Environments** - XFCE4 and KDE Plasma support
+- **Hardware Acceleration** - virglrenderer for OpenGL support
+- **SSH Service** - Remote access to Ubuntu environment
+- **One-Click Startup** - Termux Widget integration
 - **Complete Management** - Install, uninstall, and status checking
-- **XFCE Desktop** - Lightweight desktop environment
-- **Service Management** - Start/stop Ubuntu as a service
+- **Professional UI** - Colored output and interactive menus
+- **Automatic Setup** - DNS, users, locales, and system configuration
 
 ## ⚠️ Requirements
 
-**🔴 IMPORTANT: Root Access Required!**
+### 🔴 **CRITICAL: Root Access Required!**
 
-### 💻 **System Requirements:**
-- **Linux distribution** with apt package manager (Ubuntu, Debian, etc.)
-- **Root access** with working `sudo` or `su` command
-- **At least 4GB RAM** (recommended)
-- **At least 5GB free storage** (Ubuntu + packages + cache)
+This installer uses **real chroot** (not proot) for maximum performance. Root access is mandatory.
 
-### 🌐 **Network Requirements:**
-- **Stable internet connection** (WiFi recommended)
-- **Download speed:** At least 1 Mbps
-- **Total download:** ~2.5GB (Ubuntu rootfs + packages)
+### 💻 **Hardware Requirements:**
+- **Processor**: Qualcomm Snapdragon 845 or above (recommended)
+- **RAM**: 6GB minimum (4GB may work but not recommended)
+- **Storage**: 10GB minimum free space
+- **Android**: 8.0 (API 26) or higher
 
-### 🔧 **Software Requirements:**
-- **apt package manager** available
-- **curl, tar, xz-utils** packages
-- **VNC Viewer** for desktop access (optional but recommended)
+### 📱 **Software Requirements:**
+- **Rooted Android device**
+- **Termux** (from F-Droid recommended)
+- **Busybox** (via Magisk module)
+- **Termux X11** (for desktop environment)
+- **Termux Widget** (for one-click startup)
 
-## ⚡ Quick Start
+## 🚀 Quick Start
 
-**For experienced users - One command installation:**
+### **One-Command Installation:**
 
 ```bash
-# Install prerequisites and run installer
-sudo apt update -y && sudo apt upgrade -y && sudo apt install -y curl proot tar xz-utils pulseaudio tigervnc-standalone-server git && git clone https://github.com/amirmsoud16/ubuntu-chroot-pk-.git && cd ubuntu-chroot-pk- && chmod +x ubuntu_installer.sh && sudo ./ubuntu_installer.sh
+# Download and run installer
+curl -fsSL https://raw.githubusercontent.com/yourusername/ubuntu-chroot-installer/main/ubuntu_chroot_installer.sh | su -c 'bash -s install xfce'
 ```
 
-## 🛠️ Installation
+### **Manual Installation:**
 
-### 🔧 **Step 1: Install Prerequisites**
 ```bash
-# Update system packages
-sudo apt update -y && sudo apt upgrade -y
+# 1. Download the script
+wget https://raw.githubusercontent.com/yourusername/ubuntu-chroot-installer/main/ubuntu_chroot_installer.sh
 
-# Install required packages
-sudo apt install -y curl proot tar xz-utils pulseaudio tigervnc-standalone-server git
+# 2. Make executable
+chmod +x ubuntu_chroot_installer.sh
 
-# Install additional useful packages
-sudo apt install -y wget nano vim
+# 3. Run installer
+su -c './ubuntu_chroot_installer.sh install xfce'
 ```
 
-### 📥 **Step 2: Download and Setup**
+## 📋 Installation Guide
+
+### **Step 1: Prepare Your Device**
+
+1. **Root your Android device** (if not already rooted)
+2. **Install Magisk** and flash Busybox module
+3. **Install Termux** from F-Droid
+4. **Install Termux X11** for desktop support
+5. **Install Termux Widget** for one-click startup
+
+### **Step 2: Run the Installer**
+
 ```bash
-# Clone the repository
-git clone https://github.com/amirmsoud16/ubuntu-chroot-pk-.git
-cd ubuntu-chroot-pk-
+# Interactive mode (recommended)
+su -c './ubuntu_chroot_installer.sh'
 
-# Make script executable
-chmod +x ubuntu_installer.sh
+# Command line mode
+su -c './ubuntu_chroot_installer.sh install xfce'  # XFCE4
+su -c './ubuntu_chroot_installer.sh install kde'   # KDE Plasma
+su -c './ubuntu_chroot_installer.sh cli'           # Command line only
 ```
 
-### 🚀 **Step 3: Run Installation**
-```bash
-# Run with sudo (recommended method)
-sudo ./ubuntu_installer.sh
+### **Step 3: First Boot**
 
-# Or with su
-su -c './ubuntu_installer.sh'
-```
-
-### ✅ **Step 4: Verify Installation**
-```bash
-# Check if Ubuntu is installed
-sudo ./ubuntu_installer.sh status
-
-# Test Ubuntu command
-ubuntu help
-```
+After installation, the script will automatically:
+- Configure DNS resolution
+- Create user accounts
+- Set up locales
+- Install essential packages
+- Configure desktop environment (if selected)
 
 ## 🎯 Usage
 
-### Interactive Menu Mode (Recommended)
+### **Interactive Menu Mode**
 ```bash
-sudo ./ubuntu_installer.sh
+su -c './ubuntu_chroot_installer.sh'
 ```
 
-This will show an interactive menu with options:
-- **1)** Install Ubuntu
-- **2)** Uninstall Ubuntu
-- **3)** Check Status
-- **4)** Help
-- **5)** Exit
+Choose from:
+- **1)** Install Ubuntu with XFCE4
+- **2)** Install Ubuntu with KDE
+- **3)** Install Ubuntu CLI only
+- **4)** Setup SSH service
+- **5)** Check status
+- **6)** Uninstall Ubuntu
+- **7)** Help
+- **8)** Exit
 
-### Command Line Mode
+### **Command Line Mode**
 ```bash
-# Install Ubuntu
-sudo ./ubuntu_installer.sh install
+# Install with desktop
+su -c './ubuntu_chroot_installer.sh install xfce'
+su -c './ubuntu_chroot_installer.sh install kde'
 
-# Uninstall Ubuntu
-sudo ./ubuntu_installer.sh uninstall
+# Install CLI only
+su -c './ubuntu_chroot_installer.sh cli'
+
+# Setup SSH
+su -c './ubuntu_chroot_installer.sh ssh'
 
 # Check status
-sudo ./ubuntu_installer.sh status
+su -c './ubuntu_chroot_installer.sh status'
+
+# Uninstall
+su -c './ubuntu_chroot_installer.sh uninstall'
 
 # Show help
-sudo ./ubuntu_installer.sh help
+su -c './ubuntu_chroot_installer.sh help'
 ```
 
-## 🖥️ After Installation
+## 🖥️ Desktop Environment
 
-### First Time Setup
-1. Run: `ubuntu cli`
-2. Inside Ubuntu, run: `./init-ubuntu.sh`
-3. Exit Ubuntu and run: `ubuntu desktop`
+### **Starting Desktop**
 
-### Using Ubuntu
+#### **Method 1: Widget Script (Recommended)**
+1. Add Termux Widget to your home screen
+2. Select `start_chrootubuntu.sh`
+3. Ubuntu desktop will start automatically
+
+#### **Method 2: Manual Start**
 ```bash
-# Start Ubuntu with desktop (VNC)
-ubuntu
+# Start X11 server
+XDG_RUNTIME_DIR=${TMPDIR} termux-x11 :0 -ac &
 
-# Start Ubuntu command line
-ubuntu cli
+# Start PulseAudio
+pulseaudio --start --exit-idle-time=-1
 
-# Stop VNC server
-ubuntu stop
+# Start virgl server
+virgl_test_server_android &
 
-# Show Ubuntu help
-ubuntu help
+# Start Ubuntu desktop
+su -c 'sh /data/local/tmp/startu.sh'
 ```
 
-### VNC Connection
-- **Port:** 5901
-- **Connect to:** `your-device-ip:5901`
-- **Password:** (set during first run)
+### **Desktop Environments**
 
-## 📁 Installation Path
+#### **XFCE4 (Lightweight)**
+- **Command**: `startxfce4`
+- **Size**: ~1.5GB
+- **Performance**: Excellent
+- **Recommended for**: Older devices
 
-Ubuntu will be installed to:
+#### **KDE Plasma (Full-featured)**
+- **Command**: `startplasma-x11`
+- **Size**: ~3GB
+- **Performance**: Good
+- **Recommended for**: Modern devices
+
+## 🔧 SSH Access
+
+### **Setup SSH Service**
+```bash
+su -c './ubuntu_chroot_installer.sh ssh'
 ```
-$HOME/ubuntu/
+
+### **Connect via SSH**
+```bash
+# From your computer
+ssh root@[PHONE_IP]
+
+# Default credentials
+Username: root
+Password: ubuntu123
 ```
 
-## 🔧 What Gets Installed
+### **Find IP Address**
+```bash
+# In Ubuntu chroot
+ifconfig | grep "inet " | grep -v 127.0.0.1
+```
 
-### System Packages
-- `curl` - Download manager
-- `tar` - Archive utility
-- `xz-utils` - Compression
+## 📁 File Structure
+
+```
+/data/local/tmp/
+├── chrootubuntu/          # Ubuntu rootfs
+│   ├── etc/
+│   ├── usr/
+│   ├── home/
+│   └── ...
+├── startu.sh              # Startup script
+
+$HOME/.shortcuts/
+└── start_chrootubuntu.sh  # Widget script
+```
+
+## 🔧 Configuration
+
+### **Default Credentials**
+- **Root user**: `root` / `ubuntu123`
+- **Desktop user**: `user` / `ubuntu123`
+
+### **Timezone Setup**
+The script sets timezone to `Asia/Tehran` by default. To change:
+
+```bash
+# In Ubuntu chroot
+sudo ln -sf /usr/share/zoneinfo/[YOUR_TIMEZONE] /etc/localtime
+```
+
+### **Locale Configuration**
+- **English**: `en_US.UTF-8`
+- **Persian**: `fa_IR.UTF-8`
+
+## 🚨 Troubleshooting
+
+### **Common Issues**
+
+#### **"Device not rooted" Error**
+```bash
+# Check root access
+su -c 'whoami'  # Should return 'root'
+
+# Install Magisk and Busybox
+# Then try again
+```
+
+#### **"Permission denied" Error**
+```bash
+# Make script executable
+chmod +x ubuntu_chroot_installer.sh
+
+# Run as root
+su -c './ubuntu_chroot_installer.sh'
+```
+
+#### **Desktop Won't Start**
+```bash
+# Check if Termux X11 is installed
+# Install from: https://github.com/termux/termux-x11
+
+# Check if virglrenderer is installed
+pkg install virglrenderer
+
+# Restart X11 server
+killall termux-x11
+XDG_RUNTIME_DIR=${TMPDIR} termux-x11 :0 -ac &
+```
+
+#### **SSH Connection Failed**
+```bash
+# Check if SSH service is running
+ps aux | grep sshd
+
+# Restart SSH service
+sudo systemctl restart ssh
+# or
+sudo /usr/sbin/sshd -D &
+```
+
+#### **Out of Storage**
+```bash
+# Check available space
+df -h
+
+# Clean package cache
+sudo apt clean
+sudo apt autoremove
+
+# Remove old kernels (if any)
+sudo apt autoremove --purge
+```
+
+### **Performance Optimization**
+
+#### **For Better Performance:**
+1. **Close unnecessary apps** before starting Ubuntu
+2. **Use XFCE4** instead of KDE on older devices
+3. **Increase swap space** if available
+4. **Disable animations** in desktop environment
+
+#### **For Better Compatibility:**
+1. **Update Termux** to latest version
+2. **Install virglrenderer** for hardware acceleration
+3. **Use stable Ubuntu version** (24.04 LTS)
+
+## 🔒 Security Notes
+
+### **⚠️ Important Security Considerations:**
+
+1. **Root Access**: This script requires root access and provides full system control
+2. **SSH Access**: Default passwords are used - change them after installation
+3. **Network Access**: SSH service may expose your device to network access
+4. **File Permissions**: Chroot environment has full access to mounted directories
+
+### **Security Recommendations:**
+
+1. **Change default passwords** immediately after installation
+2. **Configure firewall** if using SSH
+3. **Keep Ubuntu updated** regularly
+4. **Use strong passwords** for all accounts
+5. **Disable SSH** if not needed
+
+## 📊 System Information
+
+### **What Gets Installed:**
+
+#### **System Packages:**
+- `curl`, `wget` - Download utilities
+- `tar`, `xz-utils` - Archive utilities
 - `pulseaudio` - Audio support
-- `tigervnc-standalone-server` - VNC server
+- `busybox` - Essential utilities
 
-### Ubuntu Packages
-- `xfce4` - Desktop environment
-- `xfce4-goodies` - Additional XFCE tools
-- `tightvncserver` - VNC server (installed inside Ubuntu)
-- `dbus-x11` - Desktop bus
+#### **Ubuntu Packages:**
+- `xfce4` or `kubuntu-desktop` - Desktop environment
 - `firefox-esr` - Web browser
 - `gedit` - Text editor
 - `gimp` - Image editor
 - `vlc` - Media player
+- `openssh-server` - SSH service
+- `sudo`, `vim`, `git` - Development tools
 
-## 🗂️ Files Created
-
-- `$HOME/ubuntu/` - Ubuntu rootfs directory
-- `$HOME/ubuntu` - Ubuntu command script
-- `$HOME/ubuntu-service` - Service management script
-- `$HOME/.shortcuts/Ubuntu` - Desktop shortcut
-- `$HOME/.vnc/` - VNC configuration
-
-## 🚨 Troubleshooting
-
-### Common Issues
-
-**Root Access Required**
-- Make sure your device is rooted
-- Test root access: `su -c 'whoami'` (should return 'root')
-- Run with: `su -c './ubuntu_installer.sh'`
-
-**pkg: command not found**
-- Make sure you're running in Termux app
-- Install Termux from F-Droid (recommended)
-- Don't run in regular terminal or other environments
-
-**Download Failed**
-- Check internet connection
-- Try again: `su -c './ubuntu_installer.sh install'`
-- Use WiFi instead of mobile data
-
-**VNC Connection Failed**
-- Check if VNC server is running: `vncserver -list`
-- Restart VNC: `vncserver -kill :1 && vncserver -localhost no`
-- Install VNC Viewer app
-
-**Ubuntu Won't Start**
-- Check status: `su -c './ubuntu_installer.sh status'`
-- Reinstall: `su -c './ubuntu_installer.sh uninstall && ./ubuntu_installer.sh install'`
-- Check available storage: `df -h`
-
-**Permission Denied**
-- Make script executable: `chmod +x ubuntu_installer.sh`
-- Run as root: `su -c './ubuntu_installer.sh'`
-- Check file permissions: `ls -la ubuntu_installer.sh`
-
-**Out of Storage**
-- Free up space: `pkg clean`
-- Remove old packages: `pkg autoremove`
-- Check storage: `df -h /data/data/com.termux/files/home`
-
-### Logs
-- Ubuntu logs: `$HOME/ubuntu.log`
-- VNC logs: `$HOME/.vnc/`
-
-## 🔒 Security Note
-
-**⚠️ Warning:** This script requires root access and uses real chroot. This provides:
-- **Full system access** within the chroot environment
-- **Maximum performance** and compatibility
-- **Complete isolation** from the host system
-- **Potential security risks** if misused
-
-## 🤝 Contributing
-
-1. Fork the repository: [https://github.com/amirmsoud16/ubuntu-chroot-pk-](https://github.com/amirmsoud16/ubuntu-chroot-pk-)
-2. Create a feature branch: `git checkout -b feature-name`
-3. Commit changes: `git commit -am 'Add feature'`
-4. Push to branch: `git push origin feature-name`
-5. Submit a pull request
+### **Performance Metrics:**
+- **Boot Time**: ~30-60 seconds
+- **Memory Usage**: 1-2GB (XFCE4), 2-3GB (KDE)
+- **Storage Usage**: 5-8GB (depending on desktop)
+- **CPU Usage**: 10-30% (idle)
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
-- [Andronix](https://github.com/AndronixApp) for Ubuntu rootfs
-- Termux community for Android Linux support
-- XFCE team for lightweight desktop environment
-- [amirmsoud16](https://github.com/amirmsoud16) for the original project
+- **[Ivon's Blog](https://ivonblog.com/en-us/posts/termux-chroot-ubuntu/)** - Original guide and inspiration
+- **[Termux](https://termux.com/)** - Android terminal emulator
+- **[Ubuntu](https://ubuntu.com/)** - Linux distribution
+- **[XFCE](https://xfce.org/)** - Lightweight desktop environment
+- **[KDE](https://kde.org/)** - Plasma desktop environment
+- **Android Linux community** - Support and testing
 
 ## 📞 Support
 
-If you encounter any issues:
-1. Check the troubleshooting section
-2. Search existing issues at [GitHub Issues](https://github.com/amirmsoud16/ubuntu-chroot-pk-/issues)
-3. Create a new issue with detailed information
+### **Getting Help:**
+
+1. **Check the troubleshooting section** above
+2. **Search existing issues** on GitHub
+3. **Create a new issue** with detailed information:
+   - Android version
+   - Device model
+   - Error messages
+   - Steps to reproduce
+
+### **Useful Links:**
+- **[Termux Wiki](https://wiki.termux.com/)**
+- **[Ubuntu Documentation](https://ubuntu.com/tutorials)**
+- **[Android Rooting Guide](https://www.xda-developers.com/root/)**
 
 ---
 
-**⭐ Star this repository if it helped you!**
+## ⭐ Star This Repository
 
-**🔴 Remember: Root access is required for this installer!** 
+If this project helped you, please give it a star! It motivates us to continue improving the installer.
+
+## 🔄 Updates
+
+Stay updated with the latest features and improvements:
+
+```bash
+# Check for updates
+wget -O ubuntu_chroot_installer.sh https://raw.githubusercontent.com/yourusername/ubuntu-chroot-installer/main/ubuntu_chroot_installer.sh
+
+# Reinstall with latest version
+su -c './ubuntu_chroot_installer.sh uninstall'
+su -c './ubuntu_chroot_installer.sh install xfce'
+```
+
+---
+
+**🔴 Remember: Root access is required for this installer!**
+
+**📱 Enjoy your Ubuntu experience on Android!** 
