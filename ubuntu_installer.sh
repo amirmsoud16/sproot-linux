@@ -107,15 +107,52 @@ print_status "Using repository: $WORKING_REPO"
 print_status "Installing essential packages..."
 pkg install -y curl proot tar xz-utils pulseaudio
 
-# Install desktop packages
-print_status "Installing desktop packages..."
-# Try to install desktop packages
-if ! pkg install -y tigervnc xfce4 xfce4-terminal 2>/dev/null; then
-    print_warning "Desktop packages not found in current repository, trying alternative packages..."
-    # Try alternative package names
-    pkg install -y tigervnc xfce4-terminal || pkg install -y tigervnc
-    print_warning "Some desktop packages may not be available. Ubuntu will still work with basic VNC."
+# Install desktop packages manually
+print_status "Installing desktop packages manually..."
+
+# Create packages directory
+mkdir -p "$HOME/ubuntu-packages"
+cd "$HOME/ubuntu-packages"
+
+# Download and install tigervnc manually
+print_status "Downloading and installing tigervnc..."
+# Try different sources for tigervnc
+TIGERVNC_SOURCES=(
+    "https://packages.termux.dev/apt/termux-main/pool/main/t/tigervnc/tigervnc_1.13.1_aarch64.deb"
+    "https://grimler.se/termux-packages-24/pool/main/t/tigervnc/tigervnc_1.13.1_aarch64.deb"
+    "https://mirror.quantum5.ca/termux/termux-main/pool/main/t/tigervnc/tigervnc_1.13.1_aarch64.deb"
+)
+
+TIGERVNC_INSTALLED=false
+for source in "${TIGERVNC_SOURCES[@]}"; do
+    if download_file "$source" "tigervnc.deb" 2>/dev/null; then
+        if dpkg -i tigervnc.deb 2>/dev/null; then
+            print_status "✅ tigervnc installed successfully!"
+            TIGERVNC_INSTALLED=true
+            break
+        fi
+    fi
+done
+
+if [ "$TIGERVNC_INSTALLED" = false ]; then
+    print_warning "tigervnc installation failed, will try alternative method"
 fi
+
+# Download and install xfce4-terminal manually
+print_status "Downloading and installing xfce4-terminal..."
+download_file "https://packages.termux.dev/apt/termux-main/pool/main/x/xfce4-terminal/xfce4-terminal_1.1.4_aarch64.deb" "xfce4-terminal.deb"
+dpkg -i xfce4-terminal.deb 2>/dev/null || print_warning "xfce4-terminal installation failed"
+
+# Try to install xfce4 if available
+print_status "Trying to install xfce4..."
+download_file "https://packages.termux.dev/apt/termux-main/pool/main/x/xfce4/xfce4_4.18.4_aarch64.deb" "xfce4.deb"
+dpkg -i xfce4.deb 2>/dev/null || print_warning "xfce4 installation failed, will use basic VNC"
+
+# Clean up downloaded packages
+cd "$HOME"
+rm -rf "$HOME/ubuntu-packages"
+
+print_status "Desktop packages installation completed!"
 
 # Create Ubuntu directory
 UBUNTU_DIR="$HOME/ubuntu"
