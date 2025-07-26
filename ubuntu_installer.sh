@@ -64,15 +64,15 @@ pkg upgrade -y
 print_status "Setting up Termux repository..."
 # Try different repositories automatically
 REPOSITORIES=(
+    "https://packages.termux.dev/apt/termux-main"
     "https://grimler.se/termux-packages-24"
     "https://mirror.quantum5.ca/termux/termux-main"
-    "https://packages.termux.dev/apt/termux-main"
 )
 
 REPO_NAMES=(
+    "Termux Official"
     "Grimler (Europe)"
     "Quantum5 (Canada)"
-    "Termux Official"
 )
 
 WORKING_REPO=""
@@ -109,7 +109,13 @@ pkg install -y curl proot tar xz-utils pulseaudio
 
 # Install desktop packages
 print_status "Installing desktop packages..."
-pkg install -y tigervnc xfce4 xfce4-terminal
+# Try to install desktop packages
+if ! pkg install -y tigervnc xfce4 xfce4-terminal 2>/dev/null; then
+    print_warning "Desktop packages not found in current repository, trying alternative packages..."
+    # Try alternative package names
+    pkg install -y tigervnc xfce4-terminal || pkg install -y tigervnc
+    print_warning "Some desktop packages may not be available. Ubuntu will still work with basic VNC."
+fi
 
 # Create Ubuntu directory
 UBUNTU_DIR="$HOME/ubuntu"

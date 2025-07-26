@@ -21,6 +21,9 @@ curl -s https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/ubu
 
 **Note:** The installer will automatically find and set up the best working repository for your location.
 
+### If you get package errors:
+The installer will try alternative packages if the main ones are not available. Ubuntu will still work with basic VNC functionality.
+
 ## 📱 Features
 
 - ✅ Ubuntu 22.04 LTS with chroot
