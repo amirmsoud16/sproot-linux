@@ -66,7 +66,7 @@ install_ubuntu() {
     
     # Install required packages
 print_info "Installing required packages..."
-pkg install -y curl tar xz-utils pulseaudio
+pkg install -y curl tar xz-utils pulseaudio tigervnc
     
     # Create Ubuntu directory
     UBUNTU_DIR="$HOME/ubuntu"
@@ -352,7 +352,7 @@ fi
     echo "  ✅ PATH modifications"
     echo ""
     print_warn "Note: Termux packages (curl, etc.) were not removed."
-    print_warn "If you want to remove them too, run: pkg remove curl tar xz-utils pulseaudio tigervnc xfce4 xfce4-terminal"
+    print_warn "If you want to remove them too, run: pkg remove curl tar xz-utils pulseaudio tigervnc"
     echo ""
     print_info "Thank you for using Ubuntu on Termux!"
     

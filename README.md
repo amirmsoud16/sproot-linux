@@ -13,10 +13,24 @@ A unified script for installing and managing Ubuntu on Termux with VNC support.
 
 ## 📋 Requirements
 
-- Android device with Termux installed
-- **Rooted device** (required for chroot)
-- Internet connection for download
-- At least 2GB free storage space
+**⚠️ Important Prerequisites:**
+- **Rooted Android device** (essential for chroot functionality)
+- **Termux app** installed from F-Droid or GitHub
+- **Internet connection** for downloading Ubuntu rootfs (~2GB)
+- **At least 3GB free storage** (Ubuntu + packages)
+- **VNC Viewer app** for desktop access (optional but recommended)
+
+### 🔧 Install Prerequisites:
+```bash
+# Update Termux packages
+pkg update && pkg upgrade
+
+# Install required packages
+pkg install -y curl tar xz-utils pulseaudio tigervnc
+
+# Install Git (for cloning repository)
+pkg install -y git
+```
 
 ## 🛠️ Installation
 
@@ -109,6 +123,7 @@ ubuntu-manager-termux/
 - `tar` - Archive utility
 - `xz-utils` - Compression
 - `pulseaudio` - Audio support
+- `tigervnc` - VNC server for remote desktop
 
 ### Ubuntu Packages
 - `xfce4` - Desktop environment
