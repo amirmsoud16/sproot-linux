@@ -26,7 +26,7 @@ A unified script for installing and managing Ubuntu on Termux with VNC support.
 pkg update && pkg upgrade
 
 # Install required packages
-pkg install -y curl tar xz-utils pulseaudio tigervnc
+pkg install -y curl tar xz-utils pulseaudio
 
 # Install Git (for cloning repository)
 pkg install -y git
