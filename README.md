@@ -14,22 +14,9 @@ pkg update && pkg upgrade
 pkg install curl
 ```
 
-### Step 3: Test the connection (optional)
-```bash
-curl -s https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/test_installer.sh | bash
-```
-
-### Step 4: Run the installer
+### Step 3: Run the installer
 ```bash
 curl -s https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/ubuntu_installer.sh | bash
-```
-
-### Alternative: Manual download
-If the above doesn't work, try:
-```bash
-curl -L -o ubuntu_installer.sh https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/ubuntu_installer.sh
-chmod +x ubuntu_installer.sh
-./ubuntu_installer.sh
 ```
 
 ## 📱 Features
