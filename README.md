@@ -141,8 +141,11 @@ ubuntu
 
 ### Problem: Internet connection
 ```bash
-echo 'nameserver 8.8.8.8' > /etc/resolv.conf
-echo 'nameserver 8.8.4.4' >> /etc/resolv.conf
+rm -f /etc/resolv.conf
+cat > /etc/resolv.conf <<EOF
+nameserver 8.8.8.8
+nameserver 8.8.4.4
+EOF
 ```
 
 ## 📊 Minimum Requirements
