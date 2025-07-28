@@ -33,7 +33,7 @@ pkg install wget curl proot tar git nano vim -y
 ### روش 1: دانلود و اجرای مستقیم
 ```bash
 # دانلود نصب کننده
-wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk/ubuntu_chroot_installer.sh
+wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk/main/ubuntu_chroot_installer.sh
 
 # دادن مجوز اجرا
 chmod +x ubuntu_chroot_installer.sh
@@ -45,7 +45,7 @@ chmod +x ubuntu_chroot_installer.sh
 ### روش 2: استفاده از اسکریپت نصب خودکار
 ```bash
 # دانلود اسکریپت نصب
-wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk/install.sh
+wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk/main/install.sh
 
 # دادن مجوز اجرا
 chmod +x install.sh
