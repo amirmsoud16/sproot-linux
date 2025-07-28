@@ -179,7 +179,7 @@ EOF
     # Set proper permissions for full root access
     chmod -R 755 $INSTALL_DIR
     chown -R root:root $INSTALL_DIR 2>/dev/null || true
-
+    
 # Fix permissions first
 echo "🔧 Fixing permissions..."
 chmod 755 /var/lib/dpkg 2>/dev/null || true
@@ -457,6 +457,11 @@ dpkg --configure -a 2>/dev/null || true
 apt --fix-broken install -y 2>/dev/null || true
 apt clean 2>/dev/null || true
 
+# Update and install tools
+echo "📦 Updating and installing tools..."
+apt update -y
+apt install -y curl wget git nano vim build-essential python3 python3-pip nodejs npm htop neofetch unzip zip tar net-tools iputils-ping sudo
+EOF
         chmod +x $INSTALL_DIR/ubuntu-setup.sh
         print_success "Basic setup script created!"
     fi
@@ -601,6 +606,11 @@ dpkg --configure -a 2>/dev/null || true
 apt --fix-broken install -y 2>/dev/null || true
 apt clean 2>/dev/null || true
 
+# Update and install tools
+echo "📦 Updating and installing tools..."
+apt update -y
+apt install -y curl wget git nano vim build-essential python3 python3-pip nodejs npm htop neofetch unzip zip tar net-tools iputils-ping sudo
+EOF
         chmod +x $INSTALL_DIR/ubuntu-setup.sh
         print_success "Basic setup script created!"
     fi
@@ -745,6 +755,11 @@ dpkg --configure -a 2>/dev/null || true
 apt --fix-broken install -y 2>/dev/null || true
 apt clean 2>/dev/null || true
 
+# Update and install tools
+echo "📦 Updating and installing tools..."
+apt update -y
+apt install -y curl wget git nano vim build-essential python3 python3-pip nodejs npm htop neofetch unzip zip tar net-tools iputils-ping sudo
+EOF
         chmod +x $INSTALL_DIR/ubuntu-setup.sh
         print_success "Basic setup script created!"
     fi
