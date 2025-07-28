@@ -51,15 +51,19 @@ chmod +x install.sh
 After installation, you can use these aliases:
 ```
 ubuntu18
+ubuntu18-username
 ```
 ```
 ubuntu20
+ubuntu20-username
 ```
 ```
 ubuntu22
+ubuntu22-username
 ```
 ```
 ubuntu24
+ubuntu24-username
 ```
 #🎯fixer net and install tools ubuntu
 ```
