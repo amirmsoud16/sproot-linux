@@ -44,25 +44,7 @@ chmod +x install.sh
 
 ---
 
-###🎯After installation and exiting Termux, to re-access:
-
-####🎯Method 1: Direct Access (chroot)
-```bash
-cd ~/ubuntu/ubuntu18-rootfs
-./start-ubuntu-18.04.sh
-```
-```
-cd ~/ubuntu/ubuntu20-rootfs
-./start-ubuntu-20.04.sh
-```
-```
-cd ~/ubuntu/ubuntu22-rootfs
-./start-ubuntu-22.04.sh
-```
-```
-cd ~/ubuntu/ubuntu24-rootfs
-./start-ubuntu-24.04.sh
-```
+###🎯After installation
 
 #🎯fixer net and install tools ubuntu
 ```
