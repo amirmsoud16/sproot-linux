@@ -52,18 +52,22 @@ After installation, you can use these aliases:
 ```
 ubuntu18
 ubuntu18-username
+fix-internet-18
 ```
 ```
 ubuntu20
 ubuntu20-username
+fix-internet-20
 ```
 ```
 ubuntu22
 ubuntu22-username
+fix-internet-22
 ```
 ```
 ubuntu24
 ubuntu24-username
+fix-internet-24
 ```
 #🎯fixer net and install tools ubuntu
 ```
