@@ -14,8 +14,8 @@
 
 ```bash
 # در ترماکس
-git clone https://github.com/your-username/ubuntu-chroot-gui-installer.git
-cd ubuntu-chroot-gui-installer
+git clone https://github.com/amirmsoud16/ubuntu-chroot-pk-.git
+cd ubuntu-chroot-pk-
 chmod +x run_gui_installer.sh
 ./run_gui_installer.sh
 ```
@@ -23,8 +23,8 @@ chmod +x run_gui_installer.sh
 یا دانلود مستقیم:
 ```bash
 # در ترماکس
-wget https://raw.githubusercontent.com/your-username/ubuntu-chroot-gui-installer/main/ubuntu_chroot_gui.py
-wget https://raw.githubusercontent.com/your-username/ubuntu-chroot-gui-installer/main/run_gui_installer.sh
+wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/ubuntu_chroot_gui.py
+wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/run_gui_installer.sh
 chmod +x run_gui_installer.sh
 ./run_gui_installer.sh
 ```
@@ -129,8 +129,8 @@ pkg install wget curl proot tar -y
 ### مرحله 2: اجرای رابط گرافیکی
 ```bash
 # دانلود و اجرا
-git clone https://github.com/your-username/ubuntu-chroot-gui-installer.git
-cd ubuntu-chroot-gui-installer
+git clone https://github.com/amirmsoud16/ubuntu-chroot-pk-.git
+cd ubuntu-chroot-pk-
 chmod +x run_gui_installer.sh
 ./run_gui_installer.sh
 ```
@@ -195,7 +195,7 @@ chmod +x run_gui_installer.sh
 
 مشارکت‌های شما در بهبود این پروژه بسیار ارزشمند است! لطفاً:
 
-1. این repository را fork کنید
+1. این repository را fork کنید: https://github.com/amirmsoud16/ubuntu-chroot-pk-
 2. یک branch جدید برای feature خود ایجاد کنید (`git checkout -b feature/AmazingFeature`)
 3. تغییرات خود را commit کنید (`git commit -m 'Add some AmazingFeature'`)
 4. به branch خود push کنید (`git push origin feature/AmazingFeature`)

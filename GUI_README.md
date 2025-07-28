@@ -87,11 +87,11 @@ pkg install wget curl proot tar -y
 
 ### مرحله 2: اجرای رابط گرافیکی
 ```bash
-# دانلود اسکریپت‌ها
-wget https://raw.githubusercontent.com/your-repo/ubuntu_chroot_gui.py
-
-# اجرای رابط گرافیکی
-python3 ubuntu_chroot_gui.py
+# دانلود از GitHub
+git clone https://github.com/amirmsoud16/ubuntu-chroot-pk-.git
+cd ubuntu-chroot-pk-
+chmod +x run_gui_installer.sh
+./run_gui_installer.sh
 ```
 
 ### مرحله 3: استفاده از منو
