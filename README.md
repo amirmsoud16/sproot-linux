@@ -97,54 +97,6 @@ chmod +x install.sh
 
 ---
 
-## 🔧 Fix Chroot Symbolic Links
-
-### If you encounter issues with broken symbolic links in chroot installations:
-
-#### Method 1: Using the Installer
-```bash
-./install.sh
-# Select option 3: Fix Chroot Links
-# Choose to check status or fix links
-```
-
-#### Method 2: Check Links Status
-```bash
-./install.sh
-# Select option 3: Fix Chroot Links
-# Select option 1: Check links status
-# Choose specific Ubuntu version to check
-```
-
-#### Method 3: Fix All Installations
-```bash
-./install.sh
-# Select option 3: Fix Chroot Links
-# Select option 2: Fix all chroot installations
-```
-
-#### Method 4: Fix Specific Installation
-```bash
-./install.sh
-# Select option 3: Fix Chroot Links
-# Select option 3: Fix specific chroot installation
-# Enter Ubuntu version (e.g., 22.04)
-```
-
-### Common Links Fixed:
-- `/bin/sh` → `/bin/bash`
-- `/usr/bin/python` → `/usr/bin/python3`
-- `/usr/bin/python2` → `/usr/bin/python3`
-- `/usr/bin/gcc` → `/usr/bin/gcc-{version}`
-- `/usr/bin/g++` → `/usr/bin/g++-{version}`
-- `/usr/bin/vi` → `/usr/bin/vim.tiny`
-- `/usr/bin/vim` → `/usr/bin/vim.tiny`
-- `/usr/bin/editor` → `/usr/bin/nano`
-- `/usr/bin/awk` → `/usr/bin/gawk`
-- `/usr/bin/more` → `/usr/bin/less`
-
-## 🔄 Re-access Ubuntu
-
 ### After installation and exiting Termux, to re-access:
 
 #### Method 1: Direct Access
