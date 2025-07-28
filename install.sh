@@ -79,9 +79,10 @@ print_menu() {
     echo -e "\n${WHITE}Available Options:${NC}"
     echo -e "${BLUE}1.${NC} System Check & Preparation"
     echo -e "${BLUE}2.${NC} Install Ubuntu (Chroot/Proot)"
-    echo -e "${BLUE}3.${NC} Remove Ubuntu"
-    echo -e "${BLUE}4.${NC} Access Ubuntu"
-    echo -e "${BLUE}5.${NC} Exit"
+    echo -e "${BLUE}3.${NC} Fix Chroot Links"
+    echo -e "${BLUE}4.${NC} Remove Ubuntu"
+    echo -e "${BLUE}5.${NC} Access Ubuntu"
+    echo -e "${BLUE}6.${NC} Exit"
     echo ""
 }
 
@@ -168,7 +169,19 @@ nameserver 8.8.4.4
 nameserver 1.1.1.1
 EOF
     
-    # Create start script
+    # Fix groups file to prevent group ID errors
+    cat >> $INSTALL_DIR/etc/group <<'EOF'
+3003:3003:3003
+9997:9997:9997
+20238:20238:20238
+50238:50238:50238
+EOF
+    
+    # Set proper permissions for full root access
+    chmod -R 755 $INSTALL_DIR
+    chown -R root:root $INSTALL_DIR 2>/dev/null || true
+    
+    # Create start script with full root access
     cat > start-ubuntu-18.04.sh <<'EOF'
 #!/bin/bash
 unset LD_PRELOAD
@@ -249,7 +262,19 @@ nameserver 8.8.4.4
 nameserver 1.1.1.1
 EOF
     
-    # Create start script
+    # Fix groups file to prevent group ID errors
+    cat >> $INSTALL_DIR/etc/group <<'EOF'
+3003:3003:3003
+9997:9997:9997
+20238:20238:20238
+50238:50238:50238
+EOF
+    
+    # Set proper permissions for full root access
+    chmod -R 755 $INSTALL_DIR
+    chown -R root:root $INSTALL_DIR 2>/dev/null || true
+    
+    # Create start script with full root access
     cat > start-ubuntu-20.04.sh <<'EOF'
 #!/bin/bash
 unset LD_PRELOAD
@@ -330,7 +355,19 @@ nameserver 8.8.4.4
 nameserver 1.1.1.1
 EOF
     
-    # Create start script
+    # Fix groups file to prevent group ID errors
+    cat >> $INSTALL_DIR/etc/group <<'EOF'
+3003:3003:3003
+9997:9997:9997
+20238:20238:20238
+50238:50238:50238
+EOF
+    
+    # Set proper permissions for full root access
+    chmod -R 755 $INSTALL_DIR
+    chown -R root:root $INSTALL_DIR 2>/dev/null || true
+    
+    # Create start script with full root access
     cat > start-ubuntu-22.04.sh <<'EOF'
 #!/bin/bash
 unset LD_PRELOAD
@@ -411,7 +448,19 @@ nameserver 8.8.4.4
 nameserver 1.1.1.1
 EOF
     
-    # Create start script
+    # Fix groups file to prevent group ID errors
+    cat >> $INSTALL_DIR/etc/group <<'EOF'
+3003:3003:3003
+9997:9997:9997
+20238:20238:20238
+50238:50238:50238
+EOF
+    
+    # Set proper permissions for full root access
+    chmod -R 755 $INSTALL_DIR
+    chown -R root:root $INSTALL_DIR 2>/dev/null || true
+    
+    # Create start script with full root access
     cat > start-ubuntu-24.04.sh <<'EOF'
 #!/bin/bash
 unset LD_PRELOAD
