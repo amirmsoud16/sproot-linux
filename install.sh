@@ -180,15 +180,6 @@ EOF
     chmod -R 755 $INSTALL_DIR
     chown -R root:root $INSTALL_DIR 2>/dev/null || true
     
-    # Always recreate resolv.conf as the last step
-    rm -f $INSTALL_DIR/etc/resolv.conf
-    mkdir -p $INSTALL_DIR/etc
-    cat > $INSTALL_DIR/etc/resolv.conf <<'EOF'
-nameserver 8.8.8.8
-nameserver 8.8.4.4
-nameserver 1.1.1.1
-EOF
-    
     # Create start script with limited root access and network support
     cat > start-ubuntu-18.04.sh <<'EOF'
 #!/bin/bash
@@ -239,6 +230,32 @@ install_ubuntu_18_04_chroot() {
         if [[ "$result" == "chroot_success" ]]; then
             print_success_box "Ubuntu 18.04 (Chroot) installed successfully!"
             print_status "To enter Ubuntu: cd $HOME/ubuntu/ubuntu18-rootfs && ./start-ubuntu-18.04.sh"
+            
+            # Create alias for quick access
+            echo 'alias ubuntu18="cd ~/ubuntu/ubuntu18-rootfs && ./start-ubuntu-18.04.sh"' >> ~/.bashrc
+            source ~/.bashrc
+            print_status "Quick access alias created: type 'ubuntu18' to enter Ubuntu 18.04"
+            
+            # Ask user what to do next
+            echo ""
+            echo -e "${CYAN}What would you like to do next?${NC}"
+            echo -e "${BLUE}1.${NC} Enter Ubuntu 18.04 directly"
+            echo -e "${BLUE}2.${NC} Return to main menu"
+            echo ""
+            read -p "Enter your choice (1-2): " post_install_choice
+            
+            case $post_install_choice in
+                1)
+                    print_status "Entering Ubuntu 18.04..."
+                    cd $HOME/ubuntu/ubuntu18-rootfs && ./start-ubuntu-18.04.sh
+                    ;;
+                2)
+                    print_status "Returning to main menu..."
+                    ;;
+                *)
+                    print_status "Returning to main menu..."
+                    ;;
+            esac
         elif [[ "$result" == "chroot_failed" ]]; then
             print_error_box "Failed to download Ubuntu 18.04 rootfs"
             print_status "Please check your internet connection and try again"
@@ -299,15 +316,6 @@ EOF
     chmod -R 755 $INSTALL_DIR
     chown -R root:root $INSTALL_DIR 2>/dev/null || true
     
-    # Always recreate resolv.conf as the last step
-    rm -f $INSTALL_DIR/etc/resolv.conf
-    mkdir -p $INSTALL_DIR/etc
-    cat > $INSTALL_DIR/etc/resolv.conf <<'EOF'
-nameserver 8.8.8.8
-nameserver 8.8.4.4
-nameserver 1.1.1.1
-EOF
-    
     # Create start script with limited root access and network support
     cat > start-ubuntu-20.04.sh <<'EOF'
 #!/bin/bash
@@ -358,6 +366,32 @@ install_ubuntu_20_04_chroot() {
         if [[ "$result" == "chroot_success" ]]; then
             print_success_box "Ubuntu 20.04 (Chroot) installed successfully!"
             print_status "To enter Ubuntu: cd $HOME/ubuntu/ubuntu20-rootfs && ./start-ubuntu-20.04.sh"
+            
+            # Create alias for quick access
+            echo 'alias ubuntu20="cd ~/ubuntu/ubuntu20-rootfs && ./start-ubuntu-20.04.sh"' >> ~/.bashrc
+            source ~/.bashrc
+            print_status "Quick access alias created: type 'ubuntu20' to enter Ubuntu 20.04"
+            
+            # Ask user what to do next
+            echo ""
+            echo -e "${CYAN}What would you like to do next?${NC}"
+            echo -e "${BLUE}1.${NC} Enter Ubuntu 20.04 directly"
+            echo -e "${BLUE}2.${NC} Return to main menu"
+            echo ""
+            read -p "Enter your choice (1-2): " post_install_choice
+            
+            case $post_install_choice in
+                1)
+                    print_status "Entering Ubuntu 20.04..."
+                    cd $HOME/ubuntu/ubuntu20-rootfs && ./start-ubuntu-20.04.sh
+                    ;;
+                2)
+                    print_status "Returning to main menu..."
+                    ;;
+                *)
+                    print_status "Returning to main menu..."
+                    ;;
+            esac
         elif [[ "$result" == "chroot_failed" ]]; then
             print_error_box "Failed to download Ubuntu 20.04 rootfs"
             print_status "Please check your internet connection and try again"
@@ -418,15 +452,6 @@ EOF
     chmod -R 755 $INSTALL_DIR
     chown -R root:root $INSTALL_DIR 2>/dev/null || true
     
-    # Always recreate resolv.conf as the last step
-    rm -f $INSTALL_DIR/etc/resolv.conf
-    mkdir -p $INSTALL_DIR/etc
-    cat > $INSTALL_DIR/etc/resolv.conf <<'EOF'
-nameserver 8.8.8.8
-nameserver 8.8.4.4
-nameserver 1.1.1.1
-EOF
-    
     # Create start script with limited root access and network support
     cat > start-ubuntu-22.04.sh <<'EOF'
 #!/bin/bash
@@ -477,6 +502,32 @@ install_ubuntu_22_04_chroot() {
         if [[ "$result" == "chroot_success" ]]; then
             print_success_box "Ubuntu 22.04 (Chroot) installed successfully!"
             print_status "To enter Ubuntu: cd $HOME/ubuntu/ubuntu22-rootfs && ./start-ubuntu-22.04.sh"
+            
+            # Create alias for quick access
+            echo 'alias ubuntu22="cd ~/ubuntu/ubuntu22-rootfs && ./start-ubuntu-22.04.sh"' >> ~/.bashrc
+            source ~/.bashrc
+            print_status "Quick access alias created: type 'ubuntu22' to enter Ubuntu 22.04"
+            
+            # Ask user what to do next
+            echo ""
+            echo -e "${CYAN}What would you like to do next?${NC}"
+            echo -e "${BLUE}1.${NC} Enter Ubuntu 22.04 directly"
+            echo -e "${BLUE}2.${NC} Return to main menu"
+            echo ""
+            read -p "Enter your choice (1-2): " post_install_choice
+            
+            case $post_install_choice in
+                1)
+                    print_status "Entering Ubuntu 22.04..."
+                    cd $HOME/ubuntu/ubuntu22-rootfs && ./start-ubuntu-22.04.sh
+                    ;;
+                2)
+                    print_status "Returning to main menu..."
+                    ;;
+                *)
+                    print_status "Returning to main menu..."
+                    ;;
+            esac
         elif [[ "$result" == "chroot_failed" ]]; then
             print_error_box "Failed to download Ubuntu 22.04 rootfs"
             print_status "Please check your internet connection and try again"
@@ -537,15 +588,6 @@ EOF
     chmod -R 755 $INSTALL_DIR
     chown -R root:root $INSTALL_DIR 2>/dev/null || true
     
-    # Always recreate resolv.conf as the last step
-    rm -f $INSTALL_DIR/etc/resolv.conf
-    mkdir -p $INSTALL_DIR/etc
-    cat > $INSTALL_DIR/etc/resolv.conf <<'EOF'
-nameserver 8.8.8.8
-nameserver 8.8.4.4
-nameserver 1.1.1.1
-EOF
-    
     # Create start script with limited root access and network support
     cat > start-ubuntu-24.04.sh <<'EOF'
 #!/bin/bash
@@ -596,6 +638,32 @@ install_ubuntu_24_04_chroot() {
         if [[ "$result" == "chroot_success" ]]; then
             print_success_box "Ubuntu 24.04 (Chroot) installed successfully!"
             print_status "To enter Ubuntu: cd $HOME/ubuntu/ubuntu24-rootfs && ./start-ubuntu-24.04.sh"
+            
+            # Create alias for quick access
+            echo 'alias ubuntu24="cd ~/ubuntu/ubuntu24-rootfs && ./start-ubuntu-24.04.sh"' >> ~/.bashrc
+            source ~/.bashrc
+            print_status "Quick access alias created: type 'ubuntu24' to enter Ubuntu 24.04"
+            
+            # Ask user what to do next
+            echo ""
+            echo -e "${CYAN}What would you like to do next?${NC}"
+            echo -e "${BLUE}1.${NC} Enter Ubuntu 24.04 directly"
+            echo -e "${BLUE}2.${NC} Return to main menu"
+            echo ""
+            read -p "Enter your choice (1-2): " post_install_choice
+            
+            case $post_install_choice in
+                1)
+                    print_status "Entering Ubuntu 24.04..."
+                    cd $HOME/ubuntu/ubuntu24-rootfs && ./start-ubuntu-24.04.sh
+                    ;;
+                2)
+                    print_status "Returning to main menu..."
+                    ;;
+                *)
+                    print_status "Returning to main menu..."
+                    ;;
+            esac
         elif [[ "$result" == "chroot_failed" ]]; then
             print_error_box "Failed to download Ubuntu 24.04 rootfs"
             print_status "Please check your internet connection and try again"
