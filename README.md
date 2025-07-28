@@ -41,14 +41,14 @@ cd ubuntu-chroot-pk-
 
 ### 2️⃣ Update Termux
 ```bash
-pkg update -y
-pkg upgrade -y
+apt update -y
+apt upgrade -y
 ```
 
 ### 3️⃣ Install Required Packages
 ```bash
 # Install required tools
-pkg install wget curl proot tar git nano vim -y
+apt install wget curl proot tar git nano vim -y
 ```
 
 ---
