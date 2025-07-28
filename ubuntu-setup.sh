@@ -38,6 +38,7 @@ fix_permissions() {
     chmod 755 /var/lib/dpkg 2>/dev/null || true
     chmod 755 /var/lib/dpkg/info 2>/dev/null || true
     chmod 755 /var/lib/dpkg/updates 2>/dev/null || true
+    chmod 755 /var/lib/dpkg/triggers 2>/dev/null || true
     
     # Fix dpkg status file permissions
     print_status "Fixing dpkg status file permissions..."
@@ -48,21 +49,39 @@ fix_permissions() {
     print_status "Cleaning dpkg backup files..."
     rm -f /var/lib/dpkg/status-old
     rm -f /var/lib/dpkg/status.backup
+    rm -f /var/lib/dpkg/status-*
     
-    # Fix library permissions
+    # Fix library permissions - more comprehensive
     print_status "Fixing library permissions..."
     find /usr/lib -name "*.so*" -exec chmod 755 {} \; 2>/dev/null || true
     find /usr/lib/aarch64-linux-gnu -name "*.so*" -exec chmod 755 {} \; 2>/dev/null || true
+    find /lib -name "*.so*" -exec chmod 755 {} \; 2>/dev/null || true
+    find /lib/aarch64-linux-gnu -name "*.so*" -exec chmod 755 {} \; 2>/dev/null || true
+    
+    # Fix specific problematic libraries
+    print_status "Fixing specific library permissions..."
+    chmod 755 /usr/lib/aarch64-linux-gnu/libsqlite3.so.0.8.6 2>/dev/null || true
+    chmod 755 /usr/lib/aarch64-linux-gnu/libgnutls.so.30.31.0 2>/dev/null || true
+    chmod 755 /usr/lib/aarch64-linux-gnu/libsqlite3.so.0 2>/dev/null || true
+    chmod 755 /usr/lib/aarch64-linux-gnu/libgnutls.so.30 2>/dev/null || true
     
     # Fix apt cache permissions
     print_status "Fixing apt cache permissions..."
     chmod 755 /var/cache/apt 2>/dev/null || true
     chmod 755 /var/cache/apt/archives 2>/dev/null || true
+    chmod 755 /var/cache/apt/archives/partial 2>/dev/null || true
     
     # Fix tmp directory permissions
     print_status "Fixing tmp directory permissions..."
     chmod 1777 /tmp 2>/dev/null || true
     chmod 1777 /var/tmp 2>/dev/null || true
+    
+    # Fix dpkg lock files
+    print_status "Removing dpkg lock files..."
+    rm -f /var/lib/dpkg/lock 2>/dev/null || true
+    rm -f /var/lib/dpkg/lock-frontend 2>/dev/null || true
+    rm -f /var/cache/apt/archives/lock 2>/dev/null || true
+    rm -f /var/lib/apt/lists/lock 2>/dev/null || true
     
     print_success "Permission issues fixed"
 }
@@ -71,24 +90,74 @@ fix_permissions() {
 fix_apt_issues() {
     print_status "🔧 Fixing apt/dpkg issues..."
     
+    # Force remove all lock files
+    print_status "Removing all lock files..."
+    rm -f /var/lib/dpkg/lock* 2>/dev/null || true
+    rm -f /var/cache/apt/archives/lock 2>/dev/null || true
+    rm -f /var/lib/apt/lists/lock 2>/dev/null || true
+    
     # Configure dpkg to handle broken packages
     print_status "Configuring dpkg..."
     dpkg --configure -a 2>/dev/null || true
+    
+    # Force configure all packages
+    print_status "Force configuring all packages..."
+    dpkg --configure --pending 2>/dev/null || true
     
     # Fix broken packages
     print_status "Fixing broken packages..."
     apt --fix-broken install -y 2>/dev/null || true
     
-    # Clean apt cache
+    # Clean apt cache completely
     print_status "Cleaning apt cache..."
     apt clean 2>/dev/null || true
     apt autoclean 2>/dev/null || true
+    rm -rf /var/cache/apt/archives/* 2>/dev/null || true
     
     # Reconfigure packages
     print_status "Reconfiguring packages..."
     dpkg-reconfigure -a 2>/dev/null || true
     
+    # Force update package lists
+    print_status "Force updating package lists..."
+    rm -f /var/lib/apt/lists/lock 2>/dev/null || true
+    apt update --fix-missing 2>/dev/null || true
+    
     print_success "Apt/dpkg issues fixed"
+}
+
+# Function to fix specific dpkg backup issues
+fix_dpkg_backup_issues() {
+    print_status "🔧 Fixing dpkg backup issues..."
+    
+    # Remove all backup files that might cause issues
+    print_status "Removing problematic backup files..."
+    rm -f /var/lib/dpkg/status-old
+    rm -f /var/lib/dpkg/status.backup
+    rm -f /var/lib/dpkg/status-*
+    rm -f /var/lib/dpkg/info/*.old
+    rm -f /var/lib/dpkg/info/*.backup
+    
+    # Fix library backup issues
+    print_status "Fixing library backup issues..."
+    find /usr/lib -name "*.so*.old" -delete 2>/dev/null || true
+    find /usr/lib/aarch64-linux-gnu -name "*.so*.old" -delete 2>/dev/null || true
+    find /lib -name "*.so*.old" -delete 2>/dev/null || true
+    find /lib/aarch64-linux-gnu -name "*.so*.old" -delete 2>/dev/null || true
+    
+    # Force remove specific problematic files
+    print_status "Removing specific problematic files..."
+    rm -f /usr/lib/aarch64-linux-gnu/libsqlite3.so.0.8.6.old 2>/dev/null || true
+    rm -f /usr/lib/aarch64-linux-gnu/libgnutls.so.30.31.0.old 2>/dev/null || true
+    
+    # Create fresh status file if needed
+    print_status "Ensuring fresh dpkg status..."
+    if [ ! -f /var/lib/dpkg/status ]; then
+        touch /var/lib/dpkg/status
+        chmod 644 /var/lib/dpkg/status
+    fi
+    
+    print_success "Dpkg backup issues fixed"
 }
 
 # Function to install packages with retry mechanism
@@ -323,6 +392,9 @@ main() {
     
     # Fix permission issues
     fix_permissions
+    
+    # Fix dpkg backup issues
+    fix_dpkg_backup_issues
     
     # Fix apt/dpkg issues
     fix_apt_issues
