@@ -103,13 +103,16 @@ chmod +x install.sh
 ```bash
 cd ~/ubuntu/ubuntu18-rootfs
 ./start-ubuntu-18.04.sh
-
+```
+```
 cd ~/ubuntu/ubuntu20-rootfs
 ./start-ubuntu-20.04.sh
-
+```
+```
 cd ~/ubuntu/ubuntu22-rootfs
 ./start-ubuntu-22.04.sh
-
+```
+```
 cd ~/ubuntu/ubuntu24-rootfs
 ./start-ubuntu-24.04.sh
 ```
@@ -119,15 +122,18 @@ cd ~/ubuntu/ubuntu24-rootfs
 echo 'alias ubuntu="cd ~/ubuntu/ubuntu18-rootfs && ./start-ubuntu-18.04.sh"' >> ~/.bashrc
 source ~/.bashrc
 ubuntu
-
+```
+```
 echo 'alias ubuntu="cd ~/ubuntu/ubuntu20-rootfs && ./start-ubuntu-20.04.sh"' >> ~/.bashrc
 source ~/.bashrc
 ubuntu
-
+```
+```
 echo 'alias ubuntu="cd ~/ubuntu/ubuntu22-rootfs && ./start-ubuntu-22.04.sh"' >> ~/.bashrc
 source ~/.bashrc
 ubuntu
-
+```
+```
 echo 'alias ubuntu="cd ~/ubuntu/ubuntu24-rootfs && ./start-ubuntu-24.04.sh"' >> ~/.bashrc
 source ~/.bashrc
 ubuntu
