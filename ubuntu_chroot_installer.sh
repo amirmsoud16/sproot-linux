@@ -44,7 +44,7 @@ print_header() {
 print_menu() {
     echo -e "\n${WHITE}Available Options:${NC}"
     echo -e "${BLUE}1.${NC} System Check & Preparation"
-    echo -e "${BLUE}2.${NC} Install Ubuntu"
+    echo -e "${BLUE}2.${NC} Install Ubuntu (Chroot/Proot)"
     echo -e "${BLUE}3.${NC} Remove Ubuntu"
     echo -e "${BLUE}4.${NC} Access Ubuntu"
     echo -e "${BLUE}5.${NC} Exit"
@@ -476,27 +476,49 @@ access_ubuntu() {
     esac
 }
 
+# Unified install menu for chroot/proot
+install_ubuntu_menu() {
+    print_header
+    echo -e "${WHITE}Select installation method:${NC}"
+    echo -e "${BLUE}1.${NC} Chroot (برای دستگاه روت شده)"
+    echo -e "${BLUE}2.${NC} Proot (بدون نیاز به روت)"
+    echo -e "${BLUE}3.${NC} بازگشت به منوی اصلی"
+    read -p "Enter your choice (1-3): " method_choice
+    case $method_choice in
+        1)
+            install_ubuntu_chroot
+            ;;
+        2)
+            install_ubuntu_proot
+            ;;
+        3)
+            return
+            ;;
+        *)
+            print_warning "Invalid choice. Returning to main menu."
+            ;;
+    esac
+}
+
 # Main menu function
 main_menu() {
     while true; do
         print_header
         print_menu
         
-        echo -e "${BLUE}6.${NC} Install Ubuntu (Proot)"  # Add to menu
-        read -p "Enter your choice (1-6): " choice
+        read -p "Enter your choice (1-5): " choice
         
         case $choice in
             1) system_check ;;
-            2) install_ubuntu_chroot ;;
+            2) install_ubuntu_menu ;;
             3) remove_ubuntu ;;
             4) access_ubuntu ;;
             5) 
                 print_status "Exiting..."
                 exit 0
                 ;;
-            6) install_ubuntu_proot ;;
             *)
-                print_error "Invalid choice. Please enter 1-6."
+                print_error "Invalid choice. Please enter 1-5."
                 ;;
         esac
         
