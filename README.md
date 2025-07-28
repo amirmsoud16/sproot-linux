@@ -46,6 +46,17 @@ chmod +x install.sh
 
 ###🎯After installation
 
+### Quick Access Commands:
+
+After installation, you can use these aliases:
+```
+ubuntu18
+ubuntu20
+ubuntu22
+ubuntu24
+```
+```
+```
 #🎯fixer net and install tools ubuntu
 ```
 wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/ubuntu-setup.sh
