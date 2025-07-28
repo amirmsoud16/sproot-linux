@@ -23,7 +23,7 @@ chmod +x install.sh
 
 ### 📦 Method 2: Git Clone (Complete)
 ```bash
-pkg install git -y
+apt install git -y
 git clone https://github.com/amirmsoud16/ubuntu-chroot-pk-.git
 cd ubuntu-chroot-pk-
 ./install.sh
@@ -41,14 +41,14 @@ cd ubuntu-chroot-pk-
 
 ### 2️⃣ Update Termux
 ```bash
-pkg update -y
-pkg upgrade -y
+apt update -y
+apt upgrade -y
 ```
 
 ### 3️⃣ Install Required Packages
 ```bash
 # Install required tools
-pkg install wget curl proot tar git nano vim -y
+apt install wget curl proot tar git nano vim -y
 ```
 
 ---
