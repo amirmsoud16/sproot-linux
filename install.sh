@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Ubuntu Chroot Installer - Quick Setup Script
-# This script downloads and sets up the Ubuntu Chroot installer
+# پروژه گیت‌هاب: https://github.com/amirmsoud16/ubuntu-chroot-pk-
 
 # Colors
 GREEN='\033[0;32m'
@@ -12,6 +12,7 @@ NC='\033[0m' # No Color
 
 echo -e "${BLUE}================================${NC}"
 echo -e "${BLUE}  Ubuntu Chroot Installer${NC}"
+echo -e "${BLUE}  گیت‌هاب: https://github.com/amirmsoud16/ubuntu-chroot-pk-${NC}"
 echo -e "${BLUE}================================${NC}"
 echo ""
 
@@ -33,7 +34,7 @@ pkg install wget curl proot tar git nano vim -y
 
 # Download the installer
 echo -e "${YELLOW}Downloading Ubuntu Chroot installer...${NC}"
-wget -O ubuntu_chroot_installer.sh https://raw.githubusercontent.com/your-repo/ubuntu_chroot_installer.sh
+wget -O ubuntu_chroot_installer.sh https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/ubuntu_chroot_installer.sh
 
 if [[ $? -eq 0 ]]; then
     echo -e "${GREEN}✓ Installer downloaded successfully${NC}"

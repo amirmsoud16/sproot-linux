@@ -1,8 +1,28 @@
 # Ubuntu Chroot Installer for Termux
 
+[مشاهده پروژه در گیت‌هاب](https://github.com/amirmsoud16/ubuntu-chroot-pk-)
+
 ## 🚀 نصب کننده اوبونتو برای ترماکس
 
 یک نصب کننده کامل و آسان برای اوبونتو روی ترماکس با استفاده از اسکریپت‌های شل.
+
+---
+
+## 📥 لینک دانلود مستقیم از گیت‌هاب
+
+- صفحه پروژه: [https://github.com/amirmsoud16/ubuntu-chroot-pk-](https://github.com/amirmsoud16/ubuntu-chroot-pk-)
+- دانلود نصب‌کننده اصلی:
+  ```bash
+  wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/ubuntu_chroot_installer.sh
+  chmod +x ubuntu_chroot_installer.sh
+  ./ubuntu_chroot_installer.sh
+  ```
+- دانلود اسکریپت نصب خودکار:
+  ```bash
+  wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/install.sh
+  chmod +x install.sh
+  ./install.sh
+  ```
 
 ---
 
@@ -30,27 +50,17 @@ pkg install wget curl proot tar git nano vim -y
 
 ## 🚀 نحوه اجرا
 
-### روش 1: دانلود و اجرای مستقیم
+### روش 1: دانلود و اجرای مستقیم از گیت‌هاب
 ```bash
-# دانلود نصب کننده
-wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk/main/ubuntu_chroot_installer.sh
-
-# دادن مجوز اجرا
+wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/ubuntu_chroot_installer.sh
 chmod +x ubuntu_chroot_installer.sh
-
-# اجرای نصب کننده
 ./ubuntu_chroot_installer.sh
 ```
 
 ### روش 2: استفاده از اسکریپت نصب خودکار
 ```bash
-# دانلود اسکریپت نصب
-wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk/main/install.sh
-
-# دادن مجوز اجرا
+wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/install.sh
 chmod +x install.sh
-
-# اجرای اسکریپت نصب
 ./install.sh
 ```
 
@@ -108,45 +118,31 @@ chmod +x install.sh
 
 #### روش 1: دسترسی مستقیم
 ```bash
-# وارد شدن به ترماکس
-# سپس اجرای دستور زیر:
 cd ~/ubuntu
 ./start-ubuntu.sh
 ```
 
 #### روش 2: دسترسی با VNC (برای رابط گرافیکی)
 ```bash
-# وارد شدن به ترماکس
-# راه‌اندازی VNC Server
 vncserver :1 -geometry 1280x720 -depth 24
-
-# اجرای اوبونتو با VNC
 cd ~/ubuntu
 ./start-ubuntu-vnc.sh
 ```
 
 #### روش 3: دسترسی سریع
 ```bash
-# ایجاد alias برای دسترسی آسان
 echo 'alias ubuntu="cd ~/ubuntu && ./start-ubuntu.sh"' >> ~/.bashrc
 source ~/.bashrc
-
-# حالا فقط کافی است بنویسید:
 ubuntu
 ```
 
 #### روش 4: دسترسی با دسکتاپ گرافیکی
 ```bash
-# نصب LXDE (اگر نصب نشده)
 cd ~/ubuntu
 ./install-lxde.sh
-
-# راه‌اندازی VNC و دسکتاپ
 ./setup-vnc.sh
 vncserver :1 -geometry 1280x720 -depth 24
-
-# اتصال با VNC Viewer
-# آدرس: localhost:5901
+# اتصال با VNC Viewer به localhost:5901
 ```
 
 ### 📱 دسترسی از خارج ترماکس:
@@ -158,10 +154,7 @@ vncserver :1 -geometry 1280x720 -depth 24
 
 #### استفاده از Termux:API:
 ```bash
-# نصب Termux:API
 pkg install termux-api
-
-# باز کردن VNC Viewer
 termux-open-url vnc://localhost:5901
 ```
 
@@ -171,40 +164,31 @@ termux-open-url vnc://localhost:5901
 
 ### مشکل: فایل start-ubuntu.sh پیدا نمی‌شود
 ```bash
-# بررسی وجود فایل‌ها
 ls -la ~/ubuntu/
-
-# اگر فایل وجود ندارد، دوباره نصب کنید
 ./ubuntu_chroot_installer.sh
 ```
 
 ### مشکل: خطای مجوز
 ```bash
-# تنظیم مجوزهای فایل‌ها
 chmod +x ~/ubuntu/*.sh
 chmod 755 ~/ubuntu
 ```
 
 ### مشکل: VNC کار نمی‌کند
 ```bash
-# راه‌اندازی مجدد VNC
 vncserver -kill :1
 vncserver :1 -geometry 1280x720 -depth 24
-
-# بررسی وضعیت VNC
 ps aux | grep vnc
 ```
 
 ### مشکل: فضای دیسک کم
 ```bash
-# پاکسازی کش
 pkg clean
 apt clean
 ```
 
 ### مشکل: اتصال اینترنت
 ```bash
-# تنظیم DNS
 echo 'nameserver 8.8.8.8' > /etc/resolv.conf
 echo 'nameserver 8.8.4.4' >> /etc/resolv.conf
 ```
@@ -213,12 +197,12 @@ echo 'nameserver 8.8.4.4' >> /etc/resolv.conf
 
 ## 📊 حداقل نیازمندی‌ها
 
-| مورد | حداقل | پیشنهادی |
-|------|--------|-----------|
-| **رم** | 2GB | 4GB+ |
-| **فضای دیسک** | 4GB | 8GB+ |
-| **اندروید** | 7.0+ | 10.0+ |
-| **معماری** | ARM64 | ARM64 |
+| مورد          | حداقل | پیشنهادی |
+| ------------- | ----- | -------- |
+| **رم**        | 2GB   | 4GB+     |
+| **فضای دیسک** | 4GB   | 8GB+     |
+| **اندروید**   | 7.0+  | 10.0+    |
+| **معماری**    | ARM64 | ARM64    |
 
 ---
 
@@ -235,16 +219,9 @@ echo 'nameserver 8.8.4.4' >> /etc/resolv.conf
 ## 📋 دستورات مفید
 
 ```bash
-# بررسی وضعیت اوبونتو
 ls -la ~/ubuntu/
-
-# مشاهده لاگ‌های اوبونتو
 cat ~/ubuntu/ubuntu.log
-
-# پاکسازی فایل‌های موقت
 cd ~/ubuntu && rm -rf tmp/*
-
-# به‌روزرسانی اوبونتو
 cd ~/ubuntu && ./post-install.sh
 ```
 
