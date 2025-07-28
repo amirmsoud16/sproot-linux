@@ -212,6 +212,126 @@ EOF
     echo "chroot_success" > $HOME/ubuntu_install_result
 }
 
+# Function to setup user account in Ubuntu
+setup_ubuntu_user() {
+    local version=$1
+    local install_dir=$2
+    
+    print_header
+    echo -e "${WHITE}Ubuntu ${version} User Setup${NC}"
+    echo ""
+    
+    # Get username
+    read -p "Enter username for Ubuntu ${version}: " ubuntu_username
+    if [[ -z "$ubuntu_username" ]]; then
+        ubuntu_username="ubuntu"
+    fi
+    
+    # Get password
+    echo -n "Enter password for user '$ubuntu_username': "
+    read -s ubuntu_password
+    echo ""
+    echo -n "Confirm password: "
+    read -s ubuntu_password_confirm
+    echo ""
+    
+    if [[ "$ubuntu_password" != "$ubuntu_password_confirm" ]]; then
+        print_error "Passwords do not match!"
+        return 1
+    fi
+    
+    # Create user in Ubuntu chroot
+    print_status "Creating user '$ubuntu_username' in Ubuntu ${version}..."
+    
+    # Create user setup script
+    cat > $install_dir/setup-user.sh <<'EOF'
+#!/bin/bash
+# Create user and set password
+useradd -m -s /bin/bash $1
+echo "$1:$2" | chpasswd
+
+# Add user to sudo group
+usermod -aG sudo $1
+
+# Configure sudo without password
+echo "$1 ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+
+# Create .bashrc for user
+cat > /home/$1/.bashrc << 'BASHRC'
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+export HOME="/home/$1"
+export USER="$1"
+export TERM="$TERM"
+export LANG=C.UTF-8
+cd /home/$1
+BASHRC
+
+chown $1:$1 /home/$1/.bashrc
+chmod 644 /home/$1/.bashrc
+
+echo "User $1 created successfully!"
+EOF
+    
+    chmod +x $install_dir/setup-user.sh
+    
+    # Execute user setup in chroot
+    cd $install_dir
+    proot -0 -r . -b /dev -b /proc -b /sys -w / /bin/bash -c "./setup-user.sh '$ubuntu_username' '$ubuntu_password'"
+    
+    # Create start scripts
+    # Root access script
+    cat > $install_dir/start-ubuntu-${version}.sh <<EOF
+#!/bin/bash
+unset LD_PRELOAD
+
+# Function to get password
+get_password() {
+    echo -n "Enter password for root access: "
+    read -s password
+    echo ""
+    echo "\$password"
+}
+
+# Check password
+password=\$(get_password)
+if [[ "\$password" == "$ubuntu_password" ]]; then
+    proot -0 -r \$HOME/ubuntu/ubuntu${version}-rootfs \\
+        -b /dev -b /proc -b /sys \\
+        -b \$HOME:/root \\
+        -w /root /usr/bin/env -i HOME=/root TERM="\$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/bash --login
+else
+    echo "Incorrect password!"
+    exit 1
+fi
+EOF
+    
+    # User access script
+    cat > $install_dir/start-ubuntu-${version}-${ubuntu_username}.sh <<EOF
+#!/bin/bash
+unset LD_PRELOAD
+
+proot -0 -r \$HOME/ubuntu/ubuntu${version}-rootfs \\
+    -b /dev -b /proc -b /sys \\
+    -b \$HOME:/home/$ubuntu_username \\
+    -w /home/$ubuntu_username /usr/bin/env -i HOME=/home/$ubuntu_username TERM="\$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/bash --login
+EOF
+    
+    chmod +x $install_dir/start-ubuntu-${version}.sh
+    chmod +x $install_dir/start-ubuntu-${version}-${ubuntu_username}.sh
+    
+    # Create aliases
+    echo "alias ubuntu${version}=\"cd ~/ubuntu/ubuntu${version}-rootfs && ./start-ubuntu-${version}.sh\"" >> ~/.bashrc
+    echo "alias ubuntu${version}-${ubuntu_username}=\"cd ~/ubuntu/ubuntu${version}-rootfs && ./start-ubuntu-${version}-${ubuntu_username}.sh\"" >> ~/.bashrc
+    source ~/.bashrc
+    
+    print_success "User '$ubuntu_username' created successfully!"
+    print_status "Commands available:"
+    print_status "  ubuntu${version} - Enter as root (password required)"
+    print_status "  ubuntu${version}-${ubuntu_username} - Enter as user '$ubuntu_username'"
+    
+    return 0
+}
+
 # Function to install Ubuntu 18.04 (Chroot) - Main function
 install_ubuntu_18_04_chroot() {
     print_status "Installing Ubuntu 18.04 (Chroot)..."
@@ -233,34 +353,37 @@ install_ubuntu_18_04_chroot() {
         
         if [[ "$result" == "chroot_success" ]]; then
             print_success_box "Ubuntu 18.04 (Chroot) installed successfully!"
-            print_status "To enter Ubuntu: cd $HOME/ubuntu/ubuntu18-rootfs && ./start-ubuntu-18.04.sh"
-            print_status "💡 To setup Ubuntu with all tools: ubuntu18 && ./ubuntu-setup.sh"
             
-            # Create alias for quick access
-            echo 'alias ubuntu18="cd ~/ubuntu/ubuntu18-rootfs && ./start-ubuntu-18.04.sh"' >> ~/.bashrc
-            source ~/.bashrc
-            print_status "Quick access alias created: type 'ubuntu18' to enter Ubuntu 18.04"
-            
-            # Ask user what to do next
-            echo ""
-            echo -e "${CYAN}What would you like to do next?${NC}"
-            echo -e "${BLUE}1.${NC} Enter Ubuntu 18.04 directly"
-            echo -e "${BLUE}2.${NC} Return to main menu"
-            echo ""
-            read -p "Enter your choice (1-2): " post_install_choice
-            
-            case $post_install_choice in
-                1)
-                    print_status "Entering Ubuntu 18.04..."
-                    cd $HOME/ubuntu/ubuntu18-rootfs && ./start-ubuntu-18.04.sh
-                    ;;
-                2)
-                    print_status "Returning to main menu..."
-                    ;;
-                *)
-                    print_status "Returning to main menu..."
-                    ;;
-            esac
+            # Setup user account
+            if setup_ubuntu_user "18.04" "$HOME/ubuntu/ubuntu18-rootfs"; then
+                # Ask user what to do next
+                echo ""
+                echo -e "${CYAN}What would you like to do next?${NC}"
+                echo -e "${BLUE}1.${NC} Enter Ubuntu 18.04 as root"
+                echo -e "${BLUE}2.${NC} Enter Ubuntu 18.04 as user"
+                echo -e "${BLUE}3.${NC} Return to main menu"
+                echo ""
+                read -p "Enter your choice (1-3): " post_install_choice
+                
+                case $post_install_choice in
+                    1)
+                        print_status "Entering Ubuntu 18.04 as root..."
+                        cd $HOME/ubuntu/ubuntu18-rootfs && ./start-ubuntu-18.04.sh
+                        ;;
+                    2)
+                        print_status "Entering Ubuntu 18.04 as user..."
+                        cd $HOME/ubuntu/ubuntu18-rootfs && ./start-ubuntu-18.04-${ubuntu_username}.sh
+                        ;;
+                    3)
+                        print_status "Returning to main menu..."
+                        ;;
+                    *)
+                        print_status "Returning to main menu..."
+                        ;;
+                esac
+            else
+                print_error "Failed to setup user account"
+            fi
         elif [[ "$result" == "chroot_failed" ]]; then
             print_error_box "Failed to download Ubuntu 18.04 rootfs"
             print_status "Please check your internet connection and try again"
@@ -374,34 +497,37 @@ install_ubuntu_20_04_chroot() {
         
         if [[ "$result" == "chroot_success" ]]; then
             print_success_box "Ubuntu 20.04 (Chroot) installed successfully!"
-            print_status "To enter Ubuntu: cd $HOME/ubuntu/ubuntu20-rootfs && ./start-ubuntu-20.04.sh"
-            print_status "💡 To setup Ubuntu with all tools: ubuntu20 && ./ubuntu-setup.sh"
             
-            # Create alias for quick access
-            echo 'alias ubuntu20="cd ~/ubuntu/ubuntu20-rootfs && ./start-ubuntu-20.04.sh"' >> ~/.bashrc
-            source ~/.bashrc
-            print_status "Quick access alias created: type 'ubuntu20' to enter Ubuntu 20.04"
-            
-            # Ask user what to do next
-            echo ""
-            echo -e "${CYAN}What would you like to do next?${NC}"
-            echo -e "${BLUE}1.${NC} Enter Ubuntu 20.04 directly"
-            echo -e "${BLUE}2.${NC} Return to main menu"
-            echo ""
-            read -p "Enter your choice (1-2): " post_install_choice
-            
-            case $post_install_choice in
-                1)
-                    print_status "Entering Ubuntu 20.04..."
-                    cd $HOME/ubuntu/ubuntu20-rootfs && ./start-ubuntu-20.04.sh
-                    ;;
-                2)
-                    print_status "Returning to main menu..."
-                    ;;
-                *)
-                    print_status "Returning to main menu..."
-                    ;;
-            esac
+            # Setup user account
+            if setup_ubuntu_user "20.04" "$HOME/ubuntu/ubuntu20-rootfs"; then
+                # Ask user what to do next
+                echo ""
+                echo -e "${CYAN}What would you like to do next?${NC}"
+                echo -e "${BLUE}1.${NC} Enter Ubuntu 20.04 as root"
+                echo -e "${BLUE}2.${NC} Enter Ubuntu 20.04 as user"
+                echo -e "${BLUE}3.${NC} Return to main menu"
+                echo ""
+                read -p "Enter your choice (1-3): " post_install_choice
+                
+                case $post_install_choice in
+                    1)
+                        print_status "Entering Ubuntu 20.04 as root..."
+                        cd $HOME/ubuntu/ubuntu20-rootfs && ./start-ubuntu-20.04.sh
+                        ;;
+                    2)
+                        print_status "Entering Ubuntu 20.04 as user..."
+                        cd $HOME/ubuntu/ubuntu20-rootfs && ./start-ubuntu-20.04-${ubuntu_username}.sh
+                        ;;
+                    3)
+                        print_status "Returning to main menu..."
+                        ;;
+                    *)
+                        print_status "Returning to main menu..."
+                        ;;
+                esac
+            else
+                print_error "Failed to setup user account"
+            fi
         elif [[ "$result" == "chroot_failed" ]]; then
             print_error_box "Failed to download Ubuntu 20.04 rootfs"
             print_status "Please check your internet connection and try again"
@@ -515,34 +641,37 @@ install_ubuntu_22_04_chroot() {
         
         if [[ "$result" == "chroot_success" ]]; then
             print_success_box "Ubuntu 22.04 (Chroot) installed successfully!"
-            print_status "To enter Ubuntu: cd $HOME/ubuntu/ubuntu22-rootfs && ./start-ubuntu-22.04.sh"
-            print_status "💡 To setup Ubuntu with all tools: ubuntu22 && ./ubuntu-setup.sh"
             
-            # Create alias for quick access
-            echo 'alias ubuntu22="cd ~/ubuntu/ubuntu22-rootfs && ./start-ubuntu-22.04.sh"' >> ~/.bashrc
-            source ~/.bashrc
-            print_status "Quick access alias created: type 'ubuntu22' to enter Ubuntu 22.04"
-            
-            # Ask user what to do next
-            echo ""
-            echo -e "${CYAN}What would you like to do next?${NC}"
-            echo -e "${BLUE}1.${NC} Enter Ubuntu 22.04 directly"
-            echo -e "${BLUE}2.${NC} Return to main menu"
-            echo ""
-            read -p "Enter your choice (1-2): " post_install_choice
-            
-            case $post_install_choice in
-                1)
-                    print_status "Entering Ubuntu 22.04..."
-                    cd $HOME/ubuntu/ubuntu22-rootfs && ./start-ubuntu-22.04.sh
-                    ;;
-                2)
-                    print_status "Returning to main menu..."
-                    ;;
-                *)
-                    print_status "Returning to main menu..."
-                    ;;
-            esac
+            # Setup user account
+            if setup_ubuntu_user "22.04" "$HOME/ubuntu/ubuntu22-rootfs"; then
+                # Ask user what to do next
+                echo ""
+                echo -e "${CYAN}What would you like to do next?${NC}"
+                echo -e "${BLUE}1.${NC} Enter Ubuntu 22.04 as root"
+                echo -e "${BLUE}2.${NC} Enter Ubuntu 22.04 as user"
+                echo -e "${BLUE}3.${NC} Return to main menu"
+                echo ""
+                read -p "Enter your choice (1-3): " post_install_choice
+                
+                case $post_install_choice in
+                    1)
+                        print_status "Entering Ubuntu 22.04 as root..."
+                        cd $HOME/ubuntu/ubuntu22-rootfs && ./start-ubuntu-22.04.sh
+                        ;;
+                    2)
+                        print_status "Entering Ubuntu 22.04 as user..."
+                        cd $HOME/ubuntu/ubuntu22-rootfs && ./start-ubuntu-22.04-${ubuntu_username}.sh
+                        ;;
+                    3)
+                        print_status "Returning to main menu..."
+                        ;;
+                    *)
+                        print_status "Returning to main menu..."
+                        ;;
+                esac
+            else
+                print_error "Failed to setup user account"
+            fi
         elif [[ "$result" == "chroot_failed" ]]; then
             print_error_box "Failed to download Ubuntu 22.04 rootfs"
             print_status "Please check your internet connection and try again"
@@ -656,34 +785,37 @@ install_ubuntu_24_04_chroot() {
         
         if [[ "$result" == "chroot_success" ]]; then
             print_success_box "Ubuntu 24.04 (Chroot) installed successfully!"
-            print_status "To enter Ubuntu: cd $HOME/ubuntu/ubuntu24-rootfs && ./start-ubuntu-24.04.sh"
-            print_status "💡 To setup Ubuntu with all tools: ubuntu24 && ./ubuntu-setup.sh"
             
-            # Create alias for quick access
-            echo 'alias ubuntu24="cd ~/ubuntu/ubuntu24-rootfs && ./start-ubuntu-24.04.sh"' >> ~/.bashrc
-            source ~/.bashrc
-            print_status "Quick access alias created: type 'ubuntu24' to enter Ubuntu 24.04"
-            
-            # Ask user what to do next
-            echo ""
-            echo -e "${CYAN}What would you like to do next?${NC}"
-            echo -e "${BLUE}1.${NC} Enter Ubuntu 24.04 directly"
-            echo -e "${BLUE}2.${NC} Return to main menu"
-            echo ""
-            read -p "Enter your choice (1-2): " post_install_choice
-            
-            case $post_install_choice in
-                1)
-                    print_status "Entering Ubuntu 24.04..."
-                    cd $HOME/ubuntu/ubuntu24-rootfs && ./start-ubuntu-24.04.sh
-                    ;;
-                2)
-                    print_status "Returning to main menu..."
-                    ;;
-                *)
-                    print_status "Returning to main menu..."
-                    ;;
-            esac
+            # Setup user account
+            if setup_ubuntu_user "24.04" "$HOME/ubuntu/ubuntu24-rootfs"; then
+                # Ask user what to do next
+                echo ""
+                echo -e "${CYAN}What would you like to do next?${NC}"
+                echo -e "${BLUE}1.${NC} Enter Ubuntu 24.04 as root"
+                echo -e "${BLUE}2.${NC} Enter Ubuntu 24.04 as user"
+                echo -e "${BLUE}3.${NC} Return to main menu"
+                echo ""
+                read -p "Enter your choice (1-3): " post_install_choice
+                
+                case $post_install_choice in
+                    1)
+                        print_status "Entering Ubuntu 24.04 as root..."
+                        cd $HOME/ubuntu/ubuntu24-rootfs && ./start-ubuntu-24.04.sh
+                        ;;
+                    2)
+                        print_status "Entering Ubuntu 24.04 as user..."
+                        cd $HOME/ubuntu/ubuntu24-rootfs && ./start-ubuntu-24.04-${ubuntu_username}.sh
+                        ;;
+                    3)
+                        print_status "Returning to main menu..."
+                        ;;
+                    *)
+                        print_status "Returning to main menu..."
+                        ;;
+                esac
+            else
+                print_error "Failed to setup user account"
+            fi
         elif [[ "$result" == "chroot_failed" ]]; then
             print_error_box "Failed to download Ubuntu 24.04 rootfs"
             print_status "Please check your internet connection and try again"
