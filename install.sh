@@ -179,20 +179,6 @@ EOF
     # Set proper permissions for full root access
     chmod -R 755 $INSTALL_DIR
     chown -R root:root $INSTALL_DIR 2>/dev/null || true
-    
-    # Download ubuntu-setup.sh script
-    print_status "📥 Downloading Ubuntu setup script..."
-    if wget -q https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/ubuntu-setup.sh; then
-        chmod +x $INSTALL_DIR/ubuntu-setup.sh
-        print_success "Ubuntu setup script downloaded successfully!"
-    else
-        print_warning "Failed to download setup script, will create it manually..."
-        # Create a basic setup script if download fails
-        cat > $INSTALL_DIR/ubuntu-setup.sh << 'EOF'
-#!/bin/bash
-echo "🚀 Ubuntu Setup Script"
-echo "This script will install all essential tools for Ubuntu"
-echo ""
 
 # Fix permissions first
 echo "🔧 Fixing permissions..."
@@ -335,20 +321,6 @@ EOF
     chmod -R 755 $INSTALL_DIR
     chown -R root:root $INSTALL_DIR 2>/dev/null || true
     
-    # Download ubuntu-setup.sh script
-    print_status "📥 Downloading Ubuntu setup script..."
-    if wget -q https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/uuntu-setup.sh -O $INSTALL_DIR/ubuntu-setup.sh; then
-        chmod +x $INSTALL_DIR/ubuntu-setup.sh
-        print_success "Ubuntu setup script downloaded successfully!"
-    else
-        print_warning "Failed to download setup script, will create it manually..."
-        # Create a basic setup script if download fails
-        cat > $INSTALL_DIR/ubuntu-setup.sh << 'EOF'
-#!/bin/bash
-echo "🚀 Ubuntu Setup Script"
-echo "This script will install all essential tools for Ubuntu"
-echo ""
-
 # Fix permissions first
 echo "🔧 Fixing permissions..."
 chmod 755 /var/lib/dpkg 2>/dev/null || true
@@ -490,20 +462,6 @@ EOF
     chmod -R 755 $INSTALL_DIR
     chown -R root:root $INSTALL_DIR 2>/dev/null || true
     
-    # Download ubuntu-setup.sh script
-    print_status "📥 Downloading Ubuntu setup script..."
-    if wget -q https://raw.githubusercontent.com/your-repo/ubuntu-setup.sh -O $INSTALL_DIR/ubuntu-setup.sh; then
-        chmod +x $INSTALL_DIR/ubuntu-setup.sh
-        print_success "Ubuntu setup script downloaded successfully!"
-    else
-        print_warning "Failed to download setup script, will create it manually..."
-        # Create a basic setup script if download fails
-        cat > $INSTALL_DIR/ubuntu-setup.sh << 'EOF'
-#!/bin/bash
-echo "🚀 Ubuntu Setup Script"
-echo "This script will install all essential tools for Ubuntu"
-echo ""
-
 # Fix permissions first
 echo "🔧 Fixing permissions..."
 chmod 755 /var/lib/dpkg 2>/dev/null || true
@@ -645,20 +603,6 @@ EOF
     chmod -R 755 $INSTALL_DIR
     chown -R root:root $INSTALL_DIR 2>/dev/null || true
     
-    # Download ubuntu-setup.sh script
-    print_status "📥 Downloading Ubuntu setup script..."
-    if wget -q https://raw.githubusercontent.com/your-repo/ubuntu-setup.sh -O $INSTALL_DIR/ubuntu-setup.sh; then
-        chmod +x $INSTALL_DIR/ubuntu-setup.sh
-        print_success "Ubuntu setup script downloaded successfully!"
-    else
-        print_warning "Failed to download setup script, will create it manually..."
-        # Create a basic setup script if download fails
-        cat > $INSTALL_DIR/ubuntu-setup.sh << 'EOF'
-#!/bin/bash
-echo "🚀 Ubuntu Setup Script"
-echo "This script will install all essential tools for Ubuntu"
-echo ""
-
 # Fix permissions first
 echo "🔧 Fixing permissions..."
 chmod 755 /var/lib/dpkg 2>/dev/null || true
