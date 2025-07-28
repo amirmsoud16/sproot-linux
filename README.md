@@ -72,7 +72,10 @@ chmod +x ubuntu-setup.sh
 ```
 ```
 #run to Ubuntu
-ubuntu18  # یا ubuntu20, ubuntu22, ubuntu24
+ubuntu18-username
+ubuntu20-username
+ubuntu22-username
+ubuntu24-username
 ```
 ```
 # rub fixer
