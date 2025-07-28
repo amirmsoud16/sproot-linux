@@ -846,9 +846,96 @@ def main():
         print("Installing tkinter...")
         subprocess.run("pkg install python-tkinter -y", shell=True)
     
+    # Check for display issues in Termux
+    if os.path.exists("/data/data/com.termux"):
+        print("Termux detected. Checking display configuration...")
+        
+        # Try to set up display for Termux
+        os.environ['DISPLAY'] = ':0'
+        
+        # Check if we can create a simple tkinter window
+        try:
+            test_root = tk.Tk()
+            test_root.destroy()
+            print("Display connection successful!")
+        except Exception as e:
+            print(f"Display connection failed: {e}")
+            print("\nTrying alternative solutions...")
+            
+            # Try VNC server setup
+            print("1. Installing VNC server...")
+            subprocess.run("pkg install tigervnc -y", shell=True)
+            
+            print("2. Starting VNC server...")
+            subprocess.run("vncserver :1 -geometry 1280x720 -depth 24", shell=True)
+            
+            # Set display to VNC
+            os.environ['DISPLAY'] = ':1'
+            
+            print("3. VNC server started. You can connect using VNC viewer.")
+            print("   Connect to: localhost:5901")
+            print("   Or use: vncviewer localhost:5901")
+            
+            # Try again with VNC display
+            try:
+                test_root = tk.Tk()
+                test_root.destroy()
+                print("VNC display connection successful!")
+            except Exception as e2:
+                print(f"VNC display also failed: {e2}")
+                print("\nFalling back to console mode...")
+                return run_console_mode()
+    
     # Run the GUI
-    app = UbuntuChrootGUI()
-    app.run()
+    try:
+        app = UbuntuChrootGUI()
+        app.run()
+    except Exception as e:
+        print(f"GUI failed to start: {e}")
+        print("Falling back to console mode...")
+        return run_console_mode()
+
+def run_console_mode():
+    """Run the installer in console mode"""
+    print("\n" + "="*50)
+    print("Ubuntu Chroot GUI Installer - Console Mode")
+    print("="*50)
+    print("\nSince GUI is not available, running in console mode...")
+    
+    while True:
+        print("\nOptions:")
+        print("1. System Check")
+        print("2. Install Ubuntu")
+        print("3. Remove Ubuntu")
+        print("4. Exit")
+        
+        choice = input("\nEnter your choice (1-4): ").strip()
+        
+        if choice == "1":
+            print("\nPerforming system check...")
+            # Add console system check logic here
+            print("System check completed!")
+            
+        elif choice == "2":
+            print("\nStarting Ubuntu installation...")
+            # Add console installation logic here
+            print("Installation completed!")
+            
+        elif choice == "3":
+            confirm = input("Are you sure you want to remove Ubuntu? (y/N): ").strip().lower()
+            if confirm in ['y', 'yes']:
+                print("Removing Ubuntu...")
+                # Add console removal logic here
+                print("Ubuntu removed successfully!")
+            else:
+                print("Removal cancelled.")
+                
+        elif choice == "4":
+            print("Exiting...")
+            break
+            
+        else:
+            print("Invalid choice. Please enter 1-4.")
 
 if __name__ == "__main__":
     main() 

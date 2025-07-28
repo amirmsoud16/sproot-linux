@@ -87,6 +87,39 @@ chmod +x run_gui_installer.sh
 
 ## 🔧 عیب‌یابی:
 
+### مشکل: خطای "couldn't connect to display"
+این مشکل در Termux رایج است. راه‌حل‌ها:
+
+#### راه‌حل 1: استفاده از حالت Console
+```bash
+# اجرای نسخه console
+python3 ubuntu_chroot_console.py
+```
+
+#### راه‌حل 2: تنظیم VNC
+```bash
+# نصب VNC server
+pkg install tigervnc -y
+
+# شروع VNC server
+vncserver :1 -geometry 1280x720 -depth 24
+
+# تنظیم DISPLAY
+export DISPLAY=:1
+
+# اجرای GUI
+python3 ubuntu_chroot_gui.py
+```
+
+#### راه‌حل 3: نصب tkinter
+```bash
+# نصب tkinter
+pkg install python-tkinter -y
+
+# بررسی نصب
+python3 -c "import tkinter; print('tkinter installed')"
+```
+
 ### مشکل: رابط گرافیکی باز نمی‌شود
 ```bash
 # نصب tkinter

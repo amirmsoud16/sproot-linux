@@ -50,7 +50,24 @@ echo "3. Remove Ubuntu"
 echo "4. Exit"
 echo ""
 
-python3 ubuntu_chroot_gui.py
+# Try to run GUI first
+if python3 ubuntu_chroot_gui.py; then
+    echo "GUI installer completed successfully!"
+else
+    echo ""
+    echo "GUI failed to start. Trying console mode..."
+    echo ""
+    
+    # Check if console version exists
+    if [ -f "ubuntu_chroot_console.py" ]; then
+        echo "Starting console mode installer..."
+        python3 ubuntu_chroot_console.py
+    else
+        echo "Console version not found. Please check your installation."
+        echo "You can try running the GUI manually:"
+        echo "python3 ubuntu_chroot_gui.py"
+    fi
+fi
 
 echo ""
 echo "GUI installer completed!" 
