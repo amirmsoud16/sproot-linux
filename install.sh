@@ -180,26 +180,52 @@ EOF
     chmod -R 755 $INSTALL_DIR
     chown -R root:root $INSTALL_DIR 2>/dev/null || true
     
-    # Create start script with limited root access and network support
+    # Download ubuntu-setup.sh script
+    print_status "📥 Downloading Ubuntu setup script..."
+    if wget -q https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/buntu-setup.sh; then
+        chmod +x $INSTALL_DIR/ubuntu-setup.sh
+        print_success "Ubuntu setup script downloaded successfully!"
+    else
+        print_warning "Failed to download setup script, will create it manually..."
+        # Create a basic setup script if download fails
+        cat > $INSTALL_DIR/ubuntu-setup.sh << 'EOF'
+#!/bin/bash
+echo "🚀 Ubuntu Setup Script"
+echo "This script will install all essential tools for Ubuntu"
+echo ""
+
+# Fix permissions first
+echo "🔧 Fixing permissions..."
+chmod 755 /var/lib/dpkg 2>/dev/null || true
+chmod 644 /var/lib/dpkg/status 2>/dev/null || true
+rm -f /var/lib/dpkg/status-old
+rm -f /var/lib/dpkg/status.backup
+
+# Fix apt issues
+echo "🔧 Fixing apt issues..."
+dpkg --configure -a 2>/dev/null || true
+apt --fix-broken install -y 2>/dev/null || true
+apt clean 2>/dev/null || true
+
+# Update and install tools
+echo "📦 Updating and installing tools..."
+apt update -y
+apt install -y curl wget git nano vim build-essential python3 python3-pip nodejs npm htop neofetch unzip zip tar net-tools iputils-ping sudo
+
+echo "✅ Basic setup completed!"
+echo "💡 For full setup, run: wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/buntu-setup.sh && chmod +x ubuntu-setup.sh && ./ubuntu-setup.sh"
+EOF
+        chmod +x $INSTALL_DIR/ubuntu-setup.sh
+        print_success "Basic setup script created!"
+    fi
+    
+    # Create start script with limited root access
     cat > start-ubuntu-18.04.sh <<'EOF'
 #!/bin/bash
 unset LD_PRELOAD
 
-# Create network files (remove and recreate)
-rm -f $HOME/.resolv.conf
-echo 'nameserver 8.8.8.8' > $HOME/.resolv.conf
-echo 'nameserver 8.8.4.4' >> $HOME/.resolv.conf
-echo 'nameserver 1.1.1.1' >> $HOME/.resolv.conf
-
-if [ ! -f $HOME/.hosts ]; then
-    echo '127.0.0.1 localhost' > $HOME/.hosts
-    echo '::1 localhost ip6-localhost ip6-loopback' >> $HOME/.hosts
-fi
-
 proot -0 -r $HOME/ubuntu/ubuntu18-rootfs \
     -b /dev -b /proc -b /sys \
-    -b $HOME/.resolv.conf:/etc/resolv.conf \
-    -b $HOME/.hosts:/etc/hosts \
     -b $HOME:/root \
     -w /root /usr/bin/env -i HOME=/root TERM="$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/bash --login
 EOF
@@ -230,6 +256,7 @@ install_ubuntu_18_04_chroot() {
         if [[ "$result" == "chroot_success" ]]; then
             print_success_box "Ubuntu 18.04 (Chroot) installed successfully!"
             print_status "To enter Ubuntu: cd $HOME/ubuntu/ubuntu18-rootfs && ./start-ubuntu-18.04.sh"
+            print_status "💡 To setup Ubuntu with all tools: ubuntu18 && ./ubuntu-setup.sh"
             
             # Create alias for quick access
             echo 'alias ubuntu18="cd ~/ubuntu/ubuntu18-rootfs && ./start-ubuntu-18.04.sh"' >> ~/.bashrc
@@ -316,26 +343,52 @@ EOF
     chmod -R 755 $INSTALL_DIR
     chown -R root:root $INSTALL_DIR 2>/dev/null || true
     
-    # Create start script with limited root access and network support
+    # Download ubuntu-setup.sh script
+    print_status "📥 Downloading Ubuntu setup script..."
+    if wget -q https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/untu-setup.sh -O $INSTALL_DIR/ubuntu-setup.sh; then
+        chmod +x $INSTALL_DIR/ubuntu-setup.sh
+        print_success "Ubuntu setup script downloaded successfully!"
+    else
+        print_warning "Failed to download setup script, will create it manually..."
+        # Create a basic setup script if download fails
+        cat > $INSTALL_DIR/ubuntu-setup.sh << 'EOF'
+#!/bin/bash
+echo "🚀 Ubuntu Setup Script"
+echo "This script will install all essential tools for Ubuntu"
+echo ""
+
+# Fix permissions first
+echo "🔧 Fixing permissions..."
+chmod 755 /var/lib/dpkg 2>/dev/null || true
+chmod 644 /var/lib/dpkg/status 2>/dev/null || true
+rm -f /var/lib/dpkg/status-old
+rm -f /var/lib/dpkg/status.backup
+
+# Fix apt issues
+echo "🔧 Fixing apt issues..."
+dpkg --configure -a 2>/dev/null || true
+apt --fix-broken install -y 2>/dev/null || true
+apt clean 2>/dev/null || true
+
+# Update and install tools
+echo "📦 Updating and installing tools..."
+apt update -y
+apt install -y curl wget git nano vim build-essential python3 python3-pip nodejs npm htop neofetch unzip zip tar net-tools iputils-ping sudo
+
+echo "✅ Basic setup completed!"
+echo "💡 For full setup, run: wget https://raw.githubusercontent.com/your-repo/ubuntu-setup.sh && chmod +x ubuntu-setup.sh && ./ubuntu-setup.sh"
+EOF
+        chmod +x $INSTALL_DIR/ubuntu-setup.sh
+        print_success "Basic setup script created!"
+    fi
+    
+    # Create start script with limited root access
     cat > start-ubuntu-20.04.sh <<'EOF'
 #!/bin/bash
 unset LD_PRELOAD
 
-# Create network files (remove and recreate)
-rm -f $HOME/.resolv.conf
-echo 'nameserver 8.8.8.8' > $HOME/.resolv.conf
-echo 'nameserver 8.8.4.4' >> $HOME/.resolv.conf
-echo 'nameserver 1.1.1.1' >> $HOME/.resolv.conf
-
-if [ ! -f $HOME/.hosts ]; then
-    echo '127.0.0.1 localhost' > $HOME/.hosts
-    echo '::1 localhost ip6-localhost ip6-loopback' >> $HOME/.hosts
-fi
-
 proot -0 -r $HOME/ubuntu/ubuntu20-rootfs \
     -b /dev -b /proc -b /sys \
-    -b $HOME/.resolv.conf:/etc/resolv.conf \
-    -b $HOME/.hosts:/etc/hosts \
     -b $HOME:/root \
     -w /root /usr/bin/env -i HOME=/root TERM="$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/bash --login
 EOF
@@ -366,6 +419,7 @@ install_ubuntu_20_04_chroot() {
         if [[ "$result" == "chroot_success" ]]; then
             print_success_box "Ubuntu 20.04 (Chroot) installed successfully!"
             print_status "To enter Ubuntu: cd $HOME/ubuntu/ubuntu20-rootfs && ./start-ubuntu-20.04.sh"
+            print_status "💡 To setup Ubuntu with all tools: ubuntu20 && ./ubuntu-setup.sh"
             
             # Create alias for quick access
             echo 'alias ubuntu20="cd ~/ubuntu/ubuntu20-rootfs && ./start-ubuntu-20.04.sh"' >> ~/.bashrc
@@ -452,26 +506,52 @@ EOF
     chmod -R 755 $INSTALL_DIR
     chown -R root:root $INSTALL_DIR 2>/dev/null || true
     
-    # Create start script with limited root access and network support
+    # Download ubuntu-setup.sh script
+    print_status "📥 Downloading Ubuntu setup script..."
+    if wget -q https://raw.githubusercontent.com/your-repo/ubuntu-setup.sh -O $INSTALL_DIR/ubuntu-setup.sh; then
+        chmod +x $INSTALL_DIR/ubuntu-setup.sh
+        print_success "Ubuntu setup script downloaded successfully!"
+    else
+        print_warning "Failed to download setup script, will create it manually..."
+        # Create a basic setup script if download fails
+        cat > $INSTALL_DIR/ubuntu-setup.sh << 'EOF'
+#!/bin/bash
+echo "🚀 Ubuntu Setup Script"
+echo "This script will install all essential tools for Ubuntu"
+echo ""
+
+# Fix permissions first
+echo "🔧 Fixing permissions..."
+chmod 755 /var/lib/dpkg 2>/dev/null || true
+chmod 644 /var/lib/dpkg/status 2>/dev/null || true
+rm -f /var/lib/dpkg/status-old
+rm -f /var/lib/dpkg/status.backup
+
+# Fix apt issues
+echo "🔧 Fixing apt issues..."
+dpkg --configure -a 2>/dev/null || true
+apt --fix-broken install -y 2>/dev/null || true
+apt clean 2>/dev/null || true
+
+# Update and install tools
+echo "📦 Updating and installing tools..."
+apt update -y
+apt install -y curl wget git nano vim build-essential python3 python3-pip nodejs npm htop neofetch unzip zip tar net-tools iputils-ping sudo
+
+echo "✅ Basic setup completed!"
+echo "💡 For full setup, run: wget https://raw.githubusercontent.com/your-repo/ubuntu-setup.sh && chmod +x ubuntu-setup.sh && ./ubuntu-setup.sh"
+EOF
+        chmod +x $INSTALL_DIR/ubuntu-setup.sh
+        print_success "Basic setup script created!"
+    fi
+    
+    # Create start script with limited root access
     cat > start-ubuntu-22.04.sh <<'EOF'
 #!/bin/bash
 unset LD_PRELOAD
 
-# Create network files (remove and recreate)
-rm -f $HOME/.resolv.conf
-echo 'nameserver 8.8.8.8' > $HOME/.resolv.conf
-echo 'nameserver 8.8.4.4' >> $HOME/.resolv.conf
-echo 'nameserver 1.1.1.1' >> $HOME/.resolv.conf
-
-if [ ! -f $HOME/.hosts ]; then
-    echo '127.0.0.1 localhost' > $HOME/.hosts
-    echo '::1 localhost ip6-localhost ip6-loopback' >> $HOME/.hosts
-fi
-
 proot -0 -r $HOME/ubuntu/ubuntu22-rootfs \
     -b /dev -b /proc -b /sys \
-    -b $HOME/.resolv.conf:/etc/resolv.conf \
-    -b $HOME/.hosts:/etc/hosts \
     -b $HOME:/root \
     -w /root /usr/bin/env -i HOME=/root TERM="$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/bash --login
 EOF
@@ -502,6 +582,7 @@ install_ubuntu_22_04_chroot() {
         if [[ "$result" == "chroot_success" ]]; then
             print_success_box "Ubuntu 22.04 (Chroot) installed successfully!"
             print_status "To enter Ubuntu: cd $HOME/ubuntu/ubuntu22-rootfs && ./start-ubuntu-22.04.sh"
+            print_status "💡 To setup Ubuntu with all tools: ubuntu22 && ./ubuntu-setup.sh"
             
             # Create alias for quick access
             echo 'alias ubuntu22="cd ~/ubuntu/ubuntu22-rootfs && ./start-ubuntu-22.04.sh"' >> ~/.bashrc
@@ -588,26 +669,52 @@ EOF
     chmod -R 755 $INSTALL_DIR
     chown -R root:root $INSTALL_DIR 2>/dev/null || true
     
-    # Create start script with limited root access and network support
+    # Download ubuntu-setup.sh script
+    print_status "📥 Downloading Ubuntu setup script..."
+    if wget -q https://raw.githubusercontent.com/your-repo/ubuntu-setup.sh -O $INSTALL_DIR/ubuntu-setup.sh; then
+        chmod +x $INSTALL_DIR/ubuntu-setup.sh
+        print_success "Ubuntu setup script downloaded successfully!"
+    else
+        print_warning "Failed to download setup script, will create it manually..."
+        # Create a basic setup script if download fails
+        cat > $INSTALL_DIR/ubuntu-setup.sh << 'EOF'
+#!/bin/bash
+echo "🚀 Ubuntu Setup Script"
+echo "This script will install all essential tools for Ubuntu"
+echo ""
+
+# Fix permissions first
+echo "🔧 Fixing permissions..."
+chmod 755 /var/lib/dpkg 2>/dev/null || true
+chmod 644 /var/lib/dpkg/status 2>/dev/null || true
+rm -f /var/lib/dpkg/status-old
+rm -f /var/lib/dpkg/status.backup
+
+# Fix apt issues
+echo "🔧 Fixing apt issues..."
+dpkg --configure -a 2>/dev/null || true
+apt --fix-broken install -y 2>/dev/null || true
+apt clean 2>/dev/null || true
+
+# Update and install tools
+echo "📦 Updating and installing tools..."
+apt update -y
+apt install -y curl wget git nano vim build-essential python3 python3-pip nodejs npm htop neofetch unzip zip tar net-tools iputils-ping sudo
+
+echo "✅ Basic setup completed!"
+echo "💡 For full setup, run: wget https://raw.githubusercontent.com/your-repo/ubuntu-setup.sh && chmod +x ubuntu-setup.sh && ./ubuntu-setup.sh"
+EOF
+        chmod +x $INSTALL_DIR/ubuntu-setup.sh
+        print_success "Basic setup script created!"
+    fi
+    
+    # Create start script with limited root access
     cat > start-ubuntu-24.04.sh <<'EOF'
 #!/bin/bash
 unset LD_PRELOAD
 
-# Create network files (remove and recreate)
-rm -f $HOME/.resolv.conf
-echo 'nameserver 8.8.8.8' > $HOME/.resolv.conf
-echo 'nameserver 8.8.4.4' >> $HOME/.resolv.conf
-echo 'nameserver 1.1.1.1' >> $HOME/.resolv.conf
-
-if [ ! -f $HOME/.hosts ]; then
-    echo '127.0.0.1 localhost' > $HOME/.hosts
-    echo '::1 localhost ip6-localhost ip6-loopback' >> $HOME/.hosts
-fi
-
 proot -0 -r $HOME/ubuntu/ubuntu24-rootfs \
     -b /dev -b /proc -b /sys \
-    -b $HOME/.resolv.conf:/etc/resolv.conf \
-    -b $HOME/.hosts:/etc/hosts \
     -b $HOME:/root \
     -w /root /usr/bin/env -i HOME=/root TERM="$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/bash --login
 EOF
@@ -638,6 +745,7 @@ install_ubuntu_24_04_chroot() {
         if [[ "$result" == "chroot_success" ]]; then
             print_success_box "Ubuntu 24.04 (Chroot) installed successfully!"
             print_status "To enter Ubuntu: cd $HOME/ubuntu/ubuntu24-rootfs && ./start-ubuntu-24.04.sh"
+            print_status "💡 To setup Ubuntu with all tools: ubuntu24 && ./ubuntu-setup.sh"
             
             # Create alias for quick access
             echo 'alias ubuntu24="cd ~/ubuntu/ubuntu24-rootfs && ./start-ubuntu-24.04.sh"' >> ~/.bashrc
