@@ -316,21 +316,18 @@ install_ubuntu_18_04_chroot_background() {
     cd $INSTALL_DIR
     
     # Use reliable Ubuntu 18.04 rootfs URL for Android
-    ROOTFS_URL="https://cloud-images.ubuntu.com/bionic/20230607/bionic-server-cloudimg-arm64.tar.gz"
+    ROOTFS_URL="https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-arm64-root.tar.xz"
     
     # Download Ubuntu 18.04 rootfs
-    wget -O ubuntu-18.04-rootfs.tar.gz $ROOTFS_URL
+    wget -O ubuntu-18.04-rootfs.tar.xz $ROOTFS_URL
     
     if [[ $? -ne 0 ]]; then
         echo "chroot_failed" > $HOME/ubuntu_install_result
         return
     fi
     
-    # Extract gz file
-    tar -xzf ubuntu-18.04-rootfs.tar.gz --exclude='./dev'
-    
-    # Extract rootfs
-    tar -xzf ubuntu-18.04-rootfs.tar.gz --exclude='./dev'
+    # Extract xz file
+    tar -xf ubuntu-18.04-rootfs.tar.xz --exclude='./dev'
     
     # Fix symbolic links
     fix_chroot_links $INSTALL_DIR
@@ -388,21 +385,18 @@ install_ubuntu_20_04_chroot_background() {
     cd $INSTALL_DIR
     
     # Use reliable Ubuntu 20.04 rootfs URL for Android
-    ROOTFS_URL="https://cloud-images.ubuntu.com/focal/20250624/focal-server-cloudimg-arm64.tar.gz"
+    ROOTFS_URL="https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-arm64-root.tar.xz"
     
     # Download Ubuntu 20.04 rootfs
-    wget -O ubuntu-20.04-rootfs.tar.gz $ROOTFS_URL
+    wget -O ubuntu-20.04-rootfs.tar.xz $ROOTFS_URL
     
     if [[ $? -ne 0 ]]; then
         echo "chroot_failed" > $HOME/ubuntu_install_result
         return
     fi
     
-    # Extract gz file
-    tar -xzf ubuntu-20.04-rootfs.tar.gz --exclude='./dev'
-    
-    # Extract rootfs
-    tar -xzf ubuntu-20.04-rootfs.tar.gz --exclude='./dev'
+    # Extract xz file
+    tar -xf ubuntu-20.04-rootfs.tar.xz --exclude='./dev'
     
     # Fix symbolic links
     fix_chroot_links $INSTALL_DIR
@@ -460,21 +454,18 @@ install_ubuntu_22_04_chroot_background() {
     cd $INSTALL_DIR
     
     # Use reliable Ubuntu 22.04 rootfs URL for Android
-    ROOTFS_URL="https://cloud-images.ubuntu.com/jammy/20250702/jammy-server-cloudimg-arm64.tar.gz"
+    ROOTFS_URL="https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-arm64-root.tar.xz"
     
     # Download Ubuntu 22.04 rootfs
-    wget -O ubuntu-22.04-rootfs.tar.gz $ROOTFS_URL
+    wget -O ubuntu-22.04-rootfs.tar.xz $ROOTFS_URL
     
     if [[ $? -ne 0 ]]; then
         echo "chroot_failed" > $HOME/ubuntu_install_result
         return
     fi
     
-    # Extract gz file
-    tar -xzf ubuntu-22.04-rootfs.tar.gz --exclude='./dev'
-    
-    # Extract rootfs
-    tar -xzf ubuntu-22.04-rootfs.tar.gz --exclude='./dev'
+    # Extract xz file
+    tar -xf ubuntu-22.04-rootfs.tar.xz --exclude='./dev'
     
     # Fix symbolic links
     fix_chroot_links $INSTALL_DIR
@@ -532,21 +523,18 @@ install_ubuntu_24_04_chroot_background() {
     cd $INSTALL_DIR
     
     # Use reliable Ubuntu 24.04 rootfs URL for Android
-    ROOTFS_URL="https://cloud-images.ubuntu.com/noble/20250704/noble-server-cloudimg-arm64.tar.gz"
+    ROOTFS_URL="https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-arm64-root.tar.xz"
     
     # Download Ubuntu 24.04 rootfs
-    wget -O ubuntu-24.04-rootfs.tar.gz $ROOTFS_URL
+    wget -O ubuntu-24.04-rootfs.tar.xz $ROOTFS_URL
     
     if [[ $? -ne 0 ]]; then
-        echo "chroot_failed" > $HOME/install_result
+        echo "chroot_failed" > $HOME/ubuntu_install_result
         return
     fi
     
-    # Extract gz file
-    tar -xzf ubuntu-24.04-rootfs.tar.gz --exclude='./dev'
-    
-    # Extract rootfs
-    tar -xzf ubuntu-24.04-rootfs.tar.gz --exclude='./dev'
+    # Extract xz file
+    tar -xf ubuntu-24.04-rootfs.tar.xz --exclude='./dev'
     
     # Fix symbolic links
     fix_chroot_links $INSTALL_DIR
