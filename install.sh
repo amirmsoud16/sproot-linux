@@ -74,6 +74,117 @@ clear_screen() {
     clear
 }
 
+# Function to get user credentials
+get_user_credentials() {
+    echo -e "${CYAN}================================${NC}"
+    echo -e "${CYAN}  User Configuration${NC}"
+    echo -e "${CYAN}================================${NC}"
+    echo ""
+    
+    # Get username
+    while true; do
+        read -p "Enter username for Ubuntu: " UBUNTU_USERNAME
+        if [[ -n "$UBUNTU_USERNAME" ]]; then
+            break
+        else
+            print_error "Username cannot be empty!"
+        fi
+    done
+    
+    # Get root password
+    while true; do
+        read -s -p "Enter root password for Ubuntu: " ROOT_PASSWORD
+        echo ""
+        if [[ -n "$ROOT_PASSWORD" ]]; then
+            read -s -p "Confirm root password: " ROOT_PASSWORD_CONFIRM
+            echo ""
+            if [[ "$ROOT_PASSWORD" == "$ROOT_PASSWORD_CONFIRM" ]]; then
+                break
+            else
+                print_error "Passwords do not match!"
+            fi
+        else
+            print_error "Password cannot be empty!"
+        fi
+    done
+    
+    print_success "User configuration saved!"
+    print_status "Username: $UBUNTU_USERNAME"
+    print_status "Root password: ********"
+    echo ""
+}
+
+# Function to create user and set password in Ubuntu
+setup_ubuntu_user() {
+    local install_dir=$1
+    
+    # Create user setup script with proper variable substitution
+    cat > $install_dir/setup-user.sh << EOF
+#!/bin/bash
+# Setup user and password in Ubuntu
+
+# Create user
+useradd -m -s /bin/bash $UBUNTU_USERNAME
+
+# Set root password
+echo "root:$ROOT_PASSWORD" | chpasswd
+
+# Set user password (same as root for simplicity)
+echo "$UBUNTU_USERNAME:$ROOT_PASSWORD" | chpasswd
+
+# Add user to sudo group
+usermod -aG sudo $UBUNTU_USERNAME
+
+# Create user directories
+mkdir -p /home/$UBUNTU_USERNAME
+chown -R $UBUNTU_USERNAME:$UBUNTU_USERNAME /home/$UBUNTU_USERNAME
+
+echo "User setup completed!"
+EOF
+    chmod +x $install_dir/setup-user.sh
+    
+    # Execute the setup script in Ubuntu environment
+    cd $install_dir
+    proot -0 -r . -b /dev -b /proc -b /sys -w / bash setup-user.sh
+    cd $HOME
+}
+
+# Function to create Ubuntu start scripts with different access levels
+create_ubuntu_start_scripts() {
+    local version=$1
+    local username=$2
+    local install_dir="$HOME/ubuntu/ubuntu${version}-rootfs"
+    
+    # Create root access script
+    cat > $install_dir/start-ubuntu-${version}.04.sh << EOF
+#!/bin/bash
+unset LD_PRELOAD
+
+proot -0 -r \$HOME/ubuntu/ubuntu${version}-rootfs \\
+    -b /dev -b /proc -b /sys \\
+    -b \$HOME:/root \\
+    -w /root /usr/bin/env -i HOME=/root TERM="\$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/bash --login
+EOF
+    chmod +x $install_dir/start-ubuntu-${version}.04.sh
+    
+    # Create user access script
+    cat > $install_dir/start-ubuntu-${version}.04-user.sh << EOF
+#!/bin/bash
+unset LD_PRELOAD
+
+proot -0 -r \$HOME/ubuntu/ubuntu${version}-rootfs \\
+    -b /dev -b /proc -b /sys \\
+    -b \$HOME:/home/${username} \\
+    -w /home/${username} /usr/bin/env -i HOME=/home/${username} TERM="\$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/bash --login
+EOF
+    chmod +x $install_dir/start-ubuntu-${version}.04-user.sh
+    
+    # Create aliases in Termux
+    echo "alias ubuntu${version}=\"cd ~/ubuntu/ubuntu${version}-rootfs && ./start-ubuntu-${version}.04.sh\"" >> ~/.bashrc
+    echo "alias ubuntu${version}-${username}=\"cd ~/ubuntu/ubuntu${version}-rootfs && ./start-ubuntu-${version}.04-user.sh\"" >> ~/.bashrc
+    source ~/.bashrc
+}
+
 # Function to print menu
 print_menu() {
     echo -e "\n${WHITE}Available Options:${NC}"
@@ -180,44 +291,7 @@ EOF
     chmod -R 755 $INSTALL_DIR
     chown -R root:root $INSTALL_DIR 2>/dev/null || true
 
-    # Download ubuntu-setup.sh script
-    print_status "📥 Downloading Ubuntu setup script..."
-    if wget -q https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/ubuntu-setup.sh; then
-        chmod +x $INSTALL_DIR/ubuntu-setup.sh
-        print_success "Ubuntu setup script downloaded successfully!"
-    else
-        print_warning "Failed to download setup script, will create it manually..."
-        # Create a basic setup script if download fails
-        cat > $INSTALL_DIR/ubuntu-setup.sh << 'EOF'
-#!/bin/bash
-echo "🚀 Ubuntu Setup Script"
-echo "This script will install all essential tools for Ubuntu"
-echo ""
 
-# Fix permissions first
-echo "🔧 Fixing permissions..."
-chmod 755 /var/lib/dpkg 2>/dev/null || true
-chmod 644 /var/lib/dpkg/status 2>/dev/null || true
-rm -f /var/lib/dpkg/status-old
-rm -f /var/lib/dpkg/status.backup
-
-# Fix apt issues
-echo "🔧 Fixing apt issues..."
-dpkg --configure -a 2>/dev/null || true
-apt --fix-broken install -y 2>/dev/null || true
-apt clean 2>/dev/null || true
-
-# Update and install tools
-echo "📦 Updating and installing tools..."
-apt update -y
-apt install -y curl wget git nano vim build-essential python3 python3-pip nodejs npm htop neofetch unzip zip tar net-tools iputils-ping sudo
-
-echo "✅ Basic setup completed!"
-echo "💡 For full setup, run: wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/ubuntu-setup.sh && chmod +x ubuntu-setup.sh && ./ubuntu-setup.sh"
-EOF
-        chmod +x $INSTALL_DIR/ubuntu-setup.sh
-        print_success "Basic setup script created!"
-    fi
     
     # Create start script with limited root access
     cat > start-ubuntu-18.04.sh <<'EOF'
@@ -238,6 +312,9 @@ EOF
 install_ubuntu_18_04_chroot() {
     print_status "Installing Ubuntu 18.04 (Chroot)..."
 
+    # Get user credentials first
+    get_user_credentials
+
     # Start installation in background
     install_ubuntu_18_04_chroot_background &
     local pid=$!
@@ -255,28 +332,36 @@ install_ubuntu_18_04_chroot() {
 
         if [[ "$result" == "chroot_success" ]]; then
             print_success_box "Ubuntu 18.04 (Chroot) installed successfully!"
-            print_status "To enter Ubuntu: cd $HOME/ubuntu/ubuntu18-rootfs && ./start-ubuntu-18.04.sh"
-            print_status "💡 To setup Ubuntu with all tools: ubuntu18 && ./ubuntu-setup.sh"
-
-            # Create alias for quick access
-            echo 'alias ubuntu18="cd ~/ubuntu/ubuntu18-rootfs && ./start-ubuntu-18.04.sh"' >> ~/.bashrc
-            source ~/.bashrc
-            print_status "Quick access alias created: type 'ubuntu18' to enter Ubuntu 18.04"
+            
+            # Setup user in Ubuntu
+            setup_ubuntu_user $HOME/ubuntu/ubuntu18-rootfs
+            
+            # Create start scripts with different access levels
+            create_ubuntu_start_scripts "18" "$UBUNTU_USERNAME"
+            
+            print_status "Access commands created:"
+            print_status "• ubuntu18 - Enter as root (password required)"
+            print_status "• ubuntu18-$UBUNTU_USERNAME - Enter as user"
 
             # Ask user what to do next
             echo ""
             echo -e "${CYAN}What would you like to do next?${NC}"
-            echo -e "${BLUE}1.${NC} Enter Ubuntu 18.04 directly"
-            echo -e "${BLUE}2.${NC} Return to main menu"
+            echo -e "${BLUE}1.${NC} Enter Ubuntu 18.04 as root"
+            echo -e "${BLUE}2.${NC} Enter Ubuntu 18.04 as user"
+            echo -e "${BLUE}3.${NC} Return to main menu"
             echo ""
-            read -p "Enter your choice (1-2): " post_install_choice
+            read -p "Enter your choice (1-3): " post_install_choice
 
             case $post_install_choice in
                 1)
-                    print_status "Entering Ubuntu 18.04..."
+                    print_status "Entering Ubuntu 18.04 as root..."
                     cd $HOME/ubuntu/ubuntu18-rootfs && ./start-ubuntu-18.04.sh
                     ;;
                 2)
+                    print_status "Entering Ubuntu 18.04 as user..."
+                    cd $HOME/ubuntu/ubuntu18-rootfs && ./start-ubuntu-18.04-user.sh
+                    ;;
+                3)
                     print_status "Returning to main menu..."
                     ;;
                 *)
@@ -343,44 +428,7 @@ EOF
     chmod -R 755 $INSTALL_DIR
     chown -R root:root $INSTALL_DIR 2>/dev/null || true
 
-    # Download ubuntu-setup.sh script
-    print_status "📥 Downloading Ubuntu setup script..."
-    if wget -q https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/uuntu-setup.sh -O $INSTALL_DIR/ubuntu-setup.sh; then
-        chmod +x $INSTALL_DIR/ubuntu-setup.sh
-        print_success "Ubuntu setup script downloaded successfully!"
-    else
-        print_warning "Failed to download setup script, will create it manually..."
-        # Create a basic setup script if download fails
-        cat > $INSTALL_DIR/ubuntu-setup.sh << 'EOF'
-#!/bin/bash
-echo "🚀 Ubuntu Setup Script"
-echo "This script will install all essential tools for Ubuntu"
-echo ""
 
-# Fix permissions first
-echo "🔧 Fixing permissions..."
-chmod 755 /var/lib/dpkg 2>/dev/null || true
-chmod 644 /var/lib/dpkg/status 2>/dev/null || true
-rm -f /var/lib/dpkg/status-old
-rm -f /var/lib/dpkg/status.backup
-
-# Fix apt issues
-echo "🔧 Fixing apt issues..."
-dpkg --configure -a 2>/dev/null || true
-apt --fix-broken install -y 2>/dev/null || true
-apt clean 2>/dev/null || true
-
-# Update and install tools
-echo "📦 Updating and installing tools..."
-apt update -y
-apt install -y curl wget git nano vim build-essential python3 python3-pip nodejs npm htop neofetch unzip zip tar net-tools iputils-ping sudo
-
-echo "✅ Basic setup completed!"
-echo "💡 For full setup, run: wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/uuntu-setup.sh && ./ubuntu-setup.sh"
-EOF
-        chmod +x $INSTALL_DIR/ubuntu-setup.sh
-        print_success "Basic setup script created!"
-    fi
     
     # Create start script with limited root access
     cat > start-ubuntu-20.04.sh <<'EOF'
@@ -401,6 +449,9 @@ EOF
 install_ubuntu_20_04_chroot() {
     print_status "Installing Ubuntu 20.04 (Chroot)..."
 
+    # Get user credentials first
+    get_user_credentials
+
     # Start installation in background
     install_ubuntu_20_04_chroot_background &
     local pid=$!
@@ -418,28 +469,36 @@ install_ubuntu_20_04_chroot() {
 
         if [[ "$result" == "chroot_success" ]]; then
             print_success_box "Ubuntu 20.04 (Chroot) installed successfully!"
-            print_status "To enter Ubuntu: cd $HOME/ubuntu/ubuntu20-rootfs && ./start-ubuntu-20.04.sh"
-            print_status "💡 To setup Ubuntu with all tools: ubuntu20 && ./ubuntu-setup.sh"
-
-            # Create alias for quick access
-            echo 'alias ubuntu20="cd ~/ubuntu/ubuntu20-rootfs && ./start-ubuntu-20.04.sh"' >> ~/.bashrc
-            source ~/.bashrc
-            print_status "Quick access alias created: type 'ubuntu20' to enter Ubuntu 20.04"
+            
+            # Setup user in Ubuntu
+            setup_ubuntu_user $HOME/ubuntu/ubuntu20-rootfs
+            
+            # Create start scripts with different access levels
+            create_ubuntu_start_scripts "20" "$UBUNTU_USERNAME"
+            
+            print_status "Access commands created:"
+            print_status "• ubuntu20 - Enter as root (password required)"
+            print_status "• ubuntu20-$UBUNTU_USERNAME - Enter as user"
 
             # Ask user what to do next
             echo ""
             echo -e "${CYAN}What would you like to do next?${NC}"
-            echo -e "${BLUE}1.${NC} Enter Ubuntu 20.04 directly"
-            echo -e "${BLUE}2.${NC} Return to main menu"
+            echo -e "${BLUE}1.${NC} Enter Ubuntu 20.04 as root"
+            echo -e "${BLUE}2.${NC} Enter Ubuntu 20.04 as user"
+            echo -e "${BLUE}3.${NC} Return to main menu"
             echo ""
-            read -p "Enter your choice (1-2): " post_install_choice
+            read -p "Enter your choice (1-3): " post_install_choice
 
             case $post_install_choice in
                 1)
-                    print_status "Entering Ubuntu 20.04..."
+                    print_status "Entering Ubuntu 20.04 as root..."
                     cd $HOME/ubuntu/ubuntu20-rootfs && ./start-ubuntu-20.04.sh
                     ;;
                 2)
+                    print_status "Entering Ubuntu 20.04 as user..."
+                    cd $HOME/ubuntu/ubuntu20-rootfs && ./start-ubuntu-20.04-user.sh
+                    ;;
+                3)
                     print_status "Returning to main menu..."
                     ;;
                 *)
@@ -506,44 +565,7 @@ EOF
     chmod -R 755 $INSTALL_DIR
     chown -R root:root $INSTALL_DIR 2>/dev/null || true
 
-    # Download ubuntu-setup.sh script
-    print_status "📥 Downloading Ubuntu setup script..."
-    if wget -q https://raw.githubusercontent.com/your-repo/ubuntu-setup.sh -O $INSTALL_DIR/ubuntu-setup.sh; then
-        chmod +x $INSTALL_DIR/ubuntu-setup.sh
-        print_success "Ubuntu setup script downloaded successfully!"
-    else
-        print_warning "Failed to download setup script, will create it manually..."
-        # Create a basic setup script if download fails
-        cat > $INSTALL_DIR/ubuntu-setup.sh << 'EOF'
-#!/bin/bash
-echo "🚀 Ubuntu Setup Script"
-echo "This script will install all essential tools for Ubuntu"
-echo ""
 
-# Fix permissions first
-echo "🔧 Fixing permissions..."
-chmod 755 /var/lib/dpkg 2>/dev/null || true
-chmod 644 /var/lib/dpkg/status 2>/dev/null || true
-rm -f /var/lib/dpkg/status-old
-rm -f /var/lib/dpkg/status.backup
-
-# Fix apt issues
-echo "🔧 Fixing apt issues..."
-dpkg --configure -a 2>/dev/null || true
-apt --fix-broken install -y 2>/dev/null || true
-apt clean 2>/dev/null || true
-
-# Update and install tools
-echo "📦 Updating and installing tools..."
-apt update -y
-apt install -y curl wget git nano vim build-essential python3 python3-pip nodejs npm htop neofetch unzip zip tar net-tools iputils-ping sudo
-
-echo "✅ Basic setup completed!"
-echo "💡 For full setup, run: wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/uuntu-setup.sh && ./ubuntu-setup.sh"
-EOF
-        chmod +x $INSTALL_DIR/ubuntu-setup.sh
-        print_success "Basic setup script created!"
-    fi
     
     # Create start script with limited root access
     cat > start-ubuntu-22.04.sh <<'EOF'
@@ -564,6 +586,9 @@ EOF
 install_ubuntu_22_04_chroot() {
     print_status "Installing Ubuntu 22.04 (Chroot)..."
 
+    # Get user credentials first
+    get_user_credentials
+
     # Start installation in background
     install_ubuntu_22_04_chroot_background &
     local pid=$!
@@ -581,28 +606,36 @@ install_ubuntu_22_04_chroot() {
 
         if [[ "$result" == "chroot_success" ]]; then
             print_success_box "Ubuntu 22.04 (Chroot) installed successfully!"
-            print_status "To enter Ubuntu: cd $HOME/ubuntu/ubuntu22-rootfs && ./start-ubuntu-22.04.sh"
-            print_status "💡 To setup Ubuntu with all tools: ubuntu22 && ./ubuntu-setup.sh"
-
-            # Create alias for quick access
-            echo 'alias ubuntu22="cd ~/ubuntu/ubuntu22-rootfs && ./start-ubuntu-22.04.sh"' >> ~/.bashrc
-            source ~/.bashrc
-            print_status "Quick access alias created: type 'ubuntu22' to enter Ubuntu 22.04"
+            
+            # Setup user in Ubuntu
+            setup_ubuntu_user $HOME/ubuntu/ubuntu22-rootfs
+            
+            # Create start scripts with different access levels
+            create_ubuntu_start_scripts "22" "$UBUNTU_USERNAME"
+            
+            print_status "Access commands created:"
+            print_status "• ubuntu22 - Enter as root (password required)"
+            print_status "• ubuntu22-$UBUNTU_USERNAME - Enter as user"
 
             # Ask user what to do next
             echo ""
             echo -e "${CYAN}What would you like to do next?${NC}"
-            echo -e "${BLUE}1.${NC} Enter Ubuntu 22.04 directly"
-            echo -e "${BLUE}2.${NC} Return to main menu"
+            echo -e "${BLUE}1.${NC} Enter Ubuntu 22.04 as root"
+            echo -e "${BLUE}2.${NC} Enter Ubuntu 22.04 as user"
+            echo -e "${BLUE}3.${NC} Return to main menu"
             echo ""
-            read -p "Enter your choice (1-2): " post_install_choice
+            read -p "Enter your choice (1-3): " post_install_choice
 
             case $post_install_choice in
                 1)
-                    print_status "Entering Ubuntu 22.04..."
+                    print_status "Entering Ubuntu 22.04 as root..."
                     cd $HOME/ubuntu/ubuntu22-rootfs && ./start-ubuntu-22.04.sh
                     ;;
                 2)
+                    print_status "Entering Ubuntu 22.04 as user..."
+                    cd $HOME/ubuntu/ubuntu22-rootfs && ./start-ubuntu-22.04-user.sh
+                    ;;
+                3)
                     print_status "Returning to main menu..."
                     ;;
                 *)
@@ -669,44 +702,7 @@ EOF
     chmod -R 755 $INSTALL_DIR
     chown -R root:root $INSTALL_DIR 2>/dev/null || true
 
-    # Download ubuntu-setup.sh script
-    print_status "📥 Downloading Ubuntu setup script..."
-    if wget -q https://raw.githubusercontent.com/your-repo/ubuntu-setup.sh -O $INSTALL_DIR/ubuntu-setup.sh; then
-        chmod +x $INSTALL_DIR/ubuntu-setup.sh
-        print_success "Ubuntu setup script downloaded successfully!"
-    else
-        print_warning "Failed to download setup script, will create it manually..."
-        # Create a basic setup script if download fails
-        cat > $INSTALL_DIR/ubuntu-setup.sh << 'EOF'
-#!/bin/bash
-echo "🚀 Ubuntu Setup Script"
-echo "This script will install all essential tools for Ubuntu"
-echo ""
 
-# Fix permissions first
-echo "🔧 Fixing permissions..."
-chmod 755 /var/lib/dpkg 2>/dev/null || true
-chmod 644 /var/lib/dpkg/status 2>/dev/null || true
-rm -f /var/lib/dpkg/status-old
-rm -f /var/lib/dpkg/status.backup
-
-# Fix apt issues
-echo "🔧 Fixing apt issues..."
-dpkg --configure -a 2>/dev/null || true
-apt --fix-broken install -y 2>/dev/null || true
-apt clean 2>/dev/null || true
-
-# Update and install tools
-echo "📦 Updating and installing tools..."
-apt update -y
-apt install -y curl wget git nano vim build-essential python3 python3-pip nodejs npm htop neofetch unzip zip tar net-tools iputils-ping sudo
-
-echo "✅ Basic setup completed!"
-echo "💡 For full setup, run: wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/uuntu-setup.sh && ./ubuntu-setup.sh"
-EOF
-        chmod +x $INSTALL_DIR/ubuntu-setup.sh
-        print_success "Basic setup script created!"
-    fi
     
     # Create start script with limited root access
     cat > start-ubuntu-24.04.sh <<'EOF'
@@ -727,6 +723,9 @@ EOF
 install_ubuntu_24_04_chroot() {
     print_status "Installing Ubuntu 24.04 (Chroot)..."
 
+    # Get user credentials first
+    get_user_credentials
+
     # Start installation in background
     install_ubuntu_24_04_chroot_background &
     local pid=$!
@@ -744,28 +743,36 @@ install_ubuntu_24_04_chroot() {
 
         if [[ "$result" == "chroot_success" ]]; then
             print_success_box "Ubuntu 24.04 (Chroot) installed successfully!"
-            print_status "To enter Ubuntu: cd $HOME/ubuntu/ubuntu24-rootfs && ./start-ubuntu-24.04.sh"
-            print_status "💡 To setup Ubuntu with all tools: ubuntu24 && ./ubuntu-setup.sh"
-
-            # Create alias for quick access
-            echo 'alias ubuntu24="cd ~/ubuntu/ubuntu24-rootfs && ./start-ubuntu-24.04.sh"' >> ~/.bashrc
-            source ~/.bashrc
-            print_status "Quick access alias created: type 'ubuntu24' to enter Ubuntu 24.04"
+            
+            # Setup user in Ubuntu
+            setup_ubuntu_user $HOME/ubuntu/ubuntu24-rootfs
+            
+            # Create start scripts with different access levels
+            create_ubuntu_start_scripts "24" "$UBUNTU_USERNAME"
+            
+            print_status "Access commands created:"
+            print_status "• ubuntu24 - Enter as root (password required)"
+            print_status "• ubuntu24-$UBUNTU_USERNAME - Enter as user"
 
             # Ask user what to do next
             echo ""
             echo -e "${CYAN}What would you like to do next?${NC}"
-            echo -e "${BLUE}1.${NC} Enter Ubuntu 24.04 directly"
-            echo -e "${BLUE}2.${NC} Return to main menu"
+            echo -e "${BLUE}1.${NC} Enter Ubuntu 24.04 as root"
+            echo -e "${BLUE}2.${NC} Enter Ubuntu 24.04 as user"
+            echo -e "${BLUE}3.${NC} Return to main menu"
             echo ""
-            read -p "Enter your choice (1-2): " post_install_choice
+            read -p "Enter your choice (1-3): " post_install_choice
 
             case $post_install_choice in
                 1)
-                    print_status "Entering Ubuntu 24.04..."
+                    print_status "Entering Ubuntu 24.04 as root..."
                     cd $HOME/ubuntu/ubuntu24-rootfs && ./start-ubuntu-24.04.sh
                     ;;
                 2)
+                    print_status "Entering Ubuntu 24.04 as user..."
+                    cd $HOME/ubuntu/ubuntu24-rootfs && ./start-ubuntu-24.04-user.sh
+                    ;;
+                3)
                     print_status "Returning to main menu..."
                     ;;
                 *)
