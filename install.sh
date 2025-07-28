@@ -79,9 +79,10 @@ print_menu() {
     echo -e "\n${WHITE}Available Options:${NC}"
     echo -e "${BLUE}1.${NC} System Check & Preparation"
     echo -e "${BLUE}2.${NC} Install Ubuntu (Chroot/Proot)"
-    echo -e "${BLUE}3.${NC} Remove Ubuntu"
-    echo -e "${BLUE}4.${NC} Access Ubuntu"
-    echo -e "${BLUE}5.${NC} Exit"
+    echo -e "${BLUE}3.${NC} Fix Chroot Links"
+    echo -e "${BLUE}4.${NC} Remove Ubuntu"
+    echo -e "${BLUE}5.${NC} Access Ubuntu"
+    echo -e "${BLUE}6.${NC} Exit"
     echo ""
 }
 
@@ -153,6 +154,21 @@ install_ubuntu_18_04_chroot_background() {
     # Extract xz file (silent)
     tar -xf ubuntu-18.04-rootfs.tar.xz --exclude='./dev' > /dev/null 2>&1
     
+    # Create necessary directories and files
+    mkdir -p $INSTALL_DIR/etc
+    mkdir -p $INSTALL_DIR/dev
+    mkdir -p $INSTALL_DIR/proc
+    mkdir -p $INSTALL_DIR/sys
+    mkdir -p $INSTALL_DIR/tmp
+    mkdir -p $INSTALL_DIR/var/tmp
+    
+    # Create resolv.conf
+    cat > $INSTALL_DIR/etc/resolv.conf <<'EOF'
+nameserver 8.8.8.8
+nameserver 8.8.4.4
+nameserver 1.1.1.1
+EOF
+    
     # Create start script
     cat > start-ubuntu-18.04.sh <<'EOF'
 #!/bin/bash
@@ -218,6 +234,21 @@ install_ubuntu_20_04_chroot_background() {
     
     # Extract xz file (silent)
     tar -xf ubuntu-20.04-rootfs.tar.xz --exclude='./dev' > /dev/null 2>&1
+    
+    # Create necessary directories and files
+    mkdir -p $INSTALL_DIR/etc
+    mkdir -p $INSTALL_DIR/dev
+    mkdir -p $INSTALL_DIR/proc
+    mkdir -p $INSTALL_DIR/sys
+    mkdir -p $INSTALL_DIR/tmp
+    mkdir -p $INSTALL_DIR/var/tmp
+    
+    # Create resolv.conf
+    cat > $INSTALL_DIR/etc/resolv.conf <<'EOF'
+nameserver 8.8.8.8
+nameserver 8.8.4.4
+nameserver 1.1.1.1
+EOF
     
     # Create start script
     cat > start-ubuntu-20.04.sh <<'EOF'
@@ -285,6 +316,21 @@ install_ubuntu_22_04_chroot_background() {
     # Extract xz file (silent)
     tar -xf ubuntu-22.04-rootfs.tar.xz --exclude='./dev' > /dev/null 2>&1
     
+    # Create necessary directories and files
+    mkdir -p $INSTALL_DIR/etc
+    mkdir -p $INSTALL_DIR/dev
+    mkdir -p $INSTALL_DIR/proc
+    mkdir -p $INSTALL_DIR/sys
+    mkdir -p $INSTALL_DIR/tmp
+    mkdir -p $INSTALL_DIR/var/tmp
+    
+    # Create resolv.conf
+    cat > $INSTALL_DIR/etc/resolv.conf <<'EOF'
+nameserver 8.8.8.8
+nameserver 8.8.4.4
+nameserver 1.1.1.1
+EOF
+    
     # Create start script
     cat > start-ubuntu-22.04.sh <<'EOF'
 #!/bin/bash
@@ -350,6 +396,21 @@ install_ubuntu_24_04_chroot_background() {
     
     # Extract xz file (silent)
     tar -xf ubuntu-24.04-rootfs.tar.xz --exclude='./dev' > /dev/null 2>&1
+    
+    # Create necessary directories and files
+    mkdir -p $INSTALL_DIR/etc
+    mkdir -p $INSTALL_DIR/dev
+    mkdir -p $INSTALL_DIR/proc
+    mkdir -p $INSTALL_DIR/sys
+    mkdir -p $INSTALL_DIR/tmp
+    mkdir -p $INSTALL_DIR/var/tmp
+    
+    # Create resolv.conf
+    cat > $INSTALL_DIR/etc/resolv.conf <<'EOF'
+nameserver 8.8.8.8
+nameserver 8.8.4.4
+nameserver 1.1.1.1
+EOF
     
     # Create start script
     cat > start-ubuntu-24.04.sh <<'EOF'
