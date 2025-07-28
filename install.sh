@@ -206,12 +206,11 @@ EOF
 #!/bin/bash
 unset LD_PRELOAD
 
-# Create network files if they don't exist
-if [ ! -f $HOME/.resolv.conf ]; then
-    echo 'nameserver 8.8.8.8' > $HOME/.resolv.conf
-    echo 'nameserver 8.8.4.4' >> $HOME/.resolv.conf
-    echo 'nameserver 1.1.1.1' >> $HOME/.resolv.conf
-fi
+# Create network files (remove and recreate)
+rm -f $HOME/.resolv.conf
+echo 'nameserver 8.8.8.8' > $HOME/.resolv.conf
+echo 'nameserver 8.8.4.4' >> $HOME/.resolv.conf
+echo 'nameserver 1.1.1.1' >> $HOME/.resolv.conf
 
 if [ ! -f $HOME/.hosts ]; then
     echo '127.0.0.1 localhost' > $HOME/.hosts
@@ -317,12 +316,11 @@ EOF
 #!/bin/bash
 unset LD_PRELOAD
 
-# Create network files if they don't exist
-if [ ! -f $HOME/.resolv.conf ]; then
-    echo 'nameserver 8.8.8.8' > $HOME/.resolv.conf
-    echo 'nameserver 8.8.4.4' >> $HOME/.resolv.conf
-    echo 'nameserver 1.1.1.1' >> $HOME/.resolv.conf
-fi
+# Create network files (remove and recreate)
+rm -f $HOME/.resolv.conf
+echo 'nameserver 8.8.8.8' > $HOME/.resolv.conf
+echo 'nameserver 8.8.4.4' >> $HOME/.resolv.conf
+echo 'nameserver 1.1.1.1' >> $HOME/.resolv.conf
 
 if [ ! -f $HOME/.hosts ]; then
     echo '127.0.0.1 localhost' > $HOME/.hosts
@@ -428,12 +426,11 @@ EOF
 #!/bin/bash
 unset LD_PRELOAD
 
-# Create network files if they don't exist
-if [ ! -f $HOME/.resolv.conf ]; then
-    echo 'nameserver 8.8.8.8' > $HOME/.resolv.conf
-    echo 'nameserver 8.8.4.4' >> $HOME/.resolv.conf
-    echo 'nameserver 1.1.1.1' >> $HOME/.resolv.conf
-fi
+# Create network files (remove and recreate)
+rm -f $HOME/.resolv.conf
+echo 'nameserver 8.8.8.8' > $HOME/.resolv.conf
+echo 'nameserver 8.8.4.4' >> $HOME/.resolv.conf
+echo 'nameserver 1.1.1.1' >> $HOME/.resolv.conf
 
 if [ ! -f $HOME/.hosts ]; then
     echo '127.0.0.1 localhost' > $HOME/.hosts
@@ -539,12 +536,11 @@ EOF
 #!/bin/bash
 unset LD_PRELOAD
 
-# Create network files if they don't exist
-if [ ! -f $HOME/.resolv.conf ]; then
-    echo 'nameserver 8.8.8.8' > $HOME/.resolv.conf
-    echo 'nameserver 8.8.4.4' >> $HOME/.resolv.conf
-    echo 'nameserver 1.1.1.1' >> $HOME/.resolv.conf
-fi
+# Create network files (remove and recreate)
+rm -f $HOME/.resolv.conf
+echo 'nameserver 8.8.8.8' > $HOME/.resolv.conf
+echo 'nameserver 8.8.4.4' >> $HOME/.resolv.conf
+echo 'nameserver 1.1.1.1' >> $HOME/.resolv.conf
 
 if [ ! -f $HOME/.hosts ]; then
     echo '127.0.0.1 localhost' > $HOME/.hosts
