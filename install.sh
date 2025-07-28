@@ -130,184 +130,9 @@ system_check() {
     clear_screen
 }
 
-# Function to check chroot symbolic links status
-check_chroot_links() {
-    local chroot_dir="$1"
-    local broken_links=0
-    local fixed_links=0
-    
-    print_status "Checking symbolic links in chroot environment..."
-    
-    cd $chroot_dir
-    
-    # Check common symbolic links
-    local links_to_check=(
-        "bin/sh:bin/bash"
-        "usr/bin/python:usr/bin/python3"
-        "usr/bin/python2:usr/bin/python3"
-        "usr/bin/awk:usr/bin/gawk"
-        "usr/bin/vi:usr/bin/vim.tiny"
-        "usr/bin/view:usr/bin/vim.tiny"
-        "usr/bin/vim:usr/bin/vim.tiny"
-        "usr/bin/editor:usr/bin/nano"
-        "usr/bin/more:usr/bin/less"
-        "usr/bin/whereis:usr/bin/which"
-    )
-    
-    for link_info in "${links_to_check[@]}"; do
-        local link_path=$(echo "$link_info" | cut -d: -f1)
-        local target_path=$(echo "$link_info" | cut -d: -f2)
-        
-        if [[ -L "$link_path" ]]; then
-            if [[ -e "$link_path" ]]; then
-                echo -e "${GREEN}✓${NC} $link_path -> $(readlink "$link_path")"
-                ((fixed_links++))
-            else
-                echo -e "${RED}✗${NC} $link_path -> $(readlink "$link_path") (broken)"
-                ((broken_links++))
-            fi
-        elif [[ -f "$target_path" ]]; then
-            echo -e "${YELLOW}⚠${NC} $link_path (missing, should link to $target_path)"
-            ((broken_links++))
-        fi
-    done
-    
-    # Check compiler links
-    if [[ -f usr/bin/gcc-* ]]; then
-        local gcc_version=$(ls usr/bin/gcc-* | head -1 | sed 's/.*gcc-//')
-        if [[ -L usr/bin/gcc ]]; then
-            if [[ -e usr/bin/gcc ]]; then
-                echo -e "${GREEN}✓${NC} usr/bin/gcc -> $(readlink usr/bin/gcc)"
-                ((fixed_links++))
-            else
-                echo -e "${RED}✗${NC} usr/bin/gcc -> $(readlink usr/bin/gcc) (broken)"
-                ((broken_links++))
-            fi
-        elif [[ -n "$gcc_version" ]]; then
-            echo -e "${YELLOW}⚠${NC} usr/bin/gcc (missing, should link to gcc-$gcc_version)"
-            ((broken_links++))
-        fi
-    fi
-    
-    if [[ -f usr/bin/g++-* ]]; then
-        local gpp_version=$(ls usr/bin/g++-* | head -1 | sed 's/.*g++-//')
-        if [[ -L usr/bin/g++ ]]; then
-            if [[ -e usr/bin/g++ ]]; then
-                echo -e "${GREEN}✓${NC} usr/bin/g++ -> $(readlink usr/bin/g++)"
-                ((fixed_links++))
-            else
-                echo -e "${RED}✗${NC} usr/bin/g++ -> $(readlink usr/bin/g++) (broken)"
-                ((broken_links++))
-            fi
-        elif [[ -n "$gpp_version" ]]; then
-            echo -e "${YELLOW}⚠${NC} usr/bin/g++ (missing, should link to g++-$gpp_version)"
-            ((broken_links++))
-        fi
-    fi
-    
-    echo ""
-    echo -e "${WHITE}Summary:${NC}"
-    echo -e "${GREEN}Fixed links: $fixed_links${NC}"
-    echo -e "${RED}Broken links: $broken_links${NC}"
-    
-    if [[ $broken_links -gt 0 ]]; then
-        echo -e "${YELLOW}Recommendation: Run 'Fix Chroot Links' to repair broken links${NC}"
-    fi
-}
 
-# Function to fix chroot symbolic links
-fix_chroot_links() {
-    local chroot_dir="$1"
-    print_status "Fixing symbolic links in chroot environment..."
-    
-    # Create necessary directories
-    mkdir -p $chroot_dir/dev
-    mkdir -p $chroot_dir/proc
-    mkdir -p $chroot_dir/sys
-    mkdir -p $chroot_dir/tmp
-    mkdir -p $chroot_dir/var/tmp
-    
-    # Fix common symbolic links
-    cd $chroot_dir
-    
-    # Fix /bin/sh link
-    if [[ -f bin/bash ]] && [[ ! -L bin/sh ]]; then
-        ln -sf bash bin/sh
-    fi
-    
-    # Fix /usr/bin/python link
-    if [[ -f usr/bin/python3 ]] && [[ ! -L usr/bin/python ]]; then
-        ln -sf python3 usr/bin/python
-    fi
-    
-    # Fix /usr/bin/python2 link
-    if [[ -f usr/bin/python3 ]] && [[ ! -L usr/bin/python2 ]]; then
-        ln -sf python3 usr/bin/python2
-    fi
-    
-    # Fix /usr/bin/gcc link
-    if [[ -f usr/bin/gcc-* ]] && [[ ! -L usr/bin/gcc ]]; then
-        local gcc_version=$(ls usr/bin/gcc-* | head -1 | sed 's/.*gcc-//')
-        if [[ -n "$gcc_version" ]]; then
-            ln -sf gcc-$gcc_version usr/bin/gcc
-        fi
-    fi
-    
-    # Fix /usr/bin/g++ link
-    if [[ -f usr/bin/g++-* ]] && [[ ! -L usr/bin/g++ ]]; then
-        local gpp_version=$(ls usr/bin/g++-* | head -1 | sed 's/.*g++-//')
-        if [[ -n "$gpp_version" ]]; then
-            ln -sf g++-$gpp_version usr/bin/g++
-        fi
-    fi
-    
-    # Fix /usr/bin/cc link
-    if [[ -L usr/bin/gcc ]] && [[ ! -L usr/bin/cc ]]; then
-        ln -sf gcc usr/bin/cc
-    fi
-    
-    # Fix /usr/bin/c++ link
-    if [[ -L usr/bin/g++ ]] && [[ ! -L usr/bin/c++ ]]; then
-        ln -sf g++ usr/bin/c++
-    fi
-    
-    # Fix /usr/bin/awk link
-    if [[ -f usr/bin/gawk ]] && [[ ! -L usr/bin/awk ]]; then
-        ln -sf gawk usr/bin/awk
-    fi
-    
-    # Fix /usr/bin/vi link
-    if [[ -f usr/bin/vim.tiny ]] && [[ ! -L usr/bin/vi ]]; then
-        ln -sf vim.tiny usr/bin/vi
-    fi
-    
-    # Fix /usr/bin/view link
-    if [[ -f usr/bin/vim.tiny ]] && [[ ! -L usr/bin/view ]]; then
-        ln -sf vim.tiny usr/bin/view
-    fi
-    
-    # Fix /usr/bin/vim link
-    if [[ -f usr/bin/vim.tiny ]] && [[ ! -L usr/bin/vim ]]; then
-        ln -sf vim.tiny usr/bin/vim
-    fi
-    
-    # Fix /usr/bin/editor link
-    if [[ -f usr/bin/nano ]] && [[ ! -L usr/bin/editor ]]; then
-        ln -sf nano usr/bin/editor
-    fi
-    
-    # Fix /usr/bin/less link
-    if [[ -f usr/bin/less ]] && [[ ! -L usr/bin/more ]]; then
-        ln -sf less usr/bin/more
-    fi
-    
-    # Fix /usr/bin/which link
-    if [[ -f usr/bin/which ]] && [[ ! -L usr/bin/whereis ]]; then
-        ln -sf which usr/bin/whereis
-    fi
-    
-    print_status "Symbolic links fixed successfully"
-}
+
+
 
 # Function to install Ubuntu 18.04 (Chroot) in background
 install_ubuntu_18_04_chroot_background() {
@@ -318,19 +143,16 @@ install_ubuntu_18_04_chroot_background() {
     # Use reliable Ubuntu 18.04 rootfs URL for Android
     ROOTFS_URL="https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-arm64-root.tar.xz"
     
-    # Download Ubuntu 18.04 rootfs
-    wget -O ubuntu-18.04-rootfs.tar.xz $ROOTFS_URL
+    # Download Ubuntu 18.04 rootfs (silent with progress)
+    wget -q --show-progress -O ubuntu-18.04-rootfs.tar.xz $ROOTFS_URL > /dev/null 2>&1
     
     if [[ $? -ne 0 ]]; then
         echo "chroot_failed" > $HOME/ubuntu_install_result
         return
     fi
     
-    # Extract xz file
-    tar -xf ubuntu-18.04-rootfs.tar.xz --exclude='./dev'
-    
-    # Fix symbolic links
-    fix_chroot_links $INSTALL_DIR
+    # Extract xz file (silent)
+    tar -xf ubuntu-18.04-rootfs.tar.xz --exclude='./dev' > /dev/null 2>&1
     
     # Create start script
     cat > start-ubuntu-18.04.sh <<'EOF'
@@ -387,19 +209,16 @@ install_ubuntu_20_04_chroot_background() {
     # Use reliable Ubuntu 20.04 rootfs URL for Android
     ROOTFS_URL="https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-arm64-root.tar.xz"
     
-    # Download Ubuntu 20.04 rootfs
-    wget -O ubuntu-20.04-rootfs.tar.xz $ROOTFS_URL
+    # Download Ubuntu 20.04 rootfs (silent with progress)
+    wget -q --show-progress -O ubuntu-20.04-rootfs.tar.xz $ROOTFS_URL > /dev/null 2>&1
     
     if [[ $? -ne 0 ]]; then
         echo "chroot_failed" > $HOME/ubuntu_install_result
         return
     fi
     
-    # Extract xz file
-    tar -xf ubuntu-20.04-rootfs.tar.xz --exclude='./dev'
-    
-    # Fix symbolic links
-    fix_chroot_links $INSTALL_DIR
+    # Extract xz file (silent)
+    tar -xf ubuntu-20.04-rootfs.tar.xz --exclude='./dev' > /dev/null 2>&1
     
     # Create start script
     cat > start-ubuntu-20.04.sh <<'EOF'
@@ -456,19 +275,16 @@ install_ubuntu_22_04_chroot_background() {
     # Use reliable Ubuntu 22.04 rootfs URL for Android
     ROOTFS_URL="https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-arm64-root.tar.xz"
     
-    # Download Ubuntu 22.04 rootfs
-    wget -O ubuntu-22.04-rootfs.tar.xz $ROOTFS_URL
+    # Download Ubuntu 22.04 rootfs (silent with progress)
+    wget -q --show-progress -O ubuntu-22.04-rootfs.tar.xz $ROOTFS_URL > /dev/null 2>&1
     
     if [[ $? -ne 0 ]]; then
         echo "chroot_failed" > $HOME/ubuntu_install_result
         return
     fi
     
-    # Extract xz file
-    tar -xf ubuntu-22.04-rootfs.tar.xz --exclude='./dev'
-    
-    # Fix symbolic links
-    fix_chroot_links $INSTALL_DIR
+    # Extract xz file (silent)
+    tar -xf ubuntu-22.04-rootfs.tar.xz --exclude='./dev' > /dev/null 2>&1
     
     # Create start script
     cat > start-ubuntu-22.04.sh <<'EOF'
@@ -525,19 +341,16 @@ install_ubuntu_24_04_chroot_background() {
     # Use reliable Ubuntu 24.04 rootfs URL for Android
     ROOTFS_URL="https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-arm64-root.tar.xz"
     
-    # Download Ubuntu 24.04 rootfs
-    wget -O ubuntu-24.04-rootfs.tar.xz $ROOTFS_URL
+    # Download Ubuntu 24.04 rootfs (silent with progress)
+    wget -q --show-progress -O ubuntu-24.04-rootfs.tar.xz $ROOTFS_URL > /dev/null 2>&1
     
     if [[ $? -ne 0 ]]; then
         echo "chroot_failed" > $HOME/ubuntu_install_result
         return
     fi
     
-    # Extract xz file
-    tar -xf ubuntu-24.04-rootfs.tar.xz --exclude='./dev'
-    
-    # Fix symbolic links
-    fix_chroot_links $INSTALL_DIR
+    # Extract xz file (silent)
+    tar -xf ubuntu-24.04-rootfs.tar.xz --exclude='./dev' > /dev/null 2>&1
     
     # Create start script
     cat > start-ubuntu-24.04.sh <<'EOF'
@@ -626,12 +439,12 @@ install_ubuntu_proot_background() {
     mkdir -p $HOME/ubuntu/proot-${version}
     cd $HOME/ubuntu/proot-${version}
     
-    # Download proot rootfs
-    wget -O ubuntu-${version}-proot.tar.gz $PROOT_URL
+    # Download proot rootfs (silent with progress)
+    wget -q --show-progress -O ubuntu-${version}-proot.tar.gz $PROOT_URL > /dev/null 2>&1
     
     if [[ $? -eq 0 ]]; then
-        # Extract proot rootfs
-        tar -xzf ubuntu-${version}-proot.tar.gz --exclude='./dev'
+        # Extract proot rootfs (silent)
+        tar -xzf ubuntu-${version}-proot.tar.gz --exclude='./dev' > /dev/null 2>&1
         
         # Create start script for proot
         cat > start-ubuntu-${version}-proot.sh <<'EOF'
@@ -925,88 +738,7 @@ install_ubuntu() {
     clear_screen
 }
 
-# Function to fix existing chroot installations
-fix_existing_chroot() {
-    print_header
-    echo -e "${WHITE}Fix Chroot Symbolic Links${NC}"
-    echo ""
-    
-    # Check for existing chroot installations
-    local chroot_dirs=$(find $HOME/ubuntu/ -name "*rootfs" -type d 2>/dev/null)
-    
-    if [[ -z "$chroot_dirs" ]]; then
-        print_error "No chroot installations found"
-        clear_screen
-        return
-    fi
-    
-    echo -e "${WHITE}Found chroot installations:${NC}"
-    echo "$chroot_dirs" | while read -r dir; do
-        echo -e "${BLUE}•${NC} $dir"
-    done
-    echo ""
-    
-    echo -e "${WHITE}Select option:${NC}"
-    echo -e "${BLUE}1.${NC} Check links status"
-    echo -e "${BLUE}2.${NC} Fix all chroot installations"
-    echo -e "${BLUE}3.${NC} Fix specific chroot installation"
-    echo -e "${BLUE}4.${NC} Back to main menu"
-    echo ""
-    
-    read -p "Enter your choice (1-4): " fix_choice
-    
-    case $fix_choice in
-        1)
-            echo -e "${WHITE}Available chroot installations:${NC}"
-            echo "$chroot_dirs" | while read -r dir; do
-                local version=$(basename "$dir" | sed 's/ubuntu\(.*\)-rootfs/\1/')
-                echo -e "${BLUE}•${NC} Ubuntu $version: $dir"
-            done
-            echo ""
-            read -p "Enter Ubuntu version to check (e.g., 22.04): " check_version
-            local target_dir="$HOME/ubuntu/ubuntu${check_version}-rootfs"
-            if [[ -d "$target_dir" ]]; then
-                print_status "Checking Ubuntu $check_version..."
-                check_chroot_links "$target_dir"
-            else
-                print_error "Ubuntu $check_version not found"
-            fi
-            ;;
-        2)
-            print_status "Fixing all chroot installations..."
-            echo "$chroot_dirs" | while read -r dir; do
-                print_status "Fixing: $dir"
-                fix_chroot_links "$dir"
-            done
-            print_success_box "All chroot installations fixed successfully!"
-            ;;
-        3)
-            echo -e "${WHITE}Available chroot installations:${NC}"
-            echo "$chroot_dirs" | while read -r dir; do
-                local version=$(basename "$dir" | sed 's/ubuntu\(.*\)-rootfs/\1/')
-                echo -e "${BLUE}•${NC} Ubuntu $version: $dir"
-            done
-            echo ""
-            read -p "Enter Ubuntu version to fix (e.g., 22.04): " fix_version
-            local target_dir="$HOME/ubuntu/ubuntu${fix_version}-rootfs"
-            if [[ -d "$target_dir" ]]; then
-                print_status "Fixing Ubuntu $fix_version..."
-                fix_chroot_links "$target_dir"
-                print_success_box "Ubuntu $fix_version fixed successfully!"
-            else
-                print_error "Ubuntu $fix_version not found"
-            fi
-            ;;
-        4)
-            return
-            ;;
-        *)
-            print_error "Invalid choice"
-            ;;
-    esac
-    
-    clear_screen
-}
+
 
 # Function to remove Ubuntu
 remove_ubuntu() {
@@ -1100,10 +832,9 @@ main_menu() {
         case $choice in
             1) system_check ;;
             2) install_ubuntu ;;
-            3) fix_existing_chroot ;;
-            4) remove_ubuntu ;;
-            5) access_ubuntu ;;
-            6)
+            3) remove_ubuntu ;;
+            4) access_ubuntu ;;
+            5)
                 print_header
                 echo -e "${GREEN}Goodbye!${NC}"
                 echo -e "${WHITE}Thank you for using Ubuntu Chroot Installer!${NC}"
@@ -1113,7 +844,7 @@ main_menu() {
                 exit 0
                 ;;
             *)
-                print_error "Invalid choice. Please enter 1-6."
+                print_error "Invalid choice. Please enter 1-5."
                 ;;
         esac
     done
@@ -1259,19 +990,25 @@ show_loading() {
     
     echo -e "${YELLOW}Installing...${NC}"
     echo -e "${WHITE}$message${NC}"
+    echo ""
     
-    # Loading animation
+    # Loading animation with progress bar
     local i=0
     local spin='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+    local dots=""
     
     while kill -0 $pid 2>/dev/null; do
         local temp=${spin:$i:1}
-        echo -ne "${YELLOW}Please wait... ${temp}${NC}\r"
+        dots="${dots}."
+        if [[ ${#dots} -gt 3 ]]; then
+            dots=""
+        fi
+        echo -ne "${YELLOW}Downloading and installing${dots} ${temp}${NC}\r"
         i=$(( (i+1) % ${#spin} ))
-        sleep 0.1
+        sleep 0.2
     done
     
-    echo -e "${GREEN}Installation completed!${NC}"
+    echo -e "${GREEN}✓ Installation completed successfully!${NC}"
     echo ""
 }
 
