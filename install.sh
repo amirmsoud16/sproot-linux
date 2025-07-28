@@ -131,8 +131,8 @@ setup_ubuntu_user() {
 #!/bin/bash
 # Setup user and password in Ubuntu
 
-# Create user with adduser (interactive)
-echo "$UBUNTU_USERNAME" | adduser --gecos "" $UBUNTU_USERNAME
+# Create user with adduser (non-interactive)
+adduser --gecos "" --disabled-password $UBUNTU_USERNAME
 
 # Set root password
 echo "root:$ROOT_PASSWORD" | chpasswd
@@ -186,6 +186,15 @@ EOF
 #!/bin/bash
 unset LD_PRELOAD
 
+# Check if user exists, if not create it
+if ! id "${username}" &>/dev/null; then
+    echo "User ${username} not found, creating..."
+    adduser --gecos "" --disabled-password ${username}
+    usermod -aG sudo ${username}
+    mkdir -p /home/${username}
+    chown -R ${username}:${username} /home/${username}
+fi
+
 proot -0 -r \$HOME/ubuntu/ubuntu${version}-rootfs \\
     -b /dev -b /proc -b /sys \\
     -b \$HOME:/home/${username} \\
@@ -222,6 +231,13 @@ EOF
     echo "alias ubuntu${version}-${username}=\"cd ~/ubuntu/ubuntu${version}-rootfs && ./start-ubuntu-${version}.04-user.sh\"" >> ~/.bashrc
     echo "alias fix-internet-${version}=\"cd ~/ubuntu/ubuntu${version}-rootfs && ./fix-internet.sh\"" >> ~/.bashrc
     source ~/.bashrc
+    
+    # Show available commands
+    echo ""
+    print_status "Available commands created:"
+    print_status "• ubuntu${version} - Enter as root (password required)"
+    print_status "• ubuntu${version}-${username} - Enter as user (no password)"
+    print_status "• fix-internet-${version} - Fix internet connectivity"
 }
 
 # Function to print menu
