@@ -79,9 +79,9 @@ print_menu() {
     echo -e "\n${WHITE}Available Options:${NC}"
     echo -e "${BLUE}1.${NC} System Check & Preparation"
     echo -e "${BLUE}2.${NC} Install Ubuntu (Chroot/Proot)"
-    echo -e "${BLUE}4.${NC} Remove Ubuntu"
-    echo -e "${BLUE}5.${NC} Access Ubuntu"
-    echo -e "${BLUE}6.${NC} Exit"
+    echo -e "${BLUE}3.${NC} Remove Ubuntu"
+    echo -e "${BLUE}4.${NC} Access Ubuntu"
+    echo -e "${BLUE}5.${NC} Exit"
     echo ""
 }
 
