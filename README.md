@@ -18,20 +18,14 @@ pkg upgrade -y
 
 ### 3️⃣ نصب پکیج‌های مورد نیاز
 ```bash
-# نصب Python و tkinter
 pkg install python -y
 pkg install python-tkinter -y
-
-# نصب ابزارهای مورد نیاز
 pkg install wget curl proot tar git nano vim -y
-
-# نصب ابزارهای اضافی (اختیاری)
 pkg install htop neofetch -y
 ```
 ## 🚀 نصب سریع:
 
 ```bash
-# در ترماکس
 git clone https://github.com/amirmsoud16/ubuntu-chroot-pk-.git
 cd ubuntu-chroot-pk-
 chmod +x run_gui_installer.sh
@@ -40,7 +34,6 @@ chmod +x run_gui_installer.sh
 
 یا دانلود مستقیم:
 ```bash
-# در ترماکس
 wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/ubuntu_chroot_gui.py
 wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/run_gui_installer.sh
 chmod +x run_gui_installer.sh
