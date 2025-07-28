@@ -230,8 +230,7 @@ print_menu() {
     echo -e "${BLUE}1.${NC} System Check & Preparation"
     echo -e "${BLUE}2.${NC} Install Ubuntu (Chroot/Proot)"
     echo -e "${BLUE}3.${NC} Remove Ubuntu"
-    echo -e "${BLUE}4.${NC} Access Ubuntu"
-    echo -e "${BLUE}5.${NC} Exit"
+    echo -e "${BLUE}4.${NC} Exit"
     echo ""
 }
 
@@ -1174,57 +1173,7 @@ remove_ubuntu() {
     clear_screen
 }
 
-# Function to access Ubuntu
-access_ubuntu() {
-    print_header
-    echo -e "${WHITE}Ubuntu Access Options:${NC}"
-    echo -e "${BLUE}1.${NC} List installed Ubuntu versions"
-    echo -e "${BLUE}2.${NC} Access Ubuntu (Chroot)"
-    echo -e "${BLUE}3.${NC} Access Ubuntu (Proot)"
-    echo -e "${BLUE}4.${NC} Back to main menu"
-    echo ""
 
-    read -p "Enter your choice (1-4): " access_choice
-
-    case $access_choice in
-        1)
-            print_status "Checking installed Ubuntu versions..."
-            echo ""
-            echo -e "${CYAN}Chroot installations:${NC}"
-            ls -la $HOME/ubuntu/ 2>/dev/null | grep ubuntu || echo "No chroot installations found"
-            echo ""
-            echo -e "${CYAN}Proot installations:${NC}"
-            proot-distro list 2>/dev/null | grep ubuntu || echo "No proot installations found"
-            ;;
-        2)
-            echo -e "${WHITE}Available Chroot installations:${NC}"
-            ls -la $HOME/ubuntu/ 2>/dev/null | grep ubuntu || echo "No chroot installations found"
-            echo ""
-            read -p "Enter Ubuntu version (e.g., 22.04): " chroot_version
-            if [[ -d "$HOME/ubuntu/ubuntu${chroot_version}-rootfs" ]]; then
-                cd $HOME/ubuntu/ubuntu${chroot_version}-rootfs
-                ./start-ubuntu-${chroot_version}.sh
-            else
-                print_error "Ubuntu ${chroot_version} not found"
-            fi
-            ;;
-        3)
-            echo -e "${WHITE}Available Proot installations:${NC}"
-            proot-distro list 2>/dev/null | grep ubuntu || echo "No proot installations found"
-            echo ""
-            read -p "Enter Ubuntu version (e.g., 22.04): " proot_version
-            proot-distro login ubuntu-${proot_version}
-            ;;
-        4)
-            return
-            ;;
-        *)
-            print_error "Invalid choice"
-            ;;
-    esac
-
-    clear_screen
-}
 
 # Main menu function
 main_menu() {
@@ -1232,14 +1181,13 @@ main_menu() {
         print_header
         print_menu
 
-        read -p "Enter your choice (1-5): " choice
+        read -p "Enter your choice (1-4): " choice
 
         case $choice in
             1) system_check ;;
             2) install_ubuntu ;;
             3) remove_ubuntu ;;
-            4) access_ubuntu ;;
-            5)
+            4)
                 print_header
                 echo -e "${GREEN}Goodbye!${NC}"
                 echo -e "${WHITE}Thank you for using Ubuntu Chroot Installer!${NC}"
@@ -1249,7 +1197,7 @@ main_menu() {
                 exit 0
                 ;;
             *)
-                print_error "Invalid choice. Please enter 1-5."
+                print_error "Invalid choice. Please enter 1-4."
                 ;;
         esac
     done
