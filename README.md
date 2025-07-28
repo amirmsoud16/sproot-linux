@@ -44,6 +44,37 @@ chmod +x install.sh
 
 ---
 
+### After installation and exiting Termux, to re-access:
+
+#### Method 1: Direct Access (chroot)
+```bash
+cd ~/ubuntu/ubuntu18-rootfs
+./start-ubuntu-18.04.sh
+```
+```
+cd ~/ubuntu/ubuntu20-rootfs
+./start-ubuntu-20.04.sh
+```
+```
+cd ~/ubuntu/ubuntu22-rootfs
+./start-ubuntu-22.04.sh
+```
+```
+cd ~/ubuntu/ubuntu24-rootfs
+./start-ubuntu-24.04.sh
+```
+
+#fixer net and instal tools ubuntu
+```
+wget https://raw.githubusercontent.com/your-repo/ubuntu-setup.sh
+chmod +x ubuntu-setup.sh
+
+#run to Ubuntu
+ubuntu18  # یا ubuntu20, ubuntu22, ubuntu24
+
+# rub fixer
+./ubuntu-setup.sh
+
 ## 🎯 Features
 
 ### ✅ System Check & Preparation
@@ -96,57 +127,6 @@ chmod +x install.sh
 - **Features:** Basic
 
 ---
-
-### After installation and exiting Termux, to re-access:
-
-#### Method 1: Direct Access (chroot)
-```bash
-cd ~/ubuntu/ubuntu18-rootfs
-./start-ubuntu-18.04.sh
-```
-```
-cd ~/ubuntu/ubuntu20-rootfs
-./start-ubuntu-20.04.sh
-```
-```
-cd ~/ubuntu/ubuntu22-rootfs
-./start-ubuntu-22.04.sh
-```
-```
-cd ~/ubuntu/ubuntu24-rootfs
-./start-ubuntu-24.04.sh
-```
-
-#### Method 3: Quick Access
-```bash
-echo 'alias ubuntu="cd ~/ubuntu/ubuntu18-rootfs && ./start-ubuntu-18.04.sh"' >> ~/.bashrc
-source ~/.bashrc
-ubuntu
-```
-```
-echo 'alias ubuntu="cd ~/ubuntu/ubuntu20-rootfs && ./start-ubuntu-20.04.sh"' >> ~/.bashrc
-source ~/.bashrc
-ubuntu
-```
-```
-echo 'alias ubuntu="cd ~/ubuntu/ubuntu22-rootfs && ./start-ubuntu-22.04.sh"' >> ~/.bashrc
-source ~/.bashrc
-ubuntu
-```
-```
-echo 'alias ubuntu="cd ~/ubuntu/ubuntu24-rootfs && ./start-ubuntu-24.04.sh"' >> ~/.bashrc
-source ~/.bashrc
-ubuntu
-```
-
-### Problem: Internet connection
-```bash
-rm -f /etc/resolv.conf
-cat > /etc/resolv.conf <<EOF
-nameserver 8.8.8.8
-nameserver 8.8.4.4
-EOF
-```
 
 ## 📊 Minimum Requirements
 
