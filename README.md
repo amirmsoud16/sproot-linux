@@ -74,7 +74,7 @@ ubuntu18  # یا ubuntu20, ubuntu22, ubuntu24
 
 # rub fixer
 ./ubuntu-setup.sh
-
+```
 ## 🎯 Features
 
 ### ✅ System Check & Preparation
@@ -110,8 +110,6 @@ ubuntu18  # یا ubuntu20, ubuntu22, ubuntu24
 - Repair common system links (python, gcc, vim, etc.)
 - Auto-fix during installation
 
----
-
 ## 📱 Device Support
 
 ### ✅ Rooted Devices
@@ -126,8 +124,6 @@ ubuntu18  # یا ubuntu20, ubuntu22, ubuntu24
 - **Compatibility:** Limited
 - **Features:** Basic
 
----
-
 ## 📊 Minimum Requirements
 
 | Item          | Minimum | Recommended |
@@ -137,8 +133,6 @@ ubuntu18  # یا ubuntu20, ubuntu22, ubuntu24
 | **Android**   | 7.0+    | 10.0+       |
 | **Architecture**| ARM64  | ARM64       |
 
----
-
 ## 🎨 Interface Features
 
 - ✅ **Colored interface** with clear messages
@@ -146,10 +140,6 @@ ubuntu18  # یا ubuntu20, ubuntu22, ubuntu24
 - ✅ **Auto system check**
 - ✅ **Auto package installation**
 - ✅ **Helpful messages** for each step
-
----
-
----
 
 ## 📞 Support
 
