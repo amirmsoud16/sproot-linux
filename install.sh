@@ -142,13 +142,12 @@ install_ubuntu_18_04_chroot_background() {
     wget -O ubuntu-18.04-rootfs.tar.gz $ROOTFS_URL
     
     if [[ $? -ne 0 ]]; then
-        # Fallback to proot-distro
-        cd $HOME
-        pkg install proot-distro -y
-        proot-distro install ubuntu-18.04
-        echo "proot_success" > $HOME/ubuntu_install_result
+        echo "chroot_failed" > $HOME/ubuntu_install_result
         return
     fi
+    
+    # Extract gz file
+    tar -xzf ubuntu-18.04-rootfs.tar.gz --exclude='./dev'
     
     # Extract rootfs
     tar -xzf ubuntu-18.04-rootfs.tar.gz --exclude='./dev'
@@ -186,9 +185,9 @@ install_ubuntu_18_04_chroot() {
         if [[ "$result" == "chroot_success" ]]; then
             print_success_box "Ubuntu 18.04 (Chroot) installed successfully!"
             print_status "To enter Ubuntu: cd $HOME/ubuntu/ubuntu18-rootfs && ./start-ubuntu-18.04.sh"
-        elif [[ "$result" == "proot_success" ]]; then
-            print_success_box "Ubuntu 18.04 (Proot) installed successfully!"
-            print_status "To enter Ubuntu: proot-distro login ubuntu-18.04"
+        elif [[ "$result" == "chroot_failed" ]]; then
+            print_error_box "Failed to download Ubuntu 18.04 rootfs"
+            print_status "Please check your internet connection and try again"
         else
             print_error_box "Failed to install Ubuntu 18.04"
         fi
@@ -212,13 +211,12 @@ install_ubuntu_20_04_chroot_background() {
     wget -O ubuntu-20.04-rootfs.tar.gz $ROOTFS_URL
     
     if [[ $? -ne 0 ]]; then
-        # Fallback to proot-distro
-        cd $HOME
-        pkg install proot-distro -y
-        proot-distro install ubuntu-20.04
-        echo "proot_success" > $HOME/ubuntu_install_result
+        echo "chroot_failed" > $HOME/ubuntu_install_result
         return
     fi
+    
+    # Extract gz file
+    tar -xzf ubuntu-20.04-rootfs.tar.gz --exclude='./dev'
     
     # Extract rootfs
     tar -xzf ubuntu-20.04-rootfs.tar.gz --exclude='./dev'
@@ -256,9 +254,9 @@ install_ubuntu_20_04_chroot() {
         if [[ "$result" == "chroot_success" ]]; then
             print_success_box "Ubuntu 20.04 (Chroot) installed successfully!"
             print_status "To enter Ubuntu: cd $HOME/ubuntu/ubuntu20-rootfs && ./start-ubuntu-20.04.sh"
-        elif [[ "$result" == "proot_success" ]]; then
-            print_success_box "Ubuntu 20.04 (Proot) installed successfully!"
-            print_status "To enter Ubuntu: proot-distro login ubuntu-20.04"
+        elif [[ "$result" == "chroot_failed" ]]; then
+            print_error_box "Failed to download Ubuntu 20.04 rootfs"
+            print_status "Please check your internet connection and try again"
         else
             print_error_box "Failed to install Ubuntu 20.04"
         fi
@@ -282,13 +280,12 @@ install_ubuntu_22_04_chroot_background() {
     wget -O ubuntu-22.04-rootfs.tar.gz $ROOTFS_URL
     
     if [[ $? -ne 0 ]]; then
-        # Fallback to proot-distro
-        cd $HOME
-        pkg install proot-distro -y
-        proot-distro install ubuntu-22.04
-        echo "proot_success" > $HOME/ubuntu_install_result
+        echo "chroot_failed" > $HOME/ubuntu_install_result
         return
     fi
+    
+    # Extract gz file
+    tar -xzf ubuntu-22.04-rootfs.tar.gz --exclude='./dev'
     
     # Extract rootfs
     tar -xzf ubuntu-22.04-rootfs.tar.gz --exclude='./dev'
@@ -326,9 +323,9 @@ install_ubuntu_22_04_chroot() {
         if [[ "$result" == "chroot_success" ]]; then
             print_success_box "Ubuntu 22.04 (Chroot) installed successfully!"
             print_status "To enter Ubuntu: cd $HOME/ubuntu/ubuntu22-rootfs && ./start-ubuntu-22.04.sh"
-        elif [[ "$result" == "proot_success" ]]; then
-            print_success_box "Ubuntu 22.04 (Proot) installed successfully!"
-            print_status "To enter Ubuntu: proot-distro login ubuntu-22.04"
+        elif [[ "$result" == "chroot_failed" ]]; then
+            print_error_box "Failed to download Ubuntu 22.04 rootfs"
+            print_status "Please check your internet connection and try again"
         else
             print_error_box "Failed to install Ubuntu 22.04"
         fi
@@ -352,13 +349,12 @@ install_ubuntu_24_04_chroot_background() {
     wget -O ubuntu-24.04-rootfs.tar.gz $ROOTFS_URL
     
     if [[ $? -ne 0 ]]; then
-        # Fallback to proot-distro
-        cd $HOME
-        pkg install proot-distro -y
-        proot-distro install ubuntu-24.04
-        echo "proot_success" > $HOME/ubuntu_install_result
+        echo "chroot_failed" > $HOME/ubuntu_install_result
         return
     fi
+    
+    # Extract gz file
+    tar -xzf ubuntu-24.04-rootfs.tar.gz --exclude='./dev'
     
     # Extract rootfs
     tar -xzf ubuntu-24.04-rootfs.tar.gz --exclude='./dev'
@@ -396,9 +392,9 @@ install_ubuntu_24_04_chroot() {
         if [[ "$result" == "chroot_success" ]]; then
             print_success_box "Ubuntu 24.04 (Chroot) installed successfully!"
             print_status "To enter Ubuntu: cd $HOME/ubuntu/ubuntu24-rootfs && ./start-ubuntu-24.04.sh"
-        elif [[ "$result" == "proot_success" ]]; then
-            print_success_box "Ubuntu 24.04 (Proot) installed successfully!"
-            print_status "To enter Ubuntu: proot-distro login ubuntu-24.04"
+        elif [[ "$result" == "chroot_failed" ]]; then
+            print_error_box "Failed to download Ubuntu 24.04 rootfs"
+            print_status "Please check your internet connection and try again"
         else
             print_error_box "Failed to install Ubuntu 24.04"
         fi
@@ -416,13 +412,65 @@ install_ubuntu_proot_background() {
     # Install proot-distro
     pkg install proot-distro -y
     
-    # Install specific Ubuntu version
-    proot-distro install ubuntu-${version}
+    # Use specific proot URLs for better compatibility
+    case $version in
+        "18.04")
+            # Use Andronix-style URL for Ubuntu 18.04
+            PROOT_URL="https://github.com/AndronixApp/AndronixOrigin/raw/master/Ubuntu/Ubuntu-18.04/arm64/ubuntu-18.04-arm64.tar.gz"
+            ;;
+        "20.04")
+            # Use Andronix-style URL for Ubuntu 20.04
+            PROOT_URL="https://github.com/AndronixApp/AndronixOrigin/raw/master/Ubuntu/Ubuntu-20.04/arm64/ubuntu-20.04-arm64.tar.gz"
+            ;;
+        "22.04")
+            # Use Andronix-style URL for Ubuntu 22.04
+            PROOT_URL="https://github.com/AndronixApp/AndronixOrigin/raw/master/Ubuntu/Ubuntu-22.04/arm64/ubuntu-22.04-arm64.tar.gz"
+            ;;
+        "24.04")
+            # Use Andronix-style URL for Ubuntu 24.04
+            PROOT_URL="https://github.com/AndronixApp/AndronixOrigin/raw/master/Ubuntu/Ubuntu-24.04/arm64/ubuntu-24.04-arm64.tar.gz"
+            ;;
+        *)
+            # Fallback to proot-distro
+            proot-distro install ubuntu-${version}
+            if [[ $? -eq 0 ]]; then
+                echo "proot_success" > $HOME/ubuntu_install_result
+            else
+                echo "proot_failed" > $HOME/ubuntu_install_result
+            fi
+            return
+            ;;
+    esac
+    
+    # Create proot directory
+    mkdir -p $HOME/ubuntu/proot-${version}
+    cd $HOME/ubuntu/proot-${version}
+    
+    # Download proot rootfs
+    wget -O ubuntu-${version}-proot.tar.gz $PROOT_URL
     
     if [[ $? -eq 0 ]]; then
+        # Extract proot rootfs
+        tar -xzf ubuntu-${version}-proot.tar.gz --exclude='./dev'
+        
+        # Create start script for proot
+        cat > start-ubuntu-${version}-proot.sh <<'EOF'
+#!/bin/bash
+unset LD_PRELOAD
+proot -r $HOME/ubuntu/proot-${version} -b /dev -b /proc -b /sys -b /data/data/com.termux/files/home:/root -w /root /usr/bin/env -i HOME=/root TERM="$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/bash --login
+EOF
+        chmod +x start-ubuntu-${version}-proot.sh
+        
         echo "proot_success" > $HOME/ubuntu_install_result
     else
-        echo "proot_failed" > $HOME/ubuntu_install_result
+        # Fallback to proot-distro if download fails
+        cd $HOME
+        proot-distro install ubuntu-${version}
+        if [[ $? -eq 0 ]]; then
+            echo "proot_success" > $HOME/ubuntu_install_result
+        else
+            echo "proot_failed" > $HOME/ubuntu_install_result
+        fi
     fi
 }
 
@@ -462,7 +510,8 @@ install_ubuntu_proot() {
                 
                 if [[ "$result" == "proot_success" ]]; then
                     print_success_box "Ubuntu 18.04 (Proot) installed successfully!"
-                    print_status "To enter Ubuntu: proot-distro login ubuntu-18.04"
+                    print_status "To enter Ubuntu: cd $HOME/ubuntu/proot-18.04 && ./start-ubuntu-18.04-proot.sh"
+                    print_status "Or use: proot-distro login ubuntu-18.04"
                 else
                     print_error_box "Failed to install Ubuntu 18.04"
                 fi
@@ -489,7 +538,8 @@ install_ubuntu_proot() {
                 
                 if [[ "$result" == "proot_success" ]]; then
                     print_success_box "Ubuntu 20.04 (Proot) installed successfully!"
-                    print_status "To enter Ubuntu: proot-distro login ubuntu-20.04"
+                    print_status "To enter Ubuntu: cd $HOME/ubuntu/proot-20.04 && ./start-ubuntu-20.04-proot.sh"
+                    print_status "Or use: proot-distro login ubuntu-20.04"
                 else
                     print_error_box "Failed to install Ubuntu 20.04"
                 fi
@@ -516,7 +566,8 @@ install_ubuntu_proot() {
                 
                 if [[ "$result" == "proot_success" ]]; then
                     print_success_box "Ubuntu 22.04 (Proot) installed successfully!"
-                    print_status "To enter Ubuntu: proot-distro login ubuntu-22.04"
+                    print_status "To enter Ubuntu: cd $HOME/ubuntu/proot-22.04 && ./start-ubuntu-22.04-proot.sh"
+                    print_status "Or use: proot-distro login ubuntu-22.04"
                 else
                     print_error_box "Failed to install Ubuntu 22.04"
                 fi
@@ -543,7 +594,8 @@ install_ubuntu_proot() {
                 
                 if [[ "$result" == "proot_success" ]]; then
                     print_success_box "Ubuntu 24.04 (Proot) installed successfully!"
-                    print_status "To enter Ubuntu: proot-distro login ubuntu-24.04"
+                    print_status "To enter Ubuntu: cd $HOME/ubuntu/proot-24.04 && ./start-ubuntu-24.04-proot.sh"
+                    print_status "Or use: proot-distro login ubuntu-24.04"
                 else
                     print_error_box "Failed to install Ubuntu 24.04"
                 fi
