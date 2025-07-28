@@ -48,7 +48,7 @@ chmod +x install.sh
 
 #🎯fixer net and install tools ubuntu
 ```
-wget https://raw.githubusercontent.com/your-repo/ubuntu-setup.sh
+wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/ubuntu-setup.sh
 chmod +x ubuntu-setup.sh
 ```
 ```
