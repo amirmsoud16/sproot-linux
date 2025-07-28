@@ -99,75 +99,38 @@ chmod +x install.sh
 
 ### After installation and exiting Termux, to re-access:
 
-#### Method 1: Direct Access
+#### Method 1: Direct Access (chroot)
 ```bash
-cd ~/ubuntu
-./start-ubuntu.sh
-```
+cd ~/ubuntu/ubuntu18-rootfs
+./start-ubuntu-18.04.sh
 
-#### Method 2: VNC Access (for graphical interface)
-```bash
-vncserver :1 -geometry 1280x720 -depth 24
-cd ~/ubuntu
-./start-ubuntu-vnc.sh
+cd ~/ubuntu/ubuntu20-rootfs
+./start-ubuntu-20.04.sh
+
+cd ~/ubuntu/ubuntu22-rootfs
+./start-ubuntu-22.04.sh
+
+cd ~/ubuntu/ubuntu24-rootfs
+./start-ubuntu-24.04.sh
 ```
 
 #### Method 3: Quick Access
 ```bash
-echo 'alias ubuntu="cd ~/ubuntu && ./start-ubuntu.sh"' >> ~/.bashrc
+echo 'alias ubuntu="cd ~/ubuntu/ubuntu18-rootfs && ./start-ubuntu-18.04.sh"' >> ~/.bashrc
 source ~/.bashrc
 ubuntu
-```
 
-#### Method 4: Graphical Desktop Access
-```bash
-cd ~/ubuntu
-./install-lxde.sh
-./setup-vnc.sh
-vncserver :1 -geometry 1280x720 -depth 24
-# Connect with VNC Viewer to localhost:5901
-```
+echo 'alias ubuntu="cd ~/ubuntu/ubuntu20-rootfs && ./start-ubuntu-20.04.sh"' >> ~/.bashrc
+source ~/.bashrc
+ubuntu
 
-### 📱 Access from outside Termux:
+echo 'alias ubuntu="cd ~/ubuntu/ubuntu22-rootfs && ./start-ubuntu-22.04.sh"' >> ~/.bashrc
+source ~/.bashrc
+ubuntu
 
-#### Using VNC Viewer:
-1. **Install VNC Viewer** on your phone
-2. **Connect to:** `localhost:5901`
-3. **Password:** The password you set during setup-vnc
-
-#### Using Termux:API:
-```bash
-pkg install termux-api
-termux-open-url vnc://localhost:5901
-```
-
----
-
-## 🔧 Troubleshooting
-
-### Problem: start-ubuntu.sh not found
-```bash
-ls -la ~/ubuntu/
-./install.sh
-```
-
-### Problem: Permission error
-```bash
-chmod +x ~/ubuntu/*.sh
-chmod 755 ~/ubuntu
-```
-
-### Problem: VNC not working
-```bash
-vncserver -kill :1
-vncserver :1 -geometry 1280x720 -depth 24
-ps aux | grep vnc
-```
-
-### Problem: Low disk space
-```bash
-pkg clean
-apt clean
+echo 'alias ubuntu="cd ~/ubuntu/ubuntu24-rootfs && ./start-ubuntu-24.04.sh"' >> ~/.bashrc
+source ~/.bashrc
+ubuntu
 ```
 
 ### Problem: Internet connection
@@ -175,16 +138,6 @@ apt clean
 echo 'nameserver 8.8.8.8' > /etc/resolv.conf
 echo 'nameserver 8.8.4.4' >> /etc/resolv.conf
 ```
-
-### Problem: Broken symbolic links in chroot
-```bash
-# Use the built-in fix tool
-./install.sh
-# Select option 3: Fix Chroot Links
-# Choose to fix all or specific installation
-```
-
----
 
 ## 📊 Minimum Requirements
 
@@ -206,15 +159,6 @@ echo 'nameserver 8.8.4.4' >> /etc/resolv.conf
 - ✅ **Helpful messages** for each step
 
 ---
-
-## 📋 Useful Commands
-
-```bash
-ls -la ~/ubuntu/
-cat ~/ubuntu/ubuntu.log
-cd ~/ubuntu && rm -rf tmp/*
-cd ~/ubuntu && ./post-install.sh
-```
 
 ---
 
