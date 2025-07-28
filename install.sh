@@ -182,7 +182,7 @@ EOF
     
     # Download ubuntu-setup.sh script
     print_status "📥 Downloading Ubuntu setup script..."
-    if wget -q https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/buntu-setup.sh; then
+    if wget -q https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/ubuntu-setup.sh; then
         chmod +x $INSTALL_DIR/ubuntu-setup.sh
         print_success "Ubuntu setup script downloaded successfully!"
     else
@@ -213,7 +213,7 @@ apt update -y
 apt install -y curl wget git nano vim build-essential python3 python3-pip nodejs npm htop neofetch unzip zip tar net-tools iputils-ping sudo
 
 echo "✅ Basic setup completed!"
-echo "💡 For full setup, run: wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/buntu-setup.sh && chmod +x ubuntu-setup.sh && ./ubuntu-setup.sh"
+echo "💡 For full setup, run: wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/ubuntu-setup.sh && chmod +x ubuntu-setup.sh && ./ubuntu-setup.sh"
 EOF
         chmod +x $INSTALL_DIR/ubuntu-setup.sh
         print_success "Basic setup script created!"
@@ -345,7 +345,7 @@ EOF
     
     # Download ubuntu-setup.sh script
     print_status "📥 Downloading Ubuntu setup script..."
-    if wget -q https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/untu-setup.sh -O $INSTALL_DIR/ubuntu-setup.sh; then
+    if wget -q https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/uuntu-setup.sh -O $INSTALL_DIR/ubuntu-setup.sh; then
         chmod +x $INSTALL_DIR/ubuntu-setup.sh
         print_success "Ubuntu setup script downloaded successfully!"
     else
@@ -376,7 +376,7 @@ apt update -y
 apt install -y curl wget git nano vim build-essential python3 python3-pip nodejs npm htop neofetch unzip zip tar net-tools iputils-ping sudo
 
 echo "✅ Basic setup completed!"
-echo "💡 For full setup, run: wget https://raw.githubusercontent.com/your-repo/ubuntu-setup.sh && chmod +x ubuntu-setup.sh && ./ubuntu-setup.sh"
+echo "💡 For full setup, run: wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/uuntu-setup.sh && ./ubuntu-setup.sh"
 EOF
         chmod +x $INSTALL_DIR/ubuntu-setup.sh
         print_success "Basic setup script created!"
@@ -539,7 +539,7 @@ apt update -y
 apt install -y curl wget git nano vim build-essential python3 python3-pip nodejs npm htop neofetch unzip zip tar net-tools iputils-ping sudo
 
 echo "✅ Basic setup completed!"
-echo "💡 For full setup, run: wget https://raw.githubusercontent.com/your-repo/ubuntu-setup.sh && chmod +x ubuntu-setup.sh && ./ubuntu-setup.sh"
+echo "💡 For full setup, run: wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/uuntu-setup.sh && ./ubuntu-setup.sh"
 EOF
         chmod +x $INSTALL_DIR/ubuntu-setup.sh
         print_success "Basic setup script created!"
@@ -702,7 +702,7 @@ apt update -y
 apt install -y curl wget git nano vim build-essential python3 python3-pip nodejs npm htop neofetch unzip zip tar net-tools iputils-ping sudo
 
 echo "✅ Basic setup completed!"
-echo "💡 For full setup, run: wget https://raw.githubusercontent.com/your-repo/ubuntu-setup.sh && chmod +x ubuntu-setup.sh && ./ubuntu-setup.sh"
+echo "💡 For full setup, run: wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/uuntu-setup.sh && ./ubuntu-setup.sh"
 EOF
         chmod +x $INSTALL_DIR/ubuntu-setup.sh
         print_success "Basic setup script created!"
