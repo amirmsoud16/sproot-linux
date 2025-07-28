@@ -131,8 +131,8 @@ setup_ubuntu_user() {
 #!/bin/sh
 # Setup user and password in Ubuntu
 
-# Create user with adduser (non-interactive)
-adduser --gecos "" --disabled-password $UBUNTU_USERNAME
+# Create user with useradd (non-interactive)
+useradd -m -s /bin/sh $UBUNTU_USERNAME
 
 # Set root password
 echo "root:$ROOT_PASSWORD" | chpasswd
@@ -189,10 +189,9 @@ unset LD_PRELOAD
 # Check if user exists, if not create it
 if ! id "${username}" &>/dev/null; then
     echo "User ${username} not found, creating..."
-    adduser --gecos "" --disabled-password ${username}
+    useradd -m -s /bin/sh ${username}
     usermod -aG sudo ${username}
-    mkdir -p /home/${username}
-    chown -R ${username}:${username} /home/${username}
+    echo "${username}:" | chpasswd
 fi
 
 proot -0 -r \$HOME/ubuntu/ubuntu${version}-rootfs \\
