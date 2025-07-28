@@ -68,10 +68,12 @@ cd ~/ubuntu/ubuntu24-rootfs
 ```
 wget https://raw.githubusercontent.com/your-repo/ubuntu-setup.sh
 chmod +x ubuntu-setup.sh
-
+```
+```
 #run to Ubuntu
 ubuntu18  # یا ubuntu20, ubuntu22, ubuntu24
-
+```
+```
 # rub fixer
 ./ubuntu-setup.sh
 ```
