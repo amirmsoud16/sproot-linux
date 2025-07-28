@@ -6,32 +6,12 @@
 
 A complete and easy Ubuntu installer for Termux using shell scripts.
 
----
-
 ## 📥 Download Methods
 
 ### 🎯 Project Page
 [https://github.com/amirmsoud16/ubuntu-chroot-pk-](https://github.com/amirmsoud16/ubuntu-chroot-pk-)
 
-### 📦 Method 1: Direct Download (Recommended)
-```bash
-# Download the complete installer
-wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/install.sh
-chmod +x install.sh
-./install.sh
-```
-
-### 📦 Method 2: Git Clone (Complete)
-```bash
-apt install git -y
-git clone https://github.com/amirmsoud16/ubuntu-chroot-pk-.git
-cd ubuntu-chroot-pk-
-./install.sh
-```
-
----
-
-## 📋 Prerequisites
+## 📋 Prerequisites (install)
 
 ### 1️⃣ Install Termux
 ```bash
