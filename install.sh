@@ -135,11 +135,11 @@ install_ubuntu_18_04_chroot_background() {
     mkdir -p $INSTALL_DIR
     cd $INSTALL_DIR
     
-    # Use reliable Ubuntu 18.04 rootfs URL
-    ROOTFS_URL="https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-arm64-root.tar.xz"
+    # Use reliable Ubuntu 18.04 rootfs URL for Android
+    ROOTFS_URL="https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-arm64-root.tar.gz"
     
     # Download Ubuntu 18.04 rootfs
-    wget -O ubuntu-18.04-rootfs.tar.xz $ROOTFS_URL
+    wget -O ubuntu-18.04-rootfs.tar.gz $ROOTFS_URL
     
     if [[ $? -ne 0 ]]; then
         # Fallback to proot-distro
@@ -151,7 +151,7 @@ install_ubuntu_18_04_chroot_background() {
     fi
     
     # Extract rootfs
-    tar -xf ubuntu-18.04-rootfs.tar.xz --exclude='./dev'
+    tar -xzf ubuntu-18.04-rootfs.tar.gz --exclude='./dev'
     
     # Create start script
     cat > start-ubuntu-18.04.sh <<'EOF'
@@ -205,11 +205,11 @@ install_ubuntu_20_04_chroot_background() {
     mkdir -p $INSTALL_DIR
     cd $INSTALL_DIR
     
-    # Use reliable Ubuntu 20.04 rootfs URL
-    ROOTFS_URL="https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-arm64-root.tar.xz"
+    # Use reliable Ubuntu 20.04 rootfs URL for Android
+    ROOTFS_URL="https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-arm64-root.tar.gz"
     
     # Download Ubuntu 20.04 rootfs
-    wget -O ubuntu-20.04-rootfs.tar.xz $ROOTFS_URL
+    wget -O ubuntu-20.04-rootfs.tar.gz $ROOTFS_URL
     
     if [[ $? -ne 0 ]]; then
         # Fallback to proot-distro
@@ -221,7 +221,7 @@ install_ubuntu_20_04_chroot_background() {
     fi
     
     # Extract rootfs
-    tar -xf ubuntu-20.04-rootfs.tar.xz --exclude='./dev'
+    tar -xzf ubuntu-20.04-rootfs.tar.gz --exclude='./dev'
     
     # Create start script
     cat > start-ubuntu-20.04.sh <<'EOF'
@@ -275,11 +275,11 @@ install_ubuntu_22_04_chroot_background() {
     mkdir -p $INSTALL_DIR
     cd $INSTALL_DIR
     
-    # Use reliable Ubuntu 22.04 rootfs URL
-    ROOTFS_URL="https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-arm64-root.tar.xz"
+    # Use reliable Ubuntu 22.04 rootfs URL for Android
+    ROOTFS_URL="https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-arm64-root.tar.gz"
     
     # Download Ubuntu 22.04 rootfs
-    wget -O ubuntu-22.04-rootfs.tar.xz $ROOTFS_URL
+    wget -O ubuntu-22.04-rootfs.tar.gz $ROOTFS_URL
     
     if [[ $? -ne 0 ]]; then
         # Fallback to proot-distro
@@ -291,7 +291,7 @@ install_ubuntu_22_04_chroot_background() {
     fi
     
     # Extract rootfs
-    tar -xf ubuntu-22.04-rootfs.tar.xz --exclude='./dev'
+    tar -xzf ubuntu-22.04-rootfs.tar.gz --exclude='./dev'
     
     # Create start script
     cat > start-ubuntu-22.04.sh <<'EOF'
@@ -345,11 +345,11 @@ install_ubuntu_24_04_chroot_background() {
     mkdir -p $INSTALL_DIR
     cd $INSTALL_DIR
     
-    # Use reliable Ubuntu 24.04 rootfs URL
-    ROOTFS_URL="https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-arm64-root.tar.xz"
+    # Use reliable Ubuntu 24.04 rootfs URL for Android
+    ROOTFS_URL="https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-arm64-root.tar.gz"
     
     # Download Ubuntu 24.04 rootfs
-    wget -O ubuntu-24.04-rootfs.tar.xz $ROOTFS_URL
+    wget -O ubuntu-24.04-rootfs.tar.gz $ROOTFS_URL
     
     if [[ $? -ne 0 ]]; then
         # Fallback to proot-distro
@@ -361,7 +361,7 @@ install_ubuntu_24_04_chroot_background() {
     fi
     
     # Extract rootfs
-    tar -xf ubuntu-24.04-rootfs.tar.xz --exclude='./dev'
+    tar -xzf ubuntu-24.04-rootfs.tar.gz --exclude='./dev'
     
     # Create start script
     cat > start-ubuntu-24.04.sh <<'EOF'
