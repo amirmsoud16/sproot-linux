@@ -228,65 +228,68 @@ select_install_type() {
     esac
 }
 
-# Function to install Ubuntu
-install_ubuntu() {
+# Function to install Ubuntu (chroot)
+install_ubuntu_chroot() {
     print_header
-    print_status "Starting Ubuntu installation..."
-    
-    # Select version and type
-    select_ubuntu_version
-    select_install_type
-    
-    # Show installation summary
-    echo -e "\n${WHITE}Installation Summary:${NC}"
-    echo -e "Version: Ubuntu ${UBUNTU_VERSION}"
-    echo -e "Type: ${INSTALL_TYPE^}"
-    echo -e "Estimated time: 10-20 minutes"
-    
-    read -p "Proceed with installation? (y/N): " confirm
-    if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
-        print_warning "Installation cancelled"
-        return
-    fi
-    
-    # Perform system check first
-    system_check
-    
-    # Download and install Ubuntu
-    print_status "Downloading Ubuntu ${UBUNTU_VERSION}..."
-    
-    cd "$UBUNTU_DIR"
-    
-    # Download appropriate script based on type
-    if [[ "$INSTALL_TYPE" == "chroot" ]]; then
-        wget -O "ubuntu-${UBUNTU_VERSION}.sh" "https://raw.githubusercontent.com/AndronixApp/AndronixOrigin/master/Installer/Ubuntu/ubuntu-${UBUNTU_VERSION}.sh"
-    else
-        wget -O "ubuntu-${UBUNTU_VERSION}-proot.sh" "https://raw.githubusercontent.com/AndronixApp/AndronixOrigin/master/Installer/Ubuntu/ubuntu-${UBUNTU_VERSION}-proot.sh"
-    fi
-    
-    if [[ $? -eq 0 ]]; then
-        print_success "Ubuntu script downloaded"
-        
-        # Make script executable
-        chmod +x "ubuntu-${UBUNTU_VERSION}"*.sh
-        
-        # Run installation
-        print_status "Installing Ubuntu ${UBUNTU_VERSION}..."
-        if [[ "$INSTALL_TYPE" == "chroot" ]]; then
-            bash "ubuntu-${UBUNTU_VERSION}.sh"
-        else
-            bash "ubuntu-${UBUNTU_VERSION}-proot.sh"
-        fi
-        
-        if [[ $? -eq 0 ]]; then
-            print_success "Ubuntu installation completed!"
-            create_start_scripts
-        else
-            print_error "Ubuntu installation failed"
-        fi
-    else
-        print_error "Failed to download Ubuntu script"
-    fi
+    echo -e "${WHITE}Select Ubuntu Version for Chroot Install:${NC}"
+    echo -e "${BLUE}1.${NC} Ubuntu 24.04 LTS"
+    echo -e "${BLUE}2.${NC} Ubuntu 22.04 LTS"
+    echo -e "${BLUE}3.${NC} Ubuntu 20.04 LTS"
+    echo -e "${BLUE}4.${NC} Ubuntu 18.04 LTS"
+    echo -e "${BLUE}5.${NC} Back to main menu"
+    read -p "Enter your choice (1-5): " chroot_choice
+    case $chroot_choice in
+        1)
+            bash Installer/Ubuntu/ubuntu-24.04.sh
+            ;;
+        2)
+            bash Installer/Ubuntu/ubuntu-22.04.sh
+            ;;
+        3)
+            bash Installer/Ubuntu/ubuntu-20.04.sh
+            ;;
+        4)
+            bash Installer/Ubuntu/ubuntu-18.04.sh
+            ;;
+        5)
+            return
+            ;;
+        *)
+            print_warning "Invalid choice. Returning to main menu."
+            ;;
+    esac
+}
+
+# Function to install Ubuntu (proot)
+install_ubuntu_proot() {
+    print_header
+    echo -e "${WHITE}Select Ubuntu Version for Proot Install:${NC}"
+    echo -e "${BLUE}1.${NC} Ubuntu 24.04 LTS"
+    echo -e "${BLUE}2.${NC} Ubuntu 22.04 LTS"
+    echo -e "${BLUE}3.${NC} Ubuntu 20.04 LTS"
+    echo -e "${BLUE}4.${NC} Ubuntu 18.04 LTS"
+    echo -e "${BLUE}5.${NC} Back to main menu"
+    read -p "Enter your choice (1-5): " proot_choice
+    case $proot_choice in
+        1)
+            bash Installer/Ubuntu/ubuntu-24.04-proot.sh
+            ;;
+        2)
+            bash Installer/Ubuntu/ubuntu-22.04-proot.sh
+            ;;
+        3)
+            bash Installer/Ubuntu/ubuntu-20.04-proot.sh
+            ;;
+        4)
+            bash Installer/Ubuntu/ubuntu-18.04-proot.sh
+            ;;
+        5)
+            return
+            ;;
+        *)
+            print_warning "Invalid choice. Returning to main menu."
+            ;;
+    esac
 }
 
 # Function to create start scripts
@@ -479,19 +482,21 @@ main_menu() {
         print_header
         print_menu
         
-        read -p "Enter your choice (1-5): " choice
+        echo -e "${BLUE}6.${NC} Install Ubuntu (Proot)"  # Add to menu
+        read -p "Enter your choice (1-6): " choice
         
         case $choice in
             1) system_check ;;
-            2) install_ubuntu ;;
+            2) install_ubuntu_chroot ;;
             3) remove_ubuntu ;;
             4) access_ubuntu ;;
             5) 
                 print_status "Exiting..."
                 exit 0
                 ;;
+            6) install_ubuntu_proot ;;
             *)
-                print_error "Invalid choice. Please enter 1-5."
+                print_error "Invalid choice. Please enter 1-6."
                 ;;
         esac
         
