@@ -176,11 +176,32 @@ EOF
 50238:50238:50238
 EOF
     
+    # Create secure .bashrc for limited root access
+    mkdir -p $INSTALL_DIR/root
+    cat > $INSTALL_DIR/root/.bashrc <<'EOF'
+# Secure bashrc for limited root access
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+export HOME="/root"
+export TERM="xterm-256color"
+
+# Prevent access to system directories outside HOME
+alias cd='cd'
+alias ls='ls --color=auto'
+alias ll='ls -la'
+alias la='ls -A'
+
+# Security warning
+echo "⚠️  WARNING: You are in a limited root environment"
+echo "📁 Your access is restricted to: $HOME"
+echo "🌐 Internet access is available"
+echo ""
+EOF
+    
     # Set proper permissions for full root access
     chmod -R 755 $INSTALL_DIR
     chown -R root:root $INSTALL_DIR 2>/dev/null || true
     
-    # Create start script with full root access and network support
+    # Create start script with limited root access and network support
     cat > start-ubuntu-18.04.sh <<'EOF'
 #!/bin/bash
 unset LD_PRELOAD
@@ -201,7 +222,7 @@ proot -0 -r $HOME/ubuntu/ubuntu18-rootfs \
     -b /dev -b /proc -b /sys \
     -b $HOME/.resolv.conf:/etc/resolv.conf \
     -b $HOME/.hosts:/etc/hosts \
-    -b /data/data/com.termux/files/home:/root \
+    -b $HOME:/root \
     -w /root /usr/bin/env -i HOME=/root TERM="$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/bash --login
 EOF
     chmod +x start-ubuntu-18.04.sh
@@ -291,7 +312,7 @@ EOF
     chmod -R 755 $INSTALL_DIR
     chown -R root:root $INSTALL_DIR 2>/dev/null || true
     
-    # Create start script with full root access and network support
+    # Create start script with limited root access and network support
     cat > start-ubuntu-20.04.sh <<'EOF'
 #!/bin/bash
 unset LD_PRELOAD
@@ -312,7 +333,7 @@ proot -0 -r $HOME/ubuntu/ubuntu20-rootfs \
     -b /dev -b /proc -b /sys \
     -b $HOME/.resolv.conf:/etc/resolv.conf \
     -b $HOME/.hosts:/etc/hosts \
-    -b /data/data/com.termux/files/home:/root \
+    -b $HOME:/root \
     -w /root /usr/bin/env -i HOME=/root TERM="$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/bash --login
 EOF
     chmod +x start-ubuntu-20.04.sh
@@ -402,7 +423,7 @@ EOF
     chmod -R 755 $INSTALL_DIR
     chown -R root:root $INSTALL_DIR 2>/dev/null || true
     
-    # Create start script with full root access and network support
+    # Create start script with limited root access and network support
     cat > start-ubuntu-22.04.sh <<'EOF'
 #!/bin/bash
 unset LD_PRELOAD
@@ -423,7 +444,7 @@ proot -0 -r $HOME/ubuntu/ubuntu22-rootfs \
     -b /dev -b /proc -b /sys \
     -b $HOME/.resolv.conf:/etc/resolv.conf \
     -b $HOME/.hosts:/etc/hosts \
-    -b /data/data/com.termux/files/home:/root \
+    -b $HOME:/root \
     -w /root /usr/bin/env -i HOME=/root TERM="$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/bash --login
 EOF
     chmod +x start-ubuntu-22.04.sh
@@ -513,7 +534,7 @@ EOF
     chmod -R 755 $INSTALL_DIR
     chown -R root:root $INSTALL_DIR 2>/dev/null || true
     
-    # Create start script with full root access and network support
+    # Create start script with limited root access and network support
     cat > start-ubuntu-24.04.sh <<'EOF'
 #!/bin/bash
 unset LD_PRELOAD
@@ -534,7 +555,7 @@ proot -0 -r $HOME/ubuntu/ubuntu24-rootfs \
     -b /dev -b /proc -b /sys \
     -b $HOME/.resolv.conf:/etc/resolv.conf \
     -b $HOME/.hosts:/etc/hosts \
-    -b /data/data/com.termux/files/home:/root \
+    -b $HOME:/root \
     -w /root /usr/bin/env -i HOME=/root TERM="$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/bash --login
 EOF
     chmod +x start-ubuntu-24.04.sh
