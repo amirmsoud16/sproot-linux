@@ -176,30 +176,18 @@ EOF
 50238:50238:50238
 EOF
     
-    # Create secure .bashrc for limited root access
-    mkdir -p $INSTALL_DIR/root
-    cat > $INSTALL_DIR/root/.bashrc <<'EOF'
-# Secure bashrc for limited root access
-export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-export HOME="/root"
-export TERM="xterm-256color"
-
-# Prevent access to system directories outside HOME
-alias cd='cd'
-alias ls='ls --color=auto'
-alias ll='ls -la'
-alias la='ls -A'
-
-# Security warning
-echo "⚠️  WARNING: You are in a limited root environment"
-echo "📁 Your access is restricted to: $HOME"
-echo "🌐 Internet access is available"
-echo ""
-EOF
-    
     # Set proper permissions for full root access
     chmod -R 755 $INSTALL_DIR
     chown -R root:root $INSTALL_DIR 2>/dev/null || true
+    
+    # Always recreate resolv.conf as the last step
+    rm -f $INSTALL_DIR/etc/resolv.conf
+    mkdir -p $INSTALL_DIR/etc
+    cat > $INSTALL_DIR/etc/resolv.conf <<'EOF'
+nameserver 8.8.8.8
+nameserver 8.8.4.4
+nameserver 1.1.1.1
+EOF
     
     # Create start script with limited root access and network support
     cat > start-ubuntu-18.04.sh <<'EOF'
@@ -311,6 +299,15 @@ EOF
     chmod -R 755 $INSTALL_DIR
     chown -R root:root $INSTALL_DIR 2>/dev/null || true
     
+    # Always recreate resolv.conf as the last step
+    rm -f $INSTALL_DIR/etc/resolv.conf
+    mkdir -p $INSTALL_DIR/etc
+    cat > $INSTALL_DIR/etc/resolv.conf <<'EOF'
+nameserver 8.8.8.8
+nameserver 8.8.4.4
+nameserver 1.1.1.1
+EOF
+    
     # Create start script with limited root access and network support
     cat > start-ubuntu-20.04.sh <<'EOF'
 #!/bin/bash
@@ -421,6 +418,15 @@ EOF
     chmod -R 755 $INSTALL_DIR
     chown -R root:root $INSTALL_DIR 2>/dev/null || true
     
+    # Always recreate resolv.conf as the last step
+    rm -f $INSTALL_DIR/etc/resolv.conf
+    mkdir -p $INSTALL_DIR/etc
+    cat > $INSTALL_DIR/etc/resolv.conf <<'EOF'
+nameserver 8.8.8.8
+nameserver 8.8.4.4
+nameserver 1.1.1.1
+EOF
+    
     # Create start script with limited root access and network support
     cat > start-ubuntu-22.04.sh <<'EOF'
 #!/bin/bash
@@ -530,6 +536,15 @@ EOF
     # Set proper permissions for full root access
     chmod -R 755 $INSTALL_DIR
     chown -R root:root $INSTALL_DIR 2>/dev/null || true
+    
+    # Always recreate resolv.conf as the last step
+    rm -f $INSTALL_DIR/etc/resolv.conf
+    mkdir -p $INSTALL_DIR/etc
+    cat > $INSTALL_DIR/etc/resolv.conf <<'EOF'
+nameserver 8.8.8.8
+nameserver 8.8.4.4
+nameserver 1.1.1.1
+EOF
     
     # Create start script with limited root access and network support
     cat > start-ubuntu-24.04.sh <<'EOF'
