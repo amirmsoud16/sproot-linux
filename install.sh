@@ -312,9 +312,6 @@ EOF
 install_ubuntu_18_04_chroot() {
     print_status "Installing Ubuntu 18.04 (Chroot)..."
 
-    # Get user credentials first
-    get_user_credentials
-
     # Start installation in background
     install_ubuntu_18_04_chroot_background &
     local pid=$!
@@ -332,6 +329,9 @@ install_ubuntu_18_04_chroot() {
 
         if [[ "$result" == "chroot_success" ]]; then
             print_success_box "Ubuntu 18.04 (Chroot) installed successfully!"
+            
+            # Get user credentials after successful installation
+            get_user_credentials
             
             # Setup user in Ubuntu
             setup_ubuntu_user $HOME/ubuntu/ubuntu18-rootfs
@@ -449,9 +449,6 @@ EOF
 install_ubuntu_20_04_chroot() {
     print_status "Installing Ubuntu 20.04 (Chroot)..."
 
-    # Get user credentials first
-    get_user_credentials
-
     # Start installation in background
     install_ubuntu_20_04_chroot_background &
     local pid=$!
@@ -469,6 +466,9 @@ install_ubuntu_20_04_chroot() {
 
         if [[ "$result" == "chroot_success" ]]; then
             print_success_box "Ubuntu 20.04 (Chroot) installed successfully!"
+            
+            # Get user credentials after successful installation
+            get_user_credentials
             
             # Setup user in Ubuntu
             setup_ubuntu_user $HOME/ubuntu/ubuntu20-rootfs
@@ -586,9 +586,6 @@ EOF
 install_ubuntu_22_04_chroot() {
     print_status "Installing Ubuntu 22.04 (Chroot)..."
 
-    # Get user credentials first
-    get_user_credentials
-
     # Start installation in background
     install_ubuntu_22_04_chroot_background &
     local pid=$!
@@ -606,6 +603,9 @@ install_ubuntu_22_04_chroot() {
 
         if [[ "$result" == "chroot_success" ]]; then
             print_success_box "Ubuntu 22.04 (Chroot) installed successfully!"
+            
+            # Get user credentials after successful installation
+            get_user_credentials
             
             # Setup user in Ubuntu
             setup_ubuntu_user $HOME/ubuntu/ubuntu22-rootfs
@@ -723,9 +723,6 @@ EOF
 install_ubuntu_24_04_chroot() {
     print_status "Installing Ubuntu 24.04 (Chroot)..."
 
-    # Get user credentials first
-    get_user_credentials
-
     # Start installation in background
     install_ubuntu_24_04_chroot_background &
     local pid=$!
@@ -743,6 +740,9 @@ install_ubuntu_24_04_chroot() {
 
         if [[ "$result" == "chroot_success" ]]; then
             print_success_box "Ubuntu 24.04 (Chroot) installed successfully!"
+            
+            # Get user credentials after successful installation
+            get_user_credentials
             
             # Setup user in Ubuntu
             setup_ubuntu_user $HOME/ubuntu/ubuntu24-rootfs
