@@ -27,6 +27,11 @@ print_status() {
     echo -e "${GREEN}✓ [INFO] $1${NC}"
 }
 
+# Function to print success
+print_success() {
+    echo -e "${GREEN}✓ [SUCCESS] $1${NC}"
+}
+
 # Function to print warning
 print_warning() {
     echo -e "${YELLOW}⚠ [WARNING] $1${NC}"
@@ -108,9 +113,12 @@ get_user_credentials() {
         fi
     done
     
+
+    
     print_success "User configuration saved!"
     print_status "Username: $UBUNTU_USERNAME"
     print_status "Root password: ********"
+    print_status "User password: None (no password required)"
     echo ""
 }
 
@@ -123,14 +131,14 @@ setup_ubuntu_user() {
 #!/bin/bash
 # Setup user and password in Ubuntu
 
-# Create user
-useradd -m -s /bin/bash $UBUNTU_USERNAME
+# Create user with adduser (interactive)
+echo "$UBUNTU_USERNAME" | adduser --gecos "" $UBUNTU_USERNAME
 
 # Set root password
 echo "root:$ROOT_PASSWORD" | chpasswd
 
-# Set user password (same as root for simplicity)
-echo "$UBUNTU_USERNAME:$ROOT_PASSWORD" | chpasswd
+# Set user password to empty (no password)
+echo "$UBUNTU_USERNAME:" | chpasswd
 
 # Add user to sudo group
 usermod -aG sudo $UBUNTU_USERNAME
@@ -139,13 +147,18 @@ usermod -aG sudo $UBUNTU_USERNAME
 mkdir -p /home/$UBUNTU_USERNAME
 chown -R $UBUNTU_USERNAME:$UBUNTU_USERNAME /home/$UBUNTU_USERNAME
 
+# Setup DNS for internet connectivity
+echo "nameserver 8.8.8.8" > /etc/resolv.conf
+echo "nameserver 8.8.4.4" >> /etc/resolv.conf
+echo "nameserver 1.1.1.1" >> /etc/resolv.conf
+
 echo "User setup completed!"
 EOF
     chmod +x $install_dir/setup-user.sh
     
     # Execute the setup script in Ubuntu environment
     cd $install_dir
-    proot -0 -r . -b /dev -b /proc -b /sys -w / bash setup-user.sh
+    proot -0 -r . -b /dev -b /proc -b /sys -w / /bin/bash setup-user.sh
     cd $HOME
 }
 
@@ -175,13 +188,37 @@ unset LD_PRELOAD
 proot -0 -r \$HOME/ubuntu/ubuntu${version}-rootfs \\
     -b /dev -b /proc -b /sys \\
     -b \$HOME:/home/${username} \\
-    -w /home/${username} /usr/bin/env -i HOME=/home/${username} TERM="\$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/bash --login
+    -w /home/${username} /usr/bin/env -i HOME=/home/${username} USER=${username} TERM="\$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/su - ${username}
 EOF
     chmod +x $install_dir/start-ubuntu-${version}.04-user.sh
+    
+    # Create internet fix script
+    cat > $install_dir/fix-internet.sh << 'EOF'
+#!/bin/bash
+# Fix internet connectivity in Ubuntu
+
+echo "Fixing internet connectivity..."
+
+# Setup DNS servers
+echo "nameserver 8.8.8.8" > /etc/resolv.conf
+echo "nameserver 8.8.4.4" >> /etc/resolv.conf
+echo "nameserver 1.1.1.1" >> /etc/resolv.conf
+
+# Test internet connection
+if ping -c 1 8.8.8.8 &> /dev/null; then
+    echo "Internet connection working!"
+else
+    echo "Internet connection may be slow or unavailable"
+fi
+
+echo "Internet fix completed!"
+EOF
+    chmod +x $install_dir/fix-internet.sh
     
     # Create aliases in Termux
     echo "alias ubuntu${version}=\"cd ~/ubuntu/ubuntu${version}-rootfs && ./start-ubuntu-${version}.04.sh\"" >> ~/.bashrc
     echo "alias ubuntu${version}-${username}=\"cd ~/ubuntu/ubuntu${version}-rootfs && ./start-ubuntu-${version}.04-user.sh\"" >> ~/.bashrc
+    echo "alias fix-internet-${version}=\"cd ~/ubuntu/ubuntu${version}-rootfs && ./fix-internet.sh\"" >> ~/.bashrc
     source ~/.bashrc
 }
 
@@ -271,13 +308,6 @@ install_ubuntu_18_04_chroot_background() {
     mkdir -p $INSTALL_DIR/sys
     mkdir -p $INSTALL_DIR/tmp
     mkdir -p $INSTALL_DIR/var/tmp
-
-    # Create resolv.conf
-    cat > $INSTALL_DIR/etc/resolv.conf <<'EOF'
-nameserver 8.8.8.8
-nameserver 8.8.4.4
-nameserver 1.1.1.1
-EOF
 
     # Fix groups file to prevent group ID errors
     cat >> $INSTALL_DIR/etc/group <<'EOF'
@@ -409,13 +439,6 @@ install_ubuntu_20_04_chroot_background() {
     mkdir -p $INSTALL_DIR/tmp
     mkdir -p $INSTALL_DIR/var/tmp
 
-    # Create resolv.conf
-    cat > $INSTALL_DIR/etc/resolv.conf <<'EOF'
-nameserver 8.8.8.8
-nameserver 8.8.4.4
-nameserver 1.1.1.1
-EOF
-
     # Fix groups file to prevent group ID errors
     cat >> $INSTALL_DIR/etc/group <<'EOF'
 3003:3003:3003
@@ -546,13 +569,6 @@ install_ubuntu_22_04_chroot_background() {
     mkdir -p $INSTALL_DIR/tmp
     mkdir -p $INSTALL_DIR/var/tmp
 
-    # Create resolv.conf
-    cat > $INSTALL_DIR/etc/resolv.conf <<'EOF'
-nameserver 8.8.8.8
-nameserver 8.8.4.4
-nameserver 1.1.1.1
-EOF
-
     # Fix groups file to prevent group ID errors
     cat >> $INSTALL_DIR/etc/group <<'EOF'
 3003:3003:3003
@@ -682,13 +698,6 @@ install_ubuntu_24_04_chroot_background() {
     mkdir -p $INSTALL_DIR/sys
     mkdir -p $INSTALL_DIR/tmp
     mkdir -p $INSTALL_DIR/var/tmp
-
-    # Create resolv.conf
-    cat > $INSTALL_DIR/etc/resolv.conf <<'EOF'
-nameserver 8.8.8.8
-nameserver 8.8.4.4
-nameserver 1.1.1.1
-EOF
 
     # Fix groups file to prevent group ID errors
     cat >> $INSTALL_DIR/etc/group <<'EOF'
