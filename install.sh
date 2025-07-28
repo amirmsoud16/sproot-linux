@@ -128,7 +128,7 @@ setup_ubuntu_user() {
     
     # Create user setup script with proper variable substitution
     cat > $install_dir/setup-user.sh << EOF
-#!/bin/bash
+#!/bin/sh
 # Setup user and password in Ubuntu
 
 # Create user with adduser (non-interactive)
@@ -159,7 +159,7 @@ EOF
     
     # Execute the setup script in Ubuntu environment
     cd $install_dir
-    proot -0 -r . -b /dev -b /proc -b /sys -w / /bin/bash setup-user.sh
+    proot -0 -r . -b /dev -b /proc -b /sys -w / /bin/sh setup-user.sh
     cd $HOME
 }
 
@@ -177,7 +177,7 @@ unset LD_PRELOAD
 proot -0 -r \$HOME/ubuntu/ubuntu${version}-rootfs \\
     -b /dev -b /proc -b /sys \\
     -b \$HOME:/root \\
-    -w /root /usr/bin/env -i HOME=/root TERM="\$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/bash --login
+    -w /root /usr/bin/env -i HOME=/root TERM="\$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/sh --login
 EOF
     chmod +x $install_dir/start-ubuntu-${version}.04.sh
     
