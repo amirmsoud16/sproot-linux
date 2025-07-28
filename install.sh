@@ -1027,7 +1027,7 @@ main_menu() {
         print_header
         print_menu
         
-        read -p "Enter your choice (1-6): " choice
+        read -p "Enter your choice (1-5): " choice
         
         case $choice in
             1) system_check ;;
