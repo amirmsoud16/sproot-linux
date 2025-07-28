@@ -196,7 +196,6 @@ apt clean 2>/dev/null || true
         chmod +x $INSTALL_DIR/ubuntu-setup.sh
         print_success "Basic setup script created!"
     fi
-    
     # Create start script with limited root access
     cat > start-ubuntu-18.04.sh <<'EOF'
 #!/bin/bash
