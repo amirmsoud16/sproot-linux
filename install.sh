@@ -42,10 +42,10 @@ download_ubuntu_rootfs() {
     local version=$1
     local url=$2
     local filename=$3
-    
+
     print_status "Downloading Ubuntu ${version} rootfs..."
     wget -O $filename $url
-    
+
     if [[ $? -eq 0 ]]; then
         print_status "✓ Download successful"
         return 0
@@ -97,24 +97,24 @@ system_check() {
     print_status "✓ DNS: Configured"
     print_status ""
     print_status "Your system is ready for Ubuntu installation!"
-    
+
     # Show system information
     echo ""
     echo -e "${CYAN}System Information:${NC}"
-    
+
     # Get system info
     available_space=$(df $HOME | awk 'NR==2 {print $4}')
     available_space_mb=$(($available_space / 1024))
     total_space=$(df $HOME | awk 'NR==2 {print $2}')
     total_space_mb=$(($total_space / 1024))
     used_space_mb=$(($total_space_mb - $available_space_mb))
-    
+
     echo -e "${WHITE}Available Disk Space: ${available_space_mb}MB / ${total_space_mb}MB${NC}"
     echo -e "${WHITE}Used Disk Space: ${used_space_mb}MB${NC}"
     echo -e "${WHITE}Android Version: $(getprop ro.build.version.release)${NC}"
     echo -e "${WHITE}Architecture: $(uname -m)${NC}"
     echo -e "${WHITE}Termux Version: $(pkg --version 2>/dev/null || echo "Unknown")${NC}"
-    
+
     # Show root status
     echo ""
     echo -e "${CYAN}Root Status:${NC}"
@@ -125,7 +125,7 @@ system_check() {
         echo -e "${YELLOW}⚠ No root access${NC}"
         echo -e "${WHITE}You can use Proot installation method${NC}"
     fi
-    
+
     clear_screen
 }
 
@@ -138,21 +138,21 @@ install_ubuntu_18_04_chroot_background() {
     INSTALL_DIR=$HOME/ubuntu/ubuntu18-rootfs
     mkdir -p $INSTALL_DIR
     cd $INSTALL_DIR
-    
+
     # Use reliable Ubuntu 18.04 rootfs URL for Android
     ROOTFS_URL="https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-arm64-root.tar.xz"
-    
+
     # Download Ubuntu 18.04 rootfs (silent with progress)
     wget -q --show-progress -O ubuntu-18.04-rootfs.tar.xz $ROOTFS_URL > /dev/null 2>&1
-    
+
     if [[ $? -ne 0 ]]; then
         echo "chroot_failed" > $HOME/ubuntu_install_result
         return
     fi
-    
+
     # Extract xz file (silent)
     tar -xf ubuntu-18.04-rootfs.tar.xz --exclude='./dev' > /dev/null 2>&1
-    
+
     # Create necessary directories and files
     mkdir -p $INSTALL_DIR/etc
     mkdir -p $INSTALL_DIR/dev
@@ -160,14 +160,14 @@ install_ubuntu_18_04_chroot_background() {
     mkdir -p $INSTALL_DIR/sys
     mkdir -p $INSTALL_DIR/tmp
     mkdir -p $INSTALL_DIR/var/tmp
-    
+
     # Create resolv.conf
     cat > $INSTALL_DIR/etc/resolv.conf <<'EOF'
 nameserver 8.8.8.8
 nameserver 8.8.4.4
 nameserver 1.1.1.1
 EOF
-    
+
     # Fix groups file to prevent group ID errors
     cat >> $INSTALL_DIR/etc/group <<'EOF'
 3003:3003:3003
@@ -175,11 +175,25 @@ EOF
 20238:20238:20238
 50238:50238:50238
 EOF
-    
+
     # Set proper permissions for full root access
     chmod -R 755 $INSTALL_DIR
     chown -R root:root $INSTALL_DIR 2>/dev/null || true
-    
+
+    # Download ubuntu-setup.sh script
+    print_status "📥 Downloading Ubuntu setup script..."
+    if wget -q https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/ubuntu-setup.sh; then
+        chmod +x $INSTALL_DIR/ubuntu-setup.sh
+        print_success "Ubuntu setup script downloaded successfully!"
+    else
+        print_warning "Failed to download setup script, will create it manually..."
+        # Create a basic setup script if download fails
+        cat > $INSTALL_DIR/ubuntu-setup.sh << 'EOF'
+#!/bin/bash
+echo "🚀 Ubuntu Setup Script"
+echo "This script will install all essential tools for Ubuntu"
+echo ""
+
 # Fix permissions first
 echo "🔧 Fixing permissions..."
 chmod 755 /var/lib/dpkg 2>/dev/null || true
@@ -197,10 +211,14 @@ apt clean 2>/dev/null || true
 echo "📦 Updating and installing tools..."
 apt update -y
 apt install -y curl wget git nano vim build-essential python3 python3-pip nodejs npm htop neofetch unzip zip tar net-tools iputils-ping sudo
+
+echo "✅ Basic setup completed!"
+echo "💡 For full setup, run: wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/ubuntu-setup.sh && chmod +x ubuntu-setup.sh && ./ubuntu-setup.sh"
 EOF
         chmod +x $INSTALL_DIR/ubuntu-setup.sh
         print_success "Basic setup script created!"
     fi
+    
     # Create start script with limited root access
     cat > start-ubuntu-18.04.sh <<'EOF'
 #!/bin/bash
@@ -212,182 +230,59 @@ proot -0 -r $HOME/ubuntu/ubuntu18-rootfs \
     -w /root /usr/bin/env -i HOME=/root TERM="$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/bash --login
 EOF
     chmod +x start-ubuntu-18.04.sh
-    
+
     echo "chroot_success" > $HOME/ubuntu_install_result
-}
-
-# Function to setup user account in Ubuntu
-setup_ubuntu_user() {
-    local version=$1
-    local install_dir=$2
-    
-    print_header
-    echo -e "${WHITE}Ubuntu ${version} User Setup${NC}"
-    echo ""
-    
-    # Get username
-    read -p "Enter username for Ubuntu ${version}: " ubuntu_username
-    if [[ -z "$ubuntu_username" ]]; then
-        ubuntu_username="ubuntu"
-    fi
-    
-    # Get password
-    echo -n "Enter password for user '$ubuntu_username': "
-    read -s ubuntu_password
-    echo ""
-    echo -n "Confirm password: "
-    read -s ubuntu_password_confirm
-    echo ""
-    
-    if [[ "$ubuntu_password" != "$ubuntu_password_confirm" ]]; then
-        print_error "Passwords do not match!"
-        return 1
-    fi
-    
-    # Create user in Ubuntu chroot
-    print_status "Creating user '$ubuntu_username' in Ubuntu ${version}..."
-    
-    # Create user setup script
-    cat > $install_dir/setup-user.sh <<'EOF'
-#!/bin/bash
-# Create user and set password
-useradd -m -s /bin/bash $1
-echo "$1:$2" | chpasswd
-
-# Add user to sudo group
-usermod -aG sudo $1
-
-# Configure sudo without password
-echo "$1 ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
-
-# Create .bashrc for user
-cat > /home/$1/.bashrc << 'BASHRC'
-export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-export HOME="/home/$1"
-export USER="$1"
-export TERM="$TERM"
-export LANG=C.UTF-8
-cd /home/$1
-BASHRC
-
-chown $1:$1 /home/$1/.bashrc
-chmod 644 /home/$1/.bashrc
-
-echo "User $1 created successfully!"
-EOF
-    
-    chmod +x $install_dir/setup-user.sh
-    
-    # Execute user setup in chroot
-    cd $install_dir
-    proot -0 -r . -b /dev -b /proc -b /sys -w / /bin/bash -c "./setup-user.sh '$ubuntu_username' '$ubuntu_password'"
-    
-    # Create start scripts
-    # Root access script
-    cat > $install_dir/start-ubuntu-${version}.sh <<EOF
-#!/bin/bash
-unset LD_PRELOAD
-
-# Function to get password
-get_password() {
-    echo -n "Enter password for root access: "
-    read -s password
-    echo ""
-    echo "\$password"
-}
-
-# Check password
-password=\$(get_password)
-if [[ "\$password" == "$ubuntu_password" ]]; then
-    proot -0 -r \$HOME/ubuntu/ubuntu${version}-rootfs \\
-        -b /dev -b /proc -b /sys \\
-        -b \$HOME:/root \\
-        -w /root /usr/bin/env -i HOME=/root TERM="\$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/bash --login
-else
-    echo "Incorrect password!"
-    exit 1
-fi
-EOF
-    
-    # User access script
-    cat > $install_dir/start-ubuntu-${version}-${ubuntu_username}.sh <<EOF
-#!/bin/bash
-unset LD_PRELOAD
-
-proot -0 -r \$HOME/ubuntu/ubuntu${version}-rootfs \\
-    -b /dev -b /proc -b /sys \\
-    -b \$HOME:/home/$ubuntu_username \\
-    -w /home/$ubuntu_username /usr/bin/env -i HOME=/home/$ubuntu_username TERM="\$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/bash --login
-EOF
-    
-    chmod +x $install_dir/start-ubuntu-${version}.sh
-    chmod +x $install_dir/start-ubuntu-${version}-${ubuntu_username}.sh
-    
-    # Create aliases
-    echo "alias ubuntu${version}=\"cd ~/ubuntu/ubuntu${version}-rootfs && ./start-ubuntu-${version}.sh\"" >> ~/.bashrc
-    echo "alias ubuntu${version}-${ubuntu_username}=\"cd ~/ubuntu/ubuntu${version}-rootfs && ./start-ubuntu-${version}-${ubuntu_username}.sh\"" >> ~/.bashrc
-    source ~/.bashrc
-    
-    print_success "User '$ubuntu_username' created successfully!"
-    print_status "Commands available:"
-    print_status "  ubuntu${version} - Enter as root (password required)"
-    print_status "  ubuntu${version}-${ubuntu_username} - Enter as user '$ubuntu_username'"
-    
-    return 0
 }
 
 # Function to install Ubuntu 18.04 (Chroot) - Main function
 install_ubuntu_18_04_chroot() {
     print_status "Installing Ubuntu 18.04 (Chroot)..."
-    
+
     # Start installation in background
     install_ubuntu_18_04_chroot_background &
     local pid=$!
-    
+
     # Show loading animation
     show_loading "Installing Ubuntu 18.04 (Chroot)..." $pid
-    
+
     # Wait for installation to complete
     wait $pid
-    
+
     # Check result
     if [[ -f $HOME/ubuntu_install_result ]]; then
         local result=$(cat $HOME/ubuntu_install_result)
         rm -f $HOME/ubuntu_install_result
-        
+
         if [[ "$result" == "chroot_success" ]]; then
             print_success_box "Ubuntu 18.04 (Chroot) installed successfully!"
-            
-            # Setup user account
-            if setup_ubuntu_user "18.04" "$HOME/ubuntu/ubuntu18-rootfs"; then
-                # Ask user what to do next
-                echo ""
-                echo -e "${CYAN}What would you like to do next?${NC}"
-                echo -e "${BLUE}1.${NC} Enter Ubuntu 18.04 as root"
-                echo -e "${BLUE}2.${NC} Enter Ubuntu 18.04 as user"
-                echo -e "${BLUE}3.${NC} Return to main menu"
-                echo ""
-                read -p "Enter your choice (1-3): " post_install_choice
-                
-                case $post_install_choice in
-                    1)
-                        print_status "Entering Ubuntu 18.04 as root..."
-                        cd $HOME/ubuntu/ubuntu18-rootfs && ./start-ubuntu-18.04.sh
-                        ;;
-                    2)
-                        print_status "Entering Ubuntu 18.04 as user..."
-                        cd $HOME/ubuntu/ubuntu18-rootfs && ./start-ubuntu-18.04-${ubuntu_username}.sh
-                        ;;
-                    3)
-                        print_status "Returning to main menu..."
-                        ;;
-                    *)
-                        print_status "Returning to main menu..."
-                        ;;
-                esac
-            else
-                print_error "Failed to setup user account"
-            fi
+            print_status "To enter Ubuntu: cd $HOME/ubuntu/ubuntu18-rootfs && ./start-ubuntu-18.04.sh"
+            print_status "💡 To setup Ubuntu with all tools: ubuntu18 && ./ubuntu-setup.sh"
+
+            # Create alias for quick access
+            echo 'alias ubuntu18="cd ~/ubuntu/ubuntu18-rootfs && ./start-ubuntu-18.04.sh"' >> ~/.bashrc
+            source ~/.bashrc
+            print_status "Quick access alias created: type 'ubuntu18' to enter Ubuntu 18.04"
+
+            # Ask user what to do next
+            echo ""
+            echo -e "${CYAN}What would you like to do next?${NC}"
+            echo -e "${BLUE}1.${NC} Enter Ubuntu 18.04 directly"
+            echo -e "${BLUE}2.${NC} Return to main menu"
+            echo ""
+            read -p "Enter your choice (1-2): " post_install_choice
+
+            case $post_install_choice in
+                1)
+                    print_status "Entering Ubuntu 18.04..."
+                    cd $HOME/ubuntu/ubuntu18-rootfs && ./start-ubuntu-18.04.sh
+                    ;;
+                2)
+                    print_status "Returning to main menu..."
+                    ;;
+                *)
+                    print_status "Returning to main menu..."
+                    ;;
+            esac
         elif [[ "$result" == "chroot_failed" ]]; then
             print_error_box "Failed to download Ubuntu 18.04 rootfs"
             print_status "Please check your internet connection and try again"
@@ -397,7 +292,7 @@ install_ubuntu_18_04_chroot() {
     else
         print_error_box "Installation failed"
     fi
-    
+
     clear_screen
 }
 
@@ -406,21 +301,21 @@ install_ubuntu_20_04_chroot_background() {
     INSTALL_DIR=$HOME/ubuntu/ubuntu20-rootfs
     mkdir -p $INSTALL_DIR
     cd $INSTALL_DIR
-    
+
     # Use reliable Ubuntu 20.04 rootfs URL for Android
     ROOTFS_URL="https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-arm64-root.tar.xz"
-    
+
     # Download Ubuntu 20.04 rootfs (silent with progress)
     wget -q --show-progress -O ubuntu-20.04-rootfs.tar.xz $ROOTFS_URL > /dev/null 2>&1
-    
+
     if [[ $? -ne 0 ]]; then
         echo "chroot_failed" > $HOME/ubuntu_install_result
         return
     fi
-    
+
     # Extract xz file (silent)
     tar -xf ubuntu-20.04-rootfs.tar.xz --exclude='./dev' > /dev/null 2>&1
-    
+
     # Create necessary directories and files
     mkdir -p $INSTALL_DIR/etc
     mkdir -p $INSTALL_DIR/dev
@@ -428,14 +323,14 @@ install_ubuntu_20_04_chroot_background() {
     mkdir -p $INSTALL_DIR/sys
     mkdir -p $INSTALL_DIR/tmp
     mkdir -p $INSTALL_DIR/var/tmp
-    
+
     # Create resolv.conf
     cat > $INSTALL_DIR/etc/resolv.conf <<'EOF'
 nameserver 8.8.8.8
 nameserver 8.8.4.4
 nameserver 1.1.1.1
 EOF
-    
+
     # Fix groups file to prevent group ID errors
     cat >> $INSTALL_DIR/etc/group <<'EOF'
 3003:3003:3003
@@ -443,11 +338,25 @@ EOF
 20238:20238:20238
 50238:50238:50238
 EOF
-    
+
     # Set proper permissions for full root access
     chmod -R 755 $INSTALL_DIR
     chown -R root:root $INSTALL_DIR 2>/dev/null || true
-    
+
+    # Download ubuntu-setup.sh script
+    print_status "📥 Downloading Ubuntu setup script..."
+    if wget -q https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/uuntu-setup.sh -O $INSTALL_DIR/ubuntu-setup.sh; then
+        chmod +x $INSTALL_DIR/ubuntu-setup.sh
+        print_success "Ubuntu setup script downloaded successfully!"
+    else
+        print_warning "Failed to download setup script, will create it manually..."
+        # Create a basic setup script if download fails
+        cat > $INSTALL_DIR/ubuntu-setup.sh << 'EOF'
+#!/bin/bash
+echo "🚀 Ubuntu Setup Script"
+echo "This script will install all essential tools for Ubuntu"
+echo ""
+
 # Fix permissions first
 echo "🔧 Fixing permissions..."
 chmod 755 /var/lib/dpkg 2>/dev/null || true
@@ -465,6 +374,9 @@ apt clean 2>/dev/null || true
 echo "📦 Updating and installing tools..."
 apt update -y
 apt install -y curl wget git nano vim build-essential python3 python3-pip nodejs npm htop neofetch unzip zip tar net-tools iputils-ping sudo
+
+echo "✅ Basic setup completed!"
+echo "💡 For full setup, run: wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/uuntu-setup.sh && ./ubuntu-setup.sh"
 EOF
         chmod +x $INSTALL_DIR/ubuntu-setup.sh
         print_success "Basic setup script created!"
@@ -481,62 +393,59 @@ proot -0 -r $HOME/ubuntu/ubuntu20-rootfs \
     -w /root /usr/bin/env -i HOME=/root TERM="$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/bash --login
 EOF
     chmod +x start-ubuntu-20.04.sh
-    
+
     echo "chroot_success" > $HOME/ubuntu_install_result
 }
 
 # Function to install Ubuntu 20.04 (Chroot) - Main function
 install_ubuntu_20_04_chroot() {
     print_status "Installing Ubuntu 20.04 (Chroot)..."
-    
+
     # Start installation in background
     install_ubuntu_20_04_chroot_background &
     local pid=$!
-    
+
     # Show loading animation
     show_loading "Installing Ubuntu 20.04 (Chroot)..." $pid
-    
+
     # Wait for installation to complete
     wait $pid
-    
+
     # Check result
     if [[ -f $HOME/ubuntu_install_result ]]; then
         local result=$(cat $HOME/ubuntu_install_result)
         rm -f $HOME/ubuntu_install_result
-        
+
         if [[ "$result" == "chroot_success" ]]; then
             print_success_box "Ubuntu 20.04 (Chroot) installed successfully!"
-            
-            # Setup user account
-            if setup_ubuntu_user "20.04" "$HOME/ubuntu/ubuntu20-rootfs"; then
-                # Ask user what to do next
-                echo ""
-                echo -e "${CYAN}What would you like to do next?${NC}"
-                echo -e "${BLUE}1.${NC} Enter Ubuntu 20.04 as root"
-                echo -e "${BLUE}2.${NC} Enter Ubuntu 20.04 as user"
-                echo -e "${BLUE}3.${NC} Return to main menu"
-                echo ""
-                read -p "Enter your choice (1-3): " post_install_choice
-                
-                case $post_install_choice in
-                    1)
-                        print_status "Entering Ubuntu 20.04 as root..."
-                        cd $HOME/ubuntu/ubuntu20-rootfs && ./start-ubuntu-20.04.sh
-                        ;;
-                    2)
-                        print_status "Entering Ubuntu 20.04 as user..."
-                        cd $HOME/ubuntu/ubuntu20-rootfs && ./start-ubuntu-20.04-${ubuntu_username}.sh
-                        ;;
-                    3)
-                        print_status "Returning to main menu..."
-                        ;;
-                    *)
-                        print_status "Returning to main menu..."
-                        ;;
-                esac
-            else
-                print_error "Failed to setup user account"
-            fi
+            print_status "To enter Ubuntu: cd $HOME/ubuntu/ubuntu20-rootfs && ./start-ubuntu-20.04.sh"
+            print_status "💡 To setup Ubuntu with all tools: ubuntu20 && ./ubuntu-setup.sh"
+
+            # Create alias for quick access
+            echo 'alias ubuntu20="cd ~/ubuntu/ubuntu20-rootfs && ./start-ubuntu-20.04.sh"' >> ~/.bashrc
+            source ~/.bashrc
+            print_status "Quick access alias created: type 'ubuntu20' to enter Ubuntu 20.04"
+
+            # Ask user what to do next
+            echo ""
+            echo -e "${CYAN}What would you like to do next?${NC}"
+            echo -e "${BLUE}1.${NC} Enter Ubuntu 20.04 directly"
+            echo -e "${BLUE}2.${NC} Return to main menu"
+            echo ""
+            read -p "Enter your choice (1-2): " post_install_choice
+
+            case $post_install_choice in
+                1)
+                    print_status "Entering Ubuntu 20.04..."
+                    cd $HOME/ubuntu/ubuntu20-rootfs && ./start-ubuntu-20.04.sh
+                    ;;
+                2)
+                    print_status "Returning to main menu..."
+                    ;;
+                *)
+                    print_status "Returning to main menu..."
+                    ;;
+            esac
         elif [[ "$result" == "chroot_failed" ]]; then
             print_error_box "Failed to download Ubuntu 20.04 rootfs"
             print_status "Please check your internet connection and try again"
@@ -546,7 +455,7 @@ install_ubuntu_20_04_chroot() {
     else
         print_error_box "Installation failed"
     fi
-    
+
     clear_screen
 }
 
@@ -555,21 +464,21 @@ install_ubuntu_22_04_chroot_background() {
     INSTALL_DIR=$HOME/ubuntu/ubuntu22-rootfs
     mkdir -p $INSTALL_DIR
     cd $INSTALL_DIR
-    
+
     # Use reliable Ubuntu 22.04 rootfs URL for Android
     ROOTFS_URL="https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-arm64-root.tar.xz"
-    
+
     # Download Ubuntu 22.04 rootfs (silent with progress)
     wget -q --show-progress -O ubuntu-22.04-rootfs.tar.xz $ROOTFS_URL > /dev/null 2>&1
-    
+
     if [[ $? -ne 0 ]]; then
         echo "chroot_failed" > $HOME/ubuntu_install_result
         return
     fi
-    
+
     # Extract xz file (silent)
     tar -xf ubuntu-22.04-rootfs.tar.xz --exclude='./dev' > /dev/null 2>&1
-    
+
     # Create necessary directories and files
     mkdir -p $INSTALL_DIR/etc
     mkdir -p $INSTALL_DIR/dev
@@ -577,14 +486,14 @@ install_ubuntu_22_04_chroot_background() {
     mkdir -p $INSTALL_DIR/sys
     mkdir -p $INSTALL_DIR/tmp
     mkdir -p $INSTALL_DIR/var/tmp
-    
+
     # Create resolv.conf
     cat > $INSTALL_DIR/etc/resolv.conf <<'EOF'
 nameserver 8.8.8.8
 nameserver 8.8.4.4
 nameserver 1.1.1.1
 EOF
-    
+
     # Fix groups file to prevent group ID errors
     cat >> $INSTALL_DIR/etc/group <<'EOF'
 3003:3003:3003
@@ -592,11 +501,25 @@ EOF
 20238:20238:20238
 50238:50238:50238
 EOF
-    
+
     # Set proper permissions for full root access
     chmod -R 755 $INSTALL_DIR
     chown -R root:root $INSTALL_DIR 2>/dev/null || true
-    
+
+    # Download ubuntu-setup.sh script
+    print_status "📥 Downloading Ubuntu setup script..."
+    if wget -q https://raw.githubusercontent.com/your-repo/ubuntu-setup.sh -O $INSTALL_DIR/ubuntu-setup.sh; then
+        chmod +x $INSTALL_DIR/ubuntu-setup.sh
+        print_success "Ubuntu setup script downloaded successfully!"
+    else
+        print_warning "Failed to download setup script, will create it manually..."
+        # Create a basic setup script if download fails
+        cat > $INSTALL_DIR/ubuntu-setup.sh << 'EOF'
+#!/bin/bash
+echo "🚀 Ubuntu Setup Script"
+echo "This script will install all essential tools for Ubuntu"
+echo ""
+
 # Fix permissions first
 echo "🔧 Fixing permissions..."
 chmod 755 /var/lib/dpkg 2>/dev/null || true
@@ -614,6 +537,9 @@ apt clean 2>/dev/null || true
 echo "📦 Updating and installing tools..."
 apt update -y
 apt install -y curl wget git nano vim build-essential python3 python3-pip nodejs npm htop neofetch unzip zip tar net-tools iputils-ping sudo
+
+echo "✅ Basic setup completed!"
+echo "💡 For full setup, run: wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/uuntu-setup.sh && ./ubuntu-setup.sh"
 EOF
         chmod +x $INSTALL_DIR/ubuntu-setup.sh
         print_success "Basic setup script created!"
@@ -630,62 +556,59 @@ proot -0 -r $HOME/ubuntu/ubuntu22-rootfs \
     -w /root /usr/bin/env -i HOME=/root TERM="$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/bash --login
 EOF
     chmod +x start-ubuntu-22.04.sh
-    
+
     echo "chroot_success" > $HOME/ubuntu_install_result
 }
 
 # Function to install Ubuntu 22.04 (Chroot) - Main function
 install_ubuntu_22_04_chroot() {
     print_status "Installing Ubuntu 22.04 (Chroot)..."
-    
+
     # Start installation in background
     install_ubuntu_22_04_chroot_background &
     local pid=$!
-    
+
     # Show loading animation
     show_loading "Installing Ubuntu 22.04 (Chroot)..." $pid
-    
+
     # Wait for installation to complete
     wait $pid
-    
+
     # Check result
     if [[ -f $HOME/ubuntu_install_result ]]; then
         local result=$(cat $HOME/ubuntu_install_result)
         rm -f $HOME/ubuntu_install_result
-        
+
         if [[ "$result" == "chroot_success" ]]; then
             print_success_box "Ubuntu 22.04 (Chroot) installed successfully!"
-            
-            # Setup user account
-            if setup_ubuntu_user "22.04" "$HOME/ubuntu/ubuntu22-rootfs"; then
-                # Ask user what to do next
-                echo ""
-                echo -e "${CYAN}What would you like to do next?${NC}"
-                echo -e "${BLUE}1.${NC} Enter Ubuntu 22.04 as root"
-                echo -e "${BLUE}2.${NC} Enter Ubuntu 22.04 as user"
-                echo -e "${BLUE}3.${NC} Return to main menu"
-                echo ""
-                read -p "Enter your choice (1-3): " post_install_choice
-                
-                case $post_install_choice in
-                    1)
-                        print_status "Entering Ubuntu 22.04 as root..."
-                        cd $HOME/ubuntu/ubuntu22-rootfs && ./start-ubuntu-22.04.sh
-                        ;;
-                    2)
-                        print_status "Entering Ubuntu 22.04 as user..."
-                        cd $HOME/ubuntu/ubuntu22-rootfs && ./start-ubuntu-22.04-${ubuntu_username}.sh
-                        ;;
-                    3)
-                        print_status "Returning to main menu..."
-                        ;;
-                    *)
-                        print_status "Returning to main menu..."
-                        ;;
-                esac
-            else
-                print_error "Failed to setup user account"
-            fi
+            print_status "To enter Ubuntu: cd $HOME/ubuntu/ubuntu22-rootfs && ./start-ubuntu-22.04.sh"
+            print_status "💡 To setup Ubuntu with all tools: ubuntu22 && ./ubuntu-setup.sh"
+
+            # Create alias for quick access
+            echo 'alias ubuntu22="cd ~/ubuntu/ubuntu22-rootfs && ./start-ubuntu-22.04.sh"' >> ~/.bashrc
+            source ~/.bashrc
+            print_status "Quick access alias created: type 'ubuntu22' to enter Ubuntu 22.04"
+
+            # Ask user what to do next
+            echo ""
+            echo -e "${CYAN}What would you like to do next?${NC}"
+            echo -e "${BLUE}1.${NC} Enter Ubuntu 22.04 directly"
+            echo -e "${BLUE}2.${NC} Return to main menu"
+            echo ""
+            read -p "Enter your choice (1-2): " post_install_choice
+
+            case $post_install_choice in
+                1)
+                    print_status "Entering Ubuntu 22.04..."
+                    cd $HOME/ubuntu/ubuntu22-rootfs && ./start-ubuntu-22.04.sh
+                    ;;
+                2)
+                    print_status "Returning to main menu..."
+                    ;;
+                *)
+                    print_status "Returning to main menu..."
+                    ;;
+            esac
         elif [[ "$result" == "chroot_failed" ]]; then
             print_error_box "Failed to download Ubuntu 22.04 rootfs"
             print_status "Please check your internet connection and try again"
@@ -695,7 +618,7 @@ install_ubuntu_22_04_chroot() {
     else
         print_error_box "Installation failed"
     fi
-    
+
     clear_screen
 }
 
@@ -704,21 +627,21 @@ install_ubuntu_24_04_chroot_background() {
     INSTALL_DIR=$HOME/ubuntu/ubuntu24-rootfs
     mkdir -p $INSTALL_DIR
     cd $INSTALL_DIR
-    
+
     # Use reliable Ubuntu 24.04 rootfs URL for Android
     ROOTFS_URL="https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-arm64-root.tar.xz"
-    
+
     # Download Ubuntu 24.04 rootfs (silent with progress)
     wget -q --show-progress -O ubuntu-24.04-rootfs.tar.xz $ROOTFS_URL > /dev/null 2>&1
-    
+
     if [[ $? -ne 0 ]]; then
         echo "chroot_failed" > $HOME/ubuntu_install_result
         return
     fi
-    
+
     # Extract xz file (silent)
     tar -xf ubuntu-24.04-rootfs.tar.xz --exclude='./dev' > /dev/null 2>&1
-    
+
     # Create necessary directories and files
     mkdir -p $INSTALL_DIR/etc
     mkdir -p $INSTALL_DIR/dev
@@ -726,14 +649,14 @@ install_ubuntu_24_04_chroot_background() {
     mkdir -p $INSTALL_DIR/sys
     mkdir -p $INSTALL_DIR/tmp
     mkdir -p $INSTALL_DIR/var/tmp
-    
+
     # Create resolv.conf
     cat > $INSTALL_DIR/etc/resolv.conf <<'EOF'
 nameserver 8.8.8.8
 nameserver 8.8.4.4
 nameserver 1.1.1.1
 EOF
-    
+
     # Fix groups file to prevent group ID errors
     cat >> $INSTALL_DIR/etc/group <<'EOF'
 3003:3003:3003
@@ -741,11 +664,25 @@ EOF
 20238:20238:20238
 50238:50238:50238
 EOF
-    
+
     # Set proper permissions for full root access
     chmod -R 755 $INSTALL_DIR
     chown -R root:root $INSTALL_DIR 2>/dev/null || true
-    
+
+    # Download ubuntu-setup.sh script
+    print_status "📥 Downloading Ubuntu setup script..."
+    if wget -q https://raw.githubusercontent.com/your-repo/ubuntu-setup.sh -O $INSTALL_DIR/ubuntu-setup.sh; then
+        chmod +x $INSTALL_DIR/ubuntu-setup.sh
+        print_success "Ubuntu setup script downloaded successfully!"
+    else
+        print_warning "Failed to download setup script, will create it manually..."
+        # Create a basic setup script if download fails
+        cat > $INSTALL_DIR/ubuntu-setup.sh << 'EOF'
+#!/bin/bash
+echo "🚀 Ubuntu Setup Script"
+echo "This script will install all essential tools for Ubuntu"
+echo ""
+
 # Fix permissions first
 echo "🔧 Fixing permissions..."
 chmod 755 /var/lib/dpkg 2>/dev/null || true
@@ -763,6 +700,9 @@ apt clean 2>/dev/null || true
 echo "📦 Updating and installing tools..."
 apt update -y
 apt install -y curl wget git nano vim build-essential python3 python3-pip nodejs npm htop neofetch unzip zip tar net-tools iputils-ping sudo
+
+echo "✅ Basic setup completed!"
+echo "💡 For full setup, run: wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/uuntu-setup.sh && ./ubuntu-setup.sh"
 EOF
         chmod +x $INSTALL_DIR/ubuntu-setup.sh
         print_success "Basic setup script created!"
@@ -779,62 +719,59 @@ proot -0 -r $HOME/ubuntu/ubuntu24-rootfs \
     -w /root /usr/bin/env -i HOME=/root TERM="$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/bash --login
 EOF
     chmod +x start-ubuntu-24.04.sh
-    
+
     echo "chroot_success" > $HOME/ubuntu_install_result
 }
 
 # Function to install Ubuntu 24.04 (Chroot) - Main function
 install_ubuntu_24_04_chroot() {
     print_status "Installing Ubuntu 24.04 (Chroot)..."
-    
+
     # Start installation in background
     install_ubuntu_24_04_chroot_background &
     local pid=$!
-    
+
     # Show loading animation
     show_loading "Installing Ubuntu 24.04 (Chroot)..." $pid
-    
+
     # Wait for installation to complete
     wait $pid
-    
+
     # Check result
     if [[ -f $HOME/ubuntu_install_result ]]; then
         local result=$(cat $HOME/ubuntu_install_result)
         rm -f $HOME/ubuntu_install_result
-        
+
         if [[ "$result" == "chroot_success" ]]; then
             print_success_box "Ubuntu 24.04 (Chroot) installed successfully!"
-            
-            # Setup user account
-            if setup_ubuntu_user "24.04" "$HOME/ubuntu/ubuntu24-rootfs"; then
-                # Ask user what to do next
-                echo ""
-                echo -e "${CYAN}What would you like to do next?${NC}"
-                echo -e "${BLUE}1.${NC} Enter Ubuntu 24.04 as root"
-                echo -e "${BLUE}2.${NC} Enter Ubuntu 24.04 as user"
-                echo -e "${BLUE}3.${NC} Return to main menu"
-                echo ""
-                read -p "Enter your choice (1-3): " post_install_choice
-                
-                case $post_install_choice in
-                    1)
-                        print_status "Entering Ubuntu 24.04 as root..."
-                        cd $HOME/ubuntu/ubuntu24-rootfs && ./start-ubuntu-24.04.sh
-                        ;;
-                    2)
-                        print_status "Entering Ubuntu 24.04 as user..."
-                        cd $HOME/ubuntu/ubuntu24-rootfs && ./start-ubuntu-24.04-${ubuntu_username}.sh
-                        ;;
-                    3)
-                        print_status "Returning to main menu..."
-                        ;;
-                    *)
-                        print_status "Returning to main menu..."
-                        ;;
-                esac
-            else
-                print_error "Failed to setup user account"
-            fi
+            print_status "To enter Ubuntu: cd $HOME/ubuntu/ubuntu24-rootfs && ./start-ubuntu-24.04.sh"
+            print_status "💡 To setup Ubuntu with all tools: ubuntu24 && ./ubuntu-setup.sh"
+
+            # Create alias for quick access
+            echo 'alias ubuntu24="cd ~/ubuntu/ubuntu24-rootfs && ./start-ubuntu-24.04.sh"' >> ~/.bashrc
+            source ~/.bashrc
+            print_status "Quick access alias created: type 'ubuntu24' to enter Ubuntu 24.04"
+
+            # Ask user what to do next
+            echo ""
+            echo -e "${CYAN}What would you like to do next?${NC}"
+            echo -e "${BLUE}1.${NC} Enter Ubuntu 24.04 directly"
+            echo -e "${BLUE}2.${NC} Return to main menu"
+            echo ""
+            read -p "Enter your choice (1-2): " post_install_choice
+
+            case $post_install_choice in
+                1)
+                    print_status "Entering Ubuntu 24.04..."
+                    cd $HOME/ubuntu/ubuntu24-rootfs && ./start-ubuntu-24.04.sh
+                    ;;
+                2)
+                    print_status "Returning to main menu..."
+                    ;;
+                *)
+                    print_status "Returning to main menu..."
+                    ;;
+            esac
         elif [[ "$result" == "chroot_failed" ]]; then
             print_error_box "Failed to download Ubuntu 24.04 rootfs"
             print_status "Please check your internet connection and try again"
@@ -844,17 +781,17 @@ install_ubuntu_24_04_chroot() {
     else
         print_error_box "Installation failed"
     fi
-    
+
     clear_screen
 }
 
 # Function to install Ubuntu with Proot-distro in background
 install_ubuntu_proot_background() {
     local version="$1"
-    
+
     # Install proot-distro
     pkg install proot-distro -y
-    
+
     # Use specific proot URLs for better compatibility
     case $version in
         "18.04")
@@ -884,18 +821,18 @@ install_ubuntu_proot_background() {
             return
             ;;
     esac
-    
+
     # Create proot directory
     mkdir -p $HOME/ubuntu/proot-${version}
     cd $HOME/ubuntu/proot-${version}
-    
+
     # Download proot rootfs (silent with progress)
     wget -q --show-progress -O ubuntu-${version}-proot.tar.gz $PROOT_URL > /dev/null 2>&1
-    
+
     if [[ $? -eq 0 ]]; then
         # Extract proot rootfs (silent)
         tar -xzf ubuntu-${version}-proot.tar.gz --exclude='./dev' > /dev/null 2>&1
-        
+
         # Create start script for proot
         cat > start-ubuntu-${version}-proot.sh <<'EOF'
 #!/bin/bash
@@ -903,7 +840,7 @@ unset LD_PRELOAD
 proot -r $HOME/ubuntu/proot-${version} -b /dev -b /proc -b /sys -b /data/data/com.termux/files/home:/root -w /root /usr/bin/env -i HOME=/root TERM="$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/bash --login
 EOF
         chmod +x start-ubuntu-${version}-proot.sh
-        
+
         echo "proot_success" > $HOME/ubuntu_install_result
     else
         # Fallback to proot-distro if download fails
@@ -920,10 +857,10 @@ EOF
 # Function to install Ubuntu with Proot-distro - Main function
 install_ubuntu_proot() {
     print_status "Installing Ubuntu with proot-distro..."
-    
+
     # Install proot-distro
     pkg install proot-distro -y
-    
+
     print_header
     echo -e "${WHITE}Select Ubuntu Version for Proot:${NC}"
     echo -e "${BLUE}1.${NC} Ubuntu 18.04"
@@ -931,26 +868,26 @@ install_ubuntu_proot() {
     echo -e "${BLUE}3.${NC} Ubuntu 22.04"
     echo -e "${BLUE}4.${NC} Ubuntu 24.04"
     echo ""
-    
+
     read -p "Select Ubuntu version (1-4): " proot_version
-    
+
     case $proot_version in
         1)
             # Start installation in background
             install_ubuntu_proot_background "18.04" &
             local pid=$!
-            
+
             # Show loading animation
             show_loading "Installing Ubuntu 18.04 (Proot)..." $pid
-            
+
             # Wait for installation to complete
             wait $pid
-            
+
             # Check result
             if [[ -f $HOME/ubuntu_install_result ]]; then
                 local result=$(cat $HOME/ubuntu_install_result)
                 rm -f $HOME/ubuntu_install_result
-                
+
                 if [[ "$result" == "proot_success" ]]; then
                     print_success_box "Ubuntu 18.04 (Proot) installed successfully!"
                     print_status "To enter Ubuntu: cd $HOME/ubuntu/proot-18.04 && ./start-ubuntu-18.04-proot.sh"
@@ -967,18 +904,18 @@ install_ubuntu_proot() {
             # Start installation in background
             install_ubuntu_proot_background "20.04" &
             local pid=$!
-            
+
             # Show loading animation
             show_loading "Installing Ubuntu 20.04 (Proot)..." $pid
-            
+
             # Wait for installation to complete
             wait $pid
-            
+
             # Check result
             if [[ -f $HOME/ubuntu_install_result ]]; then
                 local result=$(cat $HOME/ubuntu_install_result)
                 rm -f $HOME/ubuntu_install_result
-                
+
                 if [[ "$result" == "proot_success" ]]; then
                     print_success_box "Ubuntu 20.04 (Proot) installed successfully!"
                     print_status "To enter Ubuntu: cd $HOME/ubuntu/proot-20.04 && ./start-ubuntu-20.04-proot.sh"
@@ -995,18 +932,18 @@ install_ubuntu_proot() {
             # Start installation in background
             install_ubuntu_proot_background "22.04" &
             local pid=$!
-            
+
             # Show loading animation
             show_loading "Installing Ubuntu 22.04 (Proot)..." $pid
-            
+
             # Wait for installation to complete
             wait $pid
-            
+
             # Check result
             if [[ -f $HOME/ubuntu_install_result ]]; then
                 local result=$(cat $HOME/ubuntu_install_result)
                 rm -f $HOME/ubuntu_install_result
-                
+
                 if [[ "$result" == "proot_success" ]]; then
                     print_success_box "Ubuntu 22.04 (Proot) installed successfully!"
                     print_status "To enter Ubuntu: cd $HOME/ubuntu/proot-22.04 && ./start-ubuntu-22.04-proot.sh"
@@ -1023,18 +960,18 @@ install_ubuntu_proot() {
             # Start installation in background
             install_ubuntu_proot_background "24.04" &
             local pid=$!
-            
+
             # Show loading animation
             show_loading "Installing Ubuntu 24.04 (Proot)..." $pid
-            
+
             # Wait for installation to complete
             wait $pid
-            
+
             # Check result
             if [[ -f $HOME/ubuntu_install_result ]]; then
                 local result=$(cat $HOME/ubuntu_install_result)
                 rm -f $HOME/ubuntu_install_result
-                
+
                 if [[ "$result" == "proot_success" ]]; then
                     print_success_box "Ubuntu 24.04 (Proot) installed successfully!"
                     print_status "To enter Ubuntu: cd $HOME/ubuntu/proot-24.04 && ./start-ubuntu-24.04-proot.sh"
@@ -1063,7 +1000,7 @@ check_root_access() {
     echo ""
     echo -e "${BLUE}Note:${NC} If you don't have root access, consider using Proot instead."
     echo ""
-    
+
     # Show root status
     if [[ $(id -u) -eq 0 ]]; then
         echo -e "${GREEN}✓ Root access already available${NC}"
@@ -1071,9 +1008,9 @@ check_root_access() {
         echo -e "${YELLOW}⚠ Root status: No root access${NC}"
     fi
     echo ""
-    
+
     read -p "Press Enter to continue with root access request..."
-    
+
     # Check if we have root access
     if [[ $(id -u) -eq 0 ]]; then
         print_success_box "Root access confirmed!"
@@ -1082,7 +1019,7 @@ check_root_access() {
         # Try to get root access
         echo -e "${YELLOW}Requesting root access...${NC}"
         su -c "echo 'Root access granted'" 2>/dev/null
-        
+
         if [[ $? -eq 0 ]]; then
             print_success_box "Root access granted successfully!"
             return 0
@@ -1100,7 +1037,7 @@ check_root_access() {
             echo -e "${BLUE}3.${NC} Go back to main menu"
             echo ""
             read -p "Enter your choice (1-3): " root_choice
-            
+
             case $root_choice in
                 1) check_root_access ;;
                 2) install_ubuntu_proot ;;
@@ -1142,9 +1079,9 @@ install_ubuntu() {
     echo -e "${BLUE}3.${NC} Show comparison"
     echo -e "${BLUE}4.${NC} Back to main menu"
     echo ""
-    
+
     read -p "Enter your choice (1-4): " method_choice
-    
+
     case $method_choice in
         1)
             # Check root access before proceeding
@@ -1157,9 +1094,9 @@ install_ubuntu() {
                 echo -e "${BLUE}4.${NC} Ubuntu 24.04"
                 echo -e "${BLUE}5.${NC} Back to main menu"
                 echo ""
-                
+
                 read -p "Enter your choice (1-5): " version_choice
-                
+
                 case $version_choice in
                     1) install_ubuntu_18_04_chroot ;;
                     2) install_ubuntu_20_04_chroot ;;
@@ -1184,7 +1121,7 @@ install_ubuntu() {
             print_error "Invalid choice"
             ;;
     esac
-    
+
     clear_screen
 }
 
@@ -1195,27 +1132,27 @@ remove_ubuntu() {
     print_header
     print_warning "This will remove all Ubuntu installations!"
     read -p "Are you sure? (y/N): " confirm_remove
-    
+
     if [[ "$confirm_remove" =~ ^[Yy]$ ]]; then
         print_status "Removing Ubuntu installations..."
-        
+
         # Remove chroot installations
         rm -rf $HOME/ubuntu/ubuntu*-rootfs
-        
+
         # Remove proot-distro installations
         proot-distro remove ubuntu-18.04 2>/dev/null || true
         proot-distro remove ubuntu-20.04 2>/dev/null || true
         proot-distro remove ubuntu-22.04 2>/dev/null || true
         proot-distro remove ubuntu-24.04 2>/dev/null || true
-        
+
         # Clean up
         rm -rf $HOME/ubuntu
-        
+
         print_success_box "Ubuntu installations removed successfully!"
     else
         print_status "Removal cancelled."
     fi
-    
+
     clear_screen
 }
 
@@ -1228,9 +1165,9 @@ access_ubuntu() {
     echo -e "${BLUE}3.${NC} Access Ubuntu (Proot)"
     echo -e "${BLUE}4.${NC} Back to main menu"
     echo ""
-    
+
     read -p "Enter your choice (1-4): " access_choice
-    
+
     case $access_choice in
         1)
             print_status "Checking installed Ubuntu versions..."
@@ -1267,7 +1204,7 @@ access_ubuntu() {
             print_error "Invalid choice"
             ;;
     esac
-    
+
     clear_screen
 }
 
@@ -1276,9 +1213,9 @@ main_menu() {
     while true; do
         print_header
         print_menu
-        
+
         read -p "Enter your choice (1-5): " choice
-        
+
         case $choice in
             1) system_check ;;
             2) install_ubuntu ;;
@@ -1318,47 +1255,47 @@ check_and_install_prerequisites_background() {
         echo "not_termux" > $HOME/prerequisites_result
         return
     fi
-    
+
     # Update Termux packages
     pkg update -y > /dev/null 2>&1
-    
+
     # Install required packages
     pkg install wget curl proot tar git nano vim -y > /dev/null 2>&1
-    
+
     # Check disk space
     available_space=$(df $HOME | awk 'NR==2 {print $4}')
     required_space=4194304  # 4GB in KB
-    
+
     if [[ $available_space -lt $required_space ]]; then
         echo "low_disk_space:$available_space" > $HOME/prerequisites_result
         return
     fi
-    
+
     # Check internet connection
     if ! ping -c 1 8.8.8.8 &> /dev/null; then
         echo "no_internet" > $HOME/prerequisites_result
         return
     fi
-    
+
     # Create necessary directories
     mkdir -p $HOME/ubuntu
     mkdir -p $HOME/ubuntu/scripts
-    
+
     # Set DNS
     echo 'nameserver 8.8.8.8' > $HOME/.resolv.conf
     echo 'nameserver 8.8.4.4' >> $HOME/.resolv.conf
-    
+
     echo "success" > $HOME/prerequisites_result
 }
 
 # Function to check and install prerequisites
 check_and_install_prerequisites() {
     print_status "Checking system prerequisites..."
-    
+
     # Start prerequisites check in background
     check_and_install_prerequisites_background &
     local pid=$!
-    
+
     # Show loading animation with detailed steps
     echo -e "${YELLOW}System Check & Setup${NC}"
     echo -e "${WHITE}Checking Termux environment...${NC}"
@@ -1368,29 +1305,29 @@ check_and_install_prerequisites() {
     echo -e "${WHITE}Testing internet connection...${NC}"
     echo -e "${WHITE}Creating directories...${NC}"
     echo -e "${WHITE}Configuring DNS...${NC}"
-    
+
     # Loading animation
     local i=0
     local spin='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
-    
+
     while kill -0 $pid 2>/dev/null; do
         local temp=${spin:$i:1}
         echo -ne "${YELLOW}Please wait... ${temp}${NC}\r"
         i=$(( (i+1) % ${#spin} ))
         sleep 0.1
     done
-    
+
     echo -e "${GREEN}System check completed!${NC}"
     echo ""
-    
+
     # Wait for prerequisites check to complete
     wait $pid
-    
+
     # Check result
     if [[ -f $HOME/prerequisites_result ]]; then
         local result=$(cat $HOME/prerequisites_result)
         rm -f $HOME/prerequisites_result
-        
+
         case $result in
             "success")
                 print_success_box "System prerequisites check completed successfully!"
@@ -1429,7 +1366,7 @@ check_and_install_prerequisites() {
         print_error_box "Prerequisites check failed"
         exit 1
     fi
-    
+
     clear_screen
 }
 
@@ -1437,16 +1374,16 @@ check_and_install_prerequisites() {
 show_loading() {
     local message="$1"
     local pid=$2
-    
+
     echo -e "${YELLOW}Installing...${NC}"
     echo -e "${WHITE}$message${NC}"
     echo ""
-    
+
     # Loading animation with progress bar
     local i=0
     local spin='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
     local dots=""
-    
+
     while kill -0 $pid 2>/dev/null; do
         local temp=${spin:$i:1}
         dots="${dots}."
@@ -1457,7 +1394,7 @@ show_loading() {
         i=$(( (i+1) % ${#spin} ))
         sleep 0.2
     done
-    
+
     echo -e "${GREEN}✓ Installation completed successfully!${NC}"
     echo ""
 }
@@ -1467,4 +1404,4 @@ show_loading() {
 # Start the installer
 show_welcome
 check_and_install_prerequisites
-main_menu 
+main_menu
