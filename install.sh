@@ -180,11 +180,29 @@ EOF
     chmod -R 755 $INSTALL_DIR
     chown -R root:root $INSTALL_DIR 2>/dev/null || true
     
-    # Create start script with full root access
+    # Create start script with full root access and network support
     cat > start-ubuntu-18.04.sh <<'EOF'
 #!/bin/bash
 unset LD_PRELOAD
-proot -0 -r $HOME/ubuntu/ubuntu18-rootfs -b /dev -b /proc -b /sys -b /data/data/com.termux/files/home:/root -w /root /usr/bin/env -i HOME=/root TERM="$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/bash --login
+
+# Create network files if they don't exist
+if [ ! -f $HOME/.resolv.conf ]; then
+    echo 'nameserver 8.8.8.8' > $HOME/.resolv.conf
+    echo 'nameserver 8.8.4.4' >> $HOME/.resolv.conf
+    echo 'nameserver 1.1.1.1' >> $HOME/.resolv.conf
+fi
+
+if [ ! -f $HOME/.hosts ]; then
+    echo '127.0.0.1 localhost' > $HOME/.hosts
+    echo '::1 localhost ip6-localhost ip6-loopback' >> $HOME/.hosts
+fi
+
+proot -0 -r $HOME/ubuntu/ubuntu18-rootfs \
+    -b /dev -b /proc -b /sys \
+    -b $HOME/.resolv.conf:/etc/resolv.conf \
+    -b $HOME/.hosts:/etc/hosts \
+    -b /data/data/com.termux/files/home:/root \
+    -w /root /usr/bin/env -i HOME=/root TERM="$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/bash --login
 EOF
     chmod +x start-ubuntu-18.04.sh
     
@@ -273,11 +291,29 @@ EOF
     chmod -R 755 $INSTALL_DIR
     chown -R root:root $INSTALL_DIR 2>/dev/null || true
     
-    # Create start script with full root access
+    # Create start script with full root access and network support
     cat > start-ubuntu-20.04.sh <<'EOF'
 #!/bin/bash
 unset LD_PRELOAD
-proot -0 -r $HOME/ubuntu/ubuntu20-rootfs -b /dev -b /proc -b /sys -b /data/data/com.termux/files/home:/root -w /root /usr/bin/env -i HOME=/root TERM="$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/bash --login
+
+# Create network files if they don't exist
+if [ ! -f $HOME/.resolv.conf ]; then
+    echo 'nameserver 8.8.8.8' > $HOME/.resolv.conf
+    echo 'nameserver 8.8.4.4' >> $HOME/.resolv.conf
+    echo 'nameserver 1.1.1.1' >> $HOME/.resolv.conf
+fi
+
+if [ ! -f $HOME/.hosts ]; then
+    echo '127.0.0.1 localhost' > $HOME/.hosts
+    echo '::1 localhost ip6-localhost ip6-loopback' >> $HOME/.hosts
+fi
+
+proot -0 -r $HOME/ubuntu/ubuntu20-rootfs \
+    -b /dev -b /proc -b /sys \
+    -b $HOME/.resolv.conf:/etc/resolv.conf \
+    -b $HOME/.hosts:/etc/hosts \
+    -b /data/data/com.termux/files/home:/root \
+    -w /root /usr/bin/env -i HOME=/root TERM="$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/bash --login
 EOF
     chmod +x start-ubuntu-20.04.sh
     
@@ -366,11 +402,29 @@ EOF
     chmod -R 755 $INSTALL_DIR
     chown -R root:root $INSTALL_DIR 2>/dev/null || true
     
-    # Create start script with full root access
+    # Create start script with full root access and network support
     cat > start-ubuntu-22.04.sh <<'EOF'
 #!/bin/bash
 unset LD_PRELOAD
-proot -0 -r $HOME/ubuntu/ubuntu22-rootfs -b /dev -b /proc -b /sys -b /data/data/com.termux/files/home:/root -w /root /usr/bin/env -i HOME=/root TERM="$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/bash --login
+
+# Create network files if they don't exist
+if [ ! -f $HOME/.resolv.conf ]; then
+    echo 'nameserver 8.8.8.8' > $HOME/.resolv.conf
+    echo 'nameserver 8.8.4.4' >> $HOME/.resolv.conf
+    echo 'nameserver 1.1.1.1' >> $HOME/.resolv.conf
+fi
+
+if [ ! -f $HOME/.hosts ]; then
+    echo '127.0.0.1 localhost' > $HOME/.hosts
+    echo '::1 localhost ip6-localhost ip6-loopback' >> $HOME/.hosts
+fi
+
+proot -0 -r $HOME/ubuntu/ubuntu22-rootfs \
+    -b /dev -b /proc -b /sys \
+    -b $HOME/.resolv.conf:/etc/resolv.conf \
+    -b $HOME/.hosts:/etc/hosts \
+    -b /data/data/com.termux/files/home:/root \
+    -w /root /usr/bin/env -i HOME=/root TERM="$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/bash --login
 EOF
     chmod +x start-ubuntu-22.04.sh
     
@@ -459,11 +513,29 @@ EOF
     chmod -R 755 $INSTALL_DIR
     chown -R root:root $INSTALL_DIR 2>/dev/null || true
     
-    # Create start script with full root access
+    # Create start script with full root access and network support
     cat > start-ubuntu-24.04.sh <<'EOF'
 #!/bin/bash
 unset LD_PRELOAD
-proot -0 -r $HOME/ubuntu/ubuntu24-rootfs -b /dev -b /proc -b /sys -b /data/data/com.termux/files/home:/root -w /root /usr/bin/env -i HOME=/root TERM="$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/bash --login
+
+# Create network files if they don't exist
+if [ ! -f $HOME/.resolv.conf ]; then
+    echo 'nameserver 8.8.8.8' > $HOME/.resolv.conf
+    echo 'nameserver 8.8.4.4' >> $HOME/.resolv.conf
+    echo 'nameserver 1.1.1.1' >> $HOME/.resolv.conf
+fi
+
+if [ ! -f $HOME/.hosts ]; then
+    echo '127.0.0.1 localhost' > $HOME/.hosts
+    echo '::1 localhost ip6-localhost ip6-loopback' >> $HOME/.hosts
+fi
+
+proot -0 -r $HOME/ubuntu/ubuntu24-rootfs \
+    -b /dev -b /proc -b /sys \
+    -b $HOME/.resolv.conf:/etc/resolv.conf \
+    -b $HOME/.hosts:/etc/hosts \
+    -b /data/data/com.termux/files/home:/root \
+    -w /root /usr/bin/env -i HOME=/root TERM="$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/bash --login
 EOF
     chmod +x start-ubuntu-24.04.sh
     
