@@ -6,26 +6,6 @@
 
 یک نصب کننده کامل و آسان برای اوبونتو روی ترماکس با استفاده از اسکریپت‌های شل.
 
----
-
-## 📥 لینک دانلود مستقیم از گیت‌هاب
-
-- صفحه پروژه: [https://github.com/amirmsoud16/ubuntu-chroot-pk-](https://github.com/amirmsoud16/ubuntu-chroot-pk-)
-- دانلود نصب‌کننده اصلی:
-  ```bash
-  wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/ubuntu_chroot_installer.sh
-  chmod +x ubuntu_chroot_installer.sh
-  ./ubuntu_chroot_installer.sh
-  ```
-- دانلود اسکریپت نصب خودکار:
-  ```bash
-  wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/install.sh
-  chmod +x install.sh
-  ./install.sh
-  ```
-
----
-
 ## 📋 پیش‌نیازها (Prerequisites)
 
 ### 1️⃣ نصب ترماکس
