@@ -53,22 +53,28 @@ show_loading() {
     echo ""
 }
 
-# Background installation function
-install_in_background() {
+# Interactive installation function
+install_interactive() {
     local install_function="$1"
     local message="$2"
     
-    # Start installation in background
-    $install_function > /dev/null 2>&1 &
-    local pid=$!
+    echo -e "${YELLOW}Installing...${NC}"
+    echo -e "${WHITE}$message${NC}"
+    echo ""
     
-    # Show loading animation
-    show_loading "$message" $pid
+    # Ask user for confirmation
+    read -p "Press Enter to start installation (or Ctrl+C to cancel): "
     
-    # Wait for installation to complete
-    wait $pid
+    # Run installation in foreground (user can see output)
+    $install_function
     
-    return $?
+    echo ""
+    echo -e "${GREEN}✓ Installation completed!${NC}"
+    echo ""
+    
+    # Ask user to continue
+    read -p "Press Enter to continue to next step..."
+    clear
 }
 
 # Check Ubuntu environment
@@ -111,7 +117,7 @@ install_system_tools() {
 # Install system tools with loading
 install_system_tools_with_loading() {
     print_info "Installing system tools..."
-    install_in_background "install_system_tools" "Installing development tools and packages..."
+    install_interactive "install_system_tools" "Installing development tools and packages..."
     print_success "System tools installed"
 }
 
@@ -124,7 +130,7 @@ install_dev_tools() {
 # Install development tools with loading
 install_dev_tools_with_loading() {
     print_info "Installing development tools..."
-    install_in_background "install_dev_tools" "Installing development and debugging tools..."
+    install_interactive "install_dev_tools" "Installing development and debugging tools..."
     print_success "Development tools installed"
 }
 
@@ -154,7 +160,7 @@ install_python_packages() {
 # Install Python packages with loading
 install_python_packages_with_loading() {
     print_info "Installing Python packages..."
-    install_in_background "install_python_packages" "Installing Python packages and libraries..."
+    install_interactive "install_python_packages" "Installing Python packages and libraries..."
     print_success "Python packages installed"
 }
 
@@ -166,7 +172,7 @@ install_nodejs_packages() {
 # Install Node.js packages with loading
 install_nodejs_packages_with_loading() {
     print_info "Installing Node.js packages..."
-    install_in_background "install_nodejs_packages" "Installing Node.js packages and tools..."
+    install_interactive "install_nodejs_packages" "Installing Node.js packages and tools..."
     print_success "Node.js packages installed"
 }
 
@@ -271,7 +277,7 @@ install_rust() {
 install_rust_with_loading() {
     print_info "Installing Rust..."
     if ! command -v rustc &> /dev/null; then
-        install_in_background "install_rust" "Installing Rust programming language..."
+        install_interactive "install_rust" "Installing Rust programming language..."
         print_success "Rust installed"
     else
         print_info "Rust is already installed"
@@ -338,13 +344,12 @@ install_network_packages() {
 # Install network tools with loading
 install_network_packages_with_loading() {
     print_info "Installing network tools..."
-    install_in_background "install_network_packages" "Installing network analysis tools..."
+    install_interactive "install_network_packages" "Installing network analysis tools..."
     print_success "Network tools installed:"
     print_info "  nmap - Network scanner"
     print_info "  wireshark-cli - Network analyzer"
     print_info "  netcat - Network utility"
     print_info "  tcpdump - Packet analyzer"
-    clear
 }
 
 # Install user applications (background version)
@@ -356,13 +361,12 @@ install_user_applications() {
 # Install user applications with loading
 install_user_applications_with_loading() {
     print_info "Installing user applications..."
-    install_in_background "install_user_applications" "Installing user applications and office tools..."
+    install_interactive "install_user_applications" "Installing user applications and office tools..."
     print_success "User applications installed:"
     print_info "  firefox-esr - Web browser"
     print_info "  libreoffice-writer - Word processor"
     print_info "  libreoffice-calc - Spreadsheet"
     print_info "  gimp - Image editor"
-    clear
 }
 
 # Install desktop environment
@@ -391,7 +395,7 @@ install_xfce() {
 # Install XFCE with loading
 install_xfce_with_loading() {
     print_info "Installing XFCE Desktop Environment..."
-    install_in_background "install_xfce" "Installing XFCE desktop environment..."
+    install_interactive "install_xfce" "Installing XFCE desktop environment..."
     
     # Ask for VNC
     read -p "Install VNC server? (y/N): " install_vnc
@@ -401,7 +405,6 @@ install_xfce_with_loading() {
     fi
     
     print_success "XFCE installed successfully!"
-    clear
 }
 
 # Install LXDE (background version)
@@ -413,7 +416,7 @@ install_lxde() {
 # Install LXDE with loading
 install_lxde_with_loading() {
     print_info "Installing LXDE Desktop Environment..."
-    install_in_background "install_lxde" "Installing LXDE desktop environment..."
+    install_interactive "install_lxde" "Installing LXDE desktop environment..."
     
     # Ask for VNC
     read -p "Install VNC server? (y/N): " install_vnc
@@ -423,7 +426,6 @@ install_lxde_with_loading() {
     fi
     
     print_success "LXDE installed successfully!"
-    clear
 }
 
 # Install GNOME (background version)
@@ -435,7 +437,7 @@ install_gnome() {
 # Install GNOME with loading
 install_gnome_with_loading() {
     print_info "Installing GNOME Desktop Environment..."
-    install_in_background "install_gnome" "Installing GNOME desktop environment..."
+    install_interactive "install_gnome" "Installing GNOME desktop environment..."
     
     # Ask for VNC
     read -p "Install VNC server? (y/N): " install_vnc
@@ -445,7 +447,6 @@ install_gnome_with_loading() {
     fi
     
     print_success "GNOME installed successfully!"
-    clear
 }
 
 # Install KDE (background version)
@@ -457,7 +458,7 @@ install_kde() {
 # Install KDE with loading
 install_kde_with_loading() {
     print_info "Installing KDE Desktop Environment..."
-    install_in_background "install_kde" "Installing KDE desktop environment..."
+    install_interactive "install_kde" "Installing KDE desktop environment..."
     
     # Ask for VNC
     read -p "Install VNC server? (y/N): " install_vnc
@@ -467,7 +468,6 @@ install_kde_with_loading() {
     fi
     
     print_success "KDE installed successfully!"
-    clear
 }
 
 # Install MATE (background version)
@@ -479,7 +479,7 @@ install_mate() {
 # Install MATE with loading
 install_mate_with_loading() {
     print_info "Installing MATE Desktop Environment..."
-    install_in_background "install_mate" "Installing MATE desktop environment..."
+    install_interactive "install_mate" "Installing MATE desktop environment..."
     
     # Ask for VNC
     read -p "Install VNC server? (y/N): " install_vnc
@@ -489,7 +489,6 @@ install_mate_with_loading() {
     fi
     
     print_success "MATE installed successfully!"
-    clear
 }
 
 # Install all packages
