@@ -1,212 +1,183 @@
-# 🐧 Ubuntu Installer for Termux
+# Ubuntu Chroot Installer for Termux
 
-> **نصب آسان Ubuntu در Termux با یک کلیک!**
+[View Project on GitHub](https://github.com/amirmsoud16/ubuntu-chroot-pk-)
 
-## 🚀 نصب سریع
+## 🚀 Ubuntu Installer for Termux
 
-### مرحله 1: دانلود
+A complete and easy Ubuntu installer for Termux using shell scripts.
+
+## 📥 Download Methods
+
+### 🎯 Project Page
+[https://github.com/amirmsoud16/ubuntu-chroot-pk-](https://github.com/amirmsoud16/ubuntu-chroot-pk-)
+
+## 📋 Prerequisites (install)
+
+### 1️⃣ Install Termux
+```bash
+# Download and install Termux from F-Droid
+# https://f-droid.org/en/packages/com.termux/
+```
+
+### 2️⃣ Update Termux
+```bash
+apt update -y
+apt upgrade -y
+```
+
+### 3️⃣ Install Required Packages
+```bash
+# Install required tools
+apt install wget curl proot tar git nano vim -y
+```
+
+---
+
+## 🚀 How to Run
+
+### Quick Start
 ```bash
 wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/install.sh
-```
-
-### مرحله 2: اجرا
-```bash
-bash install.sh
-```
-
-### مرحله 3: انتخاب
-- گزینه `1` را انتخاب کنید (Install Ubuntu)
-- گزینه `2` را انتخاب کنید (Chroot)
-- ورژن مورد نظر را انتخاب کنید
-
----
-
-## 📋 مراحل کامل نصب
-
-### 1️⃣ **نصب Ubuntu**
-```bash
-# دانلود و اجرا
-wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/install.sh
-bash install.sh
-```
-
-### 2️⃣ **انتخاب در منو**
-```
-Ubuntu Installer for Termux
-Modern & Beautiful Setup
-
-Available Options:
-  1. 🚀 Install Ubuntu (Background Operation)
-  2. 🗑️  Remove Ubuntu (Clean Uninstall)
-  3. 📖 Installation Guide (Step by Step)
-  4. 🔧 System Check (Prerequisites)
-  5. ❌ Exit (Goodbye)
-```
-
-### 3️⃣ **انتخاب روش نصب**
-```
-🚀 Ubuntu Installation Menu
-
-Select Installation Method:
-  1. 🐧 Proot-Distro (Recommended - Easy)
-  2. 🔧 Chroot (Advanced - Auto Setup Scripts)
-  3. ↩️  Return to Main Menu
-```
-
-### 4️⃣ **انتخاب ورژن**
-```
-🔧 Chroot Installation
-
-Select Ubuntu Version:
-  1. 🐧 Ubuntu 18.04 LTS (Bionic Beaver)
-  2. 🐧 Ubuntu 20.04 LTS (Focal Fossa)
-  3. 🐧 Ubuntu 22.04 LTS (Jammy Jellyfish)
-  4. 🐧 Ubuntu 24.04 LTS (Noble Numbat)
-  5. ↩️  Return to Installation Menu
-```
-
-### 5️⃣ **راه‌اندازی اولیه**
-```bash
-# ورود به محیط Ubuntu
-cd ~/ubuntu/ubuntu18-rootfs
-proot -0 -r . -b /dev -b /proc -b /sys -w /root /bin/bash
-
-# اجرای setup اولیه (در محیط Ubuntu)
-./ubuntu-root-setup.sh
-
-# خروج از Ubuntu
-exit
-
-# ورود مجدد به Ubuntu
-cd ~/ubuntu/ubuntu18-rootfs
-proot -0 -r . -b /dev -b /proc -b /sys -w /root /bin/bash
-
-# نصب ابزارها (در محیط Ubuntu)
-./ubuntu-tools-setup.sh
-```
-
-**نکته مهم:** اسکریپت‌های `ubuntu-root-setup.sh` و `ubuntu-tools-setup.sh` به صورت خودکار در دایرکتوری Ubuntu ساخته می‌شوند. شما فقط باید وارد محیط Ubuntu شوید و آنها را اجرا کنید.
-
-**شورت‌کات‌های آسان:**
-```bash
-# بعد از نصب، می‌توانید از این دستورات استفاده کنید:
-ubuntu18        # ورود به Ubuntu 18.04 به عنوان root
-ubuntu18-user   # ورود به Ubuntu 18.04 به عنوان کاربر
-ubuntu18-setup  # اجرای root setup
-ubuntu18-tools  # اجرای tools setup
+chmod +x install.sh
+./install.sh
 ```
 
 ---
 
-## 🎯 دستورات دسترسی سریع
+###🎯After installation
 
-| دستور | توضیح |
-|-------|-------|
-| `ubuntu18` | ورود به Ubuntu 18.04 به عنوان root |
-| `ubuntu18-user` | ورود به Ubuntu 18.04 به عنوان کاربر |
-| `ubuntu18-setup` | اجرای root setup |
-| `ubuntu18-tools` | اجرای tools setup |
-| `cd ~/ubuntu/ubuntu18-rootfs && proot -0 -r . -b /dev -b /proc -b /sys -w /root /bin/bash` | ورود دستی به محیط Ubuntu |
-| `./ubuntu-root-setup.sh` | اجرای root setup (در Ubuntu) |
-| `./ubuntu-tools-setup.sh` | اجرای tools setup (در Ubuntu) |
-| `fix-internet-18` | رفع مشکل اینترنت |
+### Quick Access Commands:
 
----
-
-## 📦 ابزارهای نصب شده
-
-### 🔧 **ابزارهای اصلی**
-- Python 3 + pip
-- Node.js + npm
-- Git + GitHub CLI
-- GCC + Make
-- Vim + Nano
-
-### 🌐 **ابزارهای شبکه**
-- curl + wget
-- nmap + tcpdump
-- netcat + telnet
-
-### 🛠️ **ابزارهای توسعه**
-- Docker + Podman
-- AWS CLI + Azure CLI
-- VS Code + Vim
-- Jupyter + Flask
-
----
-
-## ⚙️ ویژگی‌ها
-
-### ✅ **نصب آسان**
-- یک فایل، همه چیز
-- منوی تعاملی
-- نصب خودکار
-
-### 🔒 **امنیت بالا**
-- Smart Root Password
-- Sudo بدون رمز برای کاربر
-- محیط ایزوله
-
-### ⚡ **عملکرد عالی**
-- Chroot برای سرعت بالا
-- Proot برای سازگاری
-- بهینه‌سازی کامل
-
----
-
-## 🆘 رفع مشکلات
-
-### **مشکل: نصب نشد**
-```bash
-# بررسی فضای دیسک
-df -h
-
-# بررسی اینترنت
-ping 8.8.8.8
-
-# نصب مجدد
-bash install.sh
+After installation, you can use these aliases:
 ```
-
-### **مشکل: اینترنت کار نمی‌کند**
-```bash
-# در محیط Ubuntu
+ubuntu18
+ubuntu18-username
 fix-internet-18
 ```
-
-### **مشکل: دسترسی root**
-```bash
-# بررسی root status
-su
-
-# یا استفاده از Proot
-# در منو گزینه 1 را انتخاب کنید
 ```
-
----
-
-## 📞 پشتیبانی
-
-- **GitHub Issues**: [گزارش مشکل](https://github.com/amirmsoud16/ubuntu-chroot-pk-/issues)
-- **Telegram**: [کانال پشتیبانی](https://t.me/ubuntu_chroot_support)
-
----
-
-## ⭐ ستاره‌دهی
-
-اگر این پروژه برایتان مفید بود، لطفاً ⭐ بدهید!
-
-```bash
-# حمایت از پروژه
-echo "Thanks for using Ubuntu Installer!"
+ubuntu20
+ubuntu20-username
+fix-internet-20
 ```
+```
+ubuntu22
+ubuntu22-username
+fix-internet-22
+```
+```
+ubuntu24
+ubuntu24-username
+fix-internet-24
+```
+#🎯fixer net and install tools ubuntu
+```
+wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/ubuntu-setup.sh
+chmod +x ubuntu-setup.sh
+```
+```
+#run to Ubuntu
+ubuntu18-username
+ubuntu20-username
+ubuntu22-username
+ubuntu24-username
+```
+```
+# rub fixer
+./ubuntu-setup.sh
+```
+## 🎯 Features
+
+### ✅ System Check & Preparation
+- Check Termux environment
+- Check disk space (minimum 4GB)
+- Check internet connection
+- Auto-install required packages
+- Set DNS and permissions
+- Prepare Ubuntu directory
+
+### ✅ Install Ubuntu
+- Choose installation method (Chroot/Proot)
+- Choose Ubuntu version (18.04, 20.04, 22.04, 24.04)
+- Auto-install LXDE desktop
+- Setup VNC Server
+- Create helper scripts
+- Auto-fix symbolic links for better compatibility
+
+### ✅ Complete Removal
+- Remove all Ubuntu files
+- Clean environment variables
+- Remove extra files
+
+### ✅ Access Ubuntu
+- Direct access (terminal)
+- VNC access (graphical)
+- Install LXDE desktop
+- Setup VNC server
+
+### ✅ Fix Chroot Links
+- Check symbolic links status
+- Fix broken symbolic links
+- Repair common system links (python, gcc, vim, etc.)
+- Auto-fix during installation
+
+## 📱 Device Support
+
+### ✅ Rooted Devices
+- **Installation Type:** Chroot
+- **Performance:** Excellent
+- **Compatibility:** Full
+- **Features:** All capabilities
+
+### ✅ Non-Rooted Devices
+- **Installation Type:** Proot
+- **Performance:** Medium
+- **Compatibility:** Limited
+- **Features:** Basic
+
+## 📊 Minimum Requirements
+
+| Item          | Minimum | Recommended |
+| ------------- | ------- | ----------- |
+| **RAM**       | 2GB     | 4GB+        |
+| **Disk Space**| 4GB     | 8GB+        |
+| **Android**   | 7.0+    | 10.0+       |
+| **Architecture**| ARM64  | ARM64       |
+
+## 🎨 Interface Features
+
+- ✅ **Colored interface** with clear messages
+- ✅ **Interactive menu** with easy options
+- ✅ **Auto system check**
+- ✅ **Auto package installation**
+- ✅ **Helpful messages** for each step
+
+## 📞 Support
+
+### Report Issues
+If you encounter a problem:
+1. First check the prerequisites
+2. Check the program logs
+3. Report the issue in Issues
+
+### Contribute
+To contribute to development:
+1. Fork the project
+2. Create a new branch
+3. Commit your changes
+4. Send a Pull Request
 
 ---
 
-## 📄 لایسنس
+## 📄 License
 
-این پروژه تحت لایسنس MIT منتشر شده است.
+This project is released under the MIT License.
 
 ---
 
-**ساخته شده با ❤️ برای جامعه Termux** 
+## 🙏 Thanks
+
+Thanks to everyone who contributed to the development of this project.
+
+---
+
+**Important Note:** Before running the program, make sure to install all prerequisites to avoid problems. 
