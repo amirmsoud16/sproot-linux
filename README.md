@@ -32,7 +32,7 @@ chmod +x install.sh
 ```
 ┌─ Ubuntu Chroot & Proot Installer ─┐
 │ 1. System Check                    │
-│ 2. Install Ubuntu               │
+│ 2. Install Ubuntu                  │
 │ 3. Remove Ubuntu                   │
 │ 4. Exit                            │
 └────────────────────────────────────┘
