@@ -13,19 +13,19 @@ WHITE='\033[1;37m'
 NC='\033[0m'
 
 # Ubuntu Root Setup Script Content
-UBUNTU_ROOT_SETUP_CONTENT='#!/bin/bash
+UBUNTU_ROOT_SETUP_CONTENT="#!/bin/bash
 
 # Ubuntu Root Setup Script
 # This script handles root-level configuration, user creation, and system fixes
 
 # Colors for output
-RED='\''\033[0;31m'\''
-GREEN='\''\033[0;32m'\''
-YELLOW='\''\033[1;33m'\''
-BLUE='\''\033[0;34m'\''
-CYAN='\''\033[0;36m'\''
-WHITE='\''\033[1;37m'\''
-NC='\''\033[0m'\'' # No Color
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+WHITE='\033[1;37m'
+NC='\033[0m' # No Color
 
 # Function to print colored output
 print_status() {
@@ -77,6 +77,11 @@ get_user_credentials() {
             print_error "Password cannot be empty!"
         fi
     done
+    
+    print_success "User configuration saved!"
+    print_status "Username: $UBUNTU_USERNAME"
+    print_status "Root password: ********"
+    print_status "User password: None (no password needed)"
     echo ""
 }
 
@@ -171,7 +176,7 @@ fix_internet() {
     
     # Create resolv.conf with multiple DNS servers
     print_status "Configuring DNS servers..."
-    cat > /etc/resolv.conf << '\''EOF'\''
+    cat > /etc/resolv.conf << 'EOF'
 nameserver 8.8.8.8
 nameserver 8.8.4.4
 nameserver 1.1.1.1
@@ -226,7 +231,7 @@ create_ubuntu_start_scripts() {
     print_status "📝 Creating Ubuntu start scripts..."
     
     # Get Ubuntu version from /etc/os-release
-    UBUNTU_VERSION=$(grep VERSION_ID /etc/os-release | cut -d'"'\'' -f2 | cut -d'\''.'\'' -f1)
+    UBUNTU_VERSION=$(grep VERSION_ID /etc/os-release | cut -d'" -f2 | cut -d'.' -f1)
     
     # Create start script for root access (with password prompt)
     cat > /start-ubuntu.sh << EOF
@@ -265,7 +270,7 @@ EOF
     chmod +x /start-ubuntu-user.sh
     
     # Create internet fix script
-    cat > /fix-internet.sh << '\''EOF'\''
+    cat > /fix-internet.sh << 'EOF'
 #!/bin/bash
 # Fix internet connectivity in Ubuntu
 
@@ -299,7 +304,7 @@ create_termux_aliases() {
     print_status "📝 Creating Termux aliases..."
     
     # Get Ubuntu version from /etc/os-release
-    UBUNTU_VERSION=$(grep VERSION_ID /etc/os-release | cut -d'"'\'' -f2 | cut -d'\''.'\'' -f1)
+    UBUNTU_VERSION=$(grep VERSION_ID /etc/os-release | cut -d'" -f2 | cut -d'.' -f1)
     
     # Create simple aliases in Termux .bashrc
     echo "alias ubuntu${UBUNTU_VERSION}=\"cd ~/ubuntu/ubuntu${UBUNTU_VERSION}-rootfs && ./start-ubuntu.sh\"" >> ~/.bashrc
@@ -320,9 +325,9 @@ copy_scripts_to_ubuntu() {
     print_status "📁 Copying scripts to Ubuntu directory..."
     
     # Get Ubuntu version from /etc/os-release
-    UBUNTU_VERSION=$(grep VERSION_ID /etc/os-release | cut -d'"'\'' -f2 | cut -d'\''.'\'' -f1)
+    UBUNTU_VERSION=$(grep VERSION_ID /etc/os-release | cut -d'" -f2 | cut -d'.' -f1)
     
-    # Create Ubuntu directory if it doesn'\''t exist
+    # Create Ubuntu directory if it doesn't exist
     mkdir -p ~/ubuntu/ubuntu${UBUNTU_VERSION}-rootfs
     
     # Copy start scripts to Ubuntu directory with simple names
@@ -380,19 +385,19 @@ main_root_setup() {
 main_root_setup
 
 # Ubuntu Tools Setup Script Content
-UBUNTU_TOOLS_SETUP_CONTENT='#!/bin/bash
+UBUNTU_TOOLS_SETUP_CONTENT="#!/bin/bash
 
 # Ubuntu Tools Setup Script
 # This script installs all development tools and packages for regular users
 
 # Colors for output
-RED='\''\033[0;31m'\''
-GREEN='\''\033[0;32m'\''
-YELLOW='\''\033[1;33m'\''
-BLUE='\''\033[0;34m'\''
-CYAN='\''\033[0;36m'\''
-WHITE='\''\033[1;37m'\''
-NC='\''\033[0m'\'' # No Color
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+WHITE='\033[1;37m'
+NC='\033[0m' # No Color
 
 # Function to print colored output
 print_status() {
@@ -636,7 +641,7 @@ install_language_tools() {
         print_status "Rust is already installed"
     else
         print_status "Installing Rust..."
-        curl --proto '\''=https'\'' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
         source ~/.cargo/env
     fi
     
