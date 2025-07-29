@@ -266,10 +266,7 @@ install_ubuntu_18_04_chroot() {
             print_success_box "Ubuntu 18.04 (Chroot) installed successfully!"
             print_status "To enter Ubuntu: cd $HOME/ubuntu/ubuntu18-rootfs && ./start-ubuntu-18.04.sh"
             
-            # Create alias for quick access
-            echo 'alias ubuntu18="cd ~/ubuntu/ubuntu18-rootfs && ./start-ubuntu-18.04.sh"' >> ~/.bashrc
-            source ~/.bashrc
-            print_status "Quick access alias created: type 'ubuntu18' to enter Ubuntu 18.04"
+
             
             # Ask user what to do next
             echo ""
@@ -405,10 +402,7 @@ install_ubuntu_20_04_chroot() {
             print_success_box "Ubuntu 20.04 (Chroot) installed successfully!"
             print_status "To enter Ubuntu: cd $HOME/ubuntu/ubuntu20-rootfs && ./start-ubuntu-20.04.sh"
             
-            # Create alias for quick access
-            echo 'alias ubuntu20="cd ~/ubuntu/ubuntu20-rootfs && ./start-ubuntu-20.04.sh"' >> ~/.bashrc
-            source ~/.bashrc
-            print_status "Quick access alias created: type 'ubuntu20' to enter Ubuntu 20.04"
+
             
             # Ask user what to do next
             echo ""
@@ -544,10 +538,7 @@ install_ubuntu_22_04_chroot() {
             print_success_box "Ubuntu 22.04 (Chroot) installed successfully!"
             print_status "To enter Ubuntu: cd $HOME/ubuntu/ubuntu22-rootfs && ./start-ubuntu-22.04.sh"
             
-            # Create alias for quick access
-            echo 'alias ubuntu22="cd ~/ubuntu/ubuntu22-rootfs && ./start-ubuntu-22.04.sh"' >> ~/.bashrc
-            source ~/.bashrc
-            print_status "Quick access alias created: type 'ubuntu22' to enter Ubuntu 22.04"
+
             
             # Ask user what to do next
             echo ""
@@ -683,10 +674,7 @@ install_ubuntu_24_04_chroot() {
             print_success_box "Ubuntu 24.04 (Chroot) installed successfully!"
             print_status "To enter Ubuntu: cd $HOME/ubuntu/ubuntu24-rootfs && ./start-ubuntu-24.04.sh"
             
-            # Create alias for quick access
-            echo 'alias ubuntu24="cd ~/ubuntu/ubuntu24-rootfs && ./start-ubuntu-24.04.sh"' >> ~/.bashrc
-            source ~/.bashrc
-            print_status "Quick access alias created: type 'ubuntu24' to enter Ubuntu 24.04"
+
             
             # Ask user what to do next
             echo ""
