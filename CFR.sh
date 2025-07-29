@@ -191,9 +191,9 @@ fix_permissions() {
 
 # Fix permissions with loading
 fix_permissions_with_loading() {
-    print_info "Fixing permissions..."
+    print_info "Fixing system permissions and access..."
     run_in_background "fix_permissions" "Fixing system permissions and lock files..."
-    print_success "Permissions fixed"
+    print_success "System permissions fixed"
 }
 
 # Fix dpkg interruption (background version)
@@ -265,9 +265,9 @@ fix_dpkg_interruption() {
 
 # Fix dpkg interruption with loading
 fix_dpkg_interruption_with_loading() {
-    print_info "Checking for dpkg interruption..."
+    print_info "Fixing dpkg package system..."
     run_in_background "fix_dpkg_interruption" "Checking and fixing dpkg interruption..."
-    print_success "dpkg interruption check completed"
+    print_success "dpkg package system fixed"
 }
 
 # Fix apt issues (background version)
@@ -319,9 +319,9 @@ EOF
 
 # Fix apt issues with loading
 fix_apt_with_loading() {
-    print_info "Fixing apt issues..."
+    print_info "Fixing apt package manager..."
     run_in_background "fix_apt" "Fixing apt and dpkg issues..."
-    print_success "Apt issues fixed"
+    print_success "apt package manager fixed"
 }
 
 # Fix internet (background version)
@@ -336,9 +336,9 @@ EOF
 
 # Fix internet with loading
 fix_internet_with_loading() {
-    print_info "Fixing internet connectivity..."
+    print_info "Configuring internet connectivity..."
     run_in_background "fix_internet" "Configuring DNS and internet settings..."
-    print_success "Internet configured"
+    print_success "Internet connectivity configured"
 }
 
 # Setup user (background version)
@@ -358,9 +358,9 @@ setup_user() {
 
 # Setup user with loading
 setup_user_with_loading() {
-    print_info "Setting up user..."
+    print_info "Creating user account..."
     run_in_background "setup_user" "Creating user account and setting permissions..."
-    print_success "User setup completed"
+    print_success "User account created successfully"
     print_info "Both root and $USERNAME have the same password"
 }
 
@@ -437,9 +437,9 @@ EOF
 
 # Create start scripts with loading
 create_scripts_with_loading() {
-    print_info "Creating start scripts..."
+    print_info "Creating access scripts and shortcuts..."
     run_in_background "create_scripts" "Creating access scripts and shortcuts..."
-    print_success "Start scripts and quick commands created"
+    print_success "Access scripts and shortcuts created"
     print_info "Quick access commands:"
     print_info "  ubuntu${UBUNTU_VERSION}-$USERNAME  - Quick user access"
     print_info "  ubuntu${UBUNTU_VERSION}-root       - Quick root access"
@@ -481,12 +481,19 @@ main() {
     
     check_environment
     get_user_input
+    
+    # First: Fix all permissions and system issues
+    print_info "Step 1: Fixing system permissions and access..."
     fix_permissions_with_loading
     fix_dpkg_interruption_with_loading
     fix_apt_with_loading
     fix_internet_with_loading
+    
+    # Second: Setup user and create access scripts
+    print_info "Step 2: Setting up user and access..."
     setup_user_with_loading
     create_scripts_with_loading
+    
     show_final_instructions
 }
 
