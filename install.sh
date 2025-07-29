@@ -926,7 +926,7 @@ EOF
 
 # Function to install Ubuntu 18.04 (Chroot) - Main function
 install_ubuntu_18_04_chroot() {
-    print_status "Installing Ubuntu 18.04 (Chroot)..."
+    print_status "Installing Ubuntu 18.04 Chroot..."
 
     # Start installation in background
     install_ubuntu_18_04_chroot_background &
@@ -1030,7 +1030,7 @@ EOF
 
 # Function to install Ubuntu 20.04 (Chroot) - Main function
 install_ubuntu_20_04_chroot() {
-    print_status "Installing Ubuntu 20.04 (Chroot)..."
+    print_status "Installing Ubuntu 20.04 Chroot..."
 
     # Start installation in background
     install_ubuntu_20_04_chroot_background &
@@ -1134,7 +1134,7 @@ EOF
 
 # Function to install Ubuntu 22.04 (Chroot) - Main function
 install_ubuntu_22_04_chroot() {
-    print_status "Installing Ubuntu 22.04 (Chroot)..."
+    print_status "Installing Ubuntu 22.04 Chroot..."
 
     # Start installation in background
     install_ubuntu_22_04_chroot_background &
@@ -1238,7 +1238,7 @@ EOF
 
 # Function to install Ubuntu 24.04 (Chroot) - Main function
 install_ubuntu_24_04_chroot() {
-    print_status "Installing Ubuntu 24.04 (Chroot)..."
+    print_status "Installing Ubuntu 24.04 Chroot..."
 
     # Start installation in background
     install_ubuntu_24_04_chroot_background &
