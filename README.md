@@ -30,7 +30,7 @@ chmod +x install.sh
 ### 1️⃣ **نصب Ubuntu**
 
 ```
-┌─ Ubuntu Chroot & Proot Installer ─┐
+┌─ Ubuntu Chroot & Proot Installer  ─┐
 │ 1. System Check                    │
 │ 2. Install Ubuntu                  │
 │ 3. Remove Ubuntu                   │
