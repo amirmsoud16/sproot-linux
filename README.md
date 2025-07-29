@@ -44,15 +44,23 @@ chmod +x install.sh
 ```
 cd ~
 chmod +x CFR.sh CFU.sh
+```
+```
 ./CFR.sh
+```
+```
 ./CFU.sh
 ```
 ```
 bash ~/CFR.sh
+```
+```
 bash ~/CFU.sh
 ```
 ```
 # استفاده از دستورات سریع
 ubuntu18-amiri    # user
+```
+```
 ubuntu18-root     # root
 ```
