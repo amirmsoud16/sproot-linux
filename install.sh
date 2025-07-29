@@ -294,9 +294,9 @@ EOF
     chmod +x /fix-internet.sh
     
     print_success "Start scripts created"
-    print_status "• /start-ubuntu.sh - Enter as root (password required)"
-    print_status "• /start-ubuntu-user.sh - Enter as user (no password)"
-    print_status "• /fix-internet.sh - Fix internet connectivity"
+    print_status "Start script created: /start-ubuntu.sh"
+    print_status "User script created: /start-ubuntu-user.sh"
+    print_status "Internet fix script created: /fix-internet.sh"
 }
 
 # Function to create Termux aliases
@@ -315,9 +315,9 @@ create_termux_aliases() {
     source ~/.bashrc
     
     print_success "Termux aliases created"
-    print_status "• ubuntu${UBUNTU_VERSION} - Enter as root (password required)"
-    print_status "• ubuntu${UBUNTU_VERSION}-${UBUNTU_USERNAME} - Enter as user (no password)"
-    print_status "• fix-internet-${UBUNTU_VERSION} - Fix internet connectivity"
+    print_status "Root access: ubuntu${UBUNTU_VERSION}"
+    print_status "User access: ubuntu${UBUNTU_VERSION}-${UBUNTU_USERNAME}"
+    print_status "Internet fix: fix-internet-${UBUNTU_VERSION}"
 }
 
 # Function to copy scripts to Ubuntu directory
@@ -710,12 +710,12 @@ main_tools_setup() {
     print_status "You can now start developing with a fully configured environment."
     echo ""
     print_status "Available tools:"
-    print_status "• Development: gcc, g++, make, cmake, clang, gdb"
-    print_status "• Python: python3, pip3, requests, pandas, numpy"
-    print_status "• Node.js: node, npm, yarn, npx"
-    print_status "• Network: curl, wget, git, iperf3"
-    print_status "• CLI: tree, mc, ranger, fzf, ripgrep, bat"
-    print_status "• Editors: geany"
+    print_status "Development: gcc, g++, make, cmake, clang, gdb"
+    print_status "Python: python3, pip3, requests, pandas, numpy"
+    print_status "Node.js: node, npm, yarn, npx"
+    print_status "Network: curl, wget, git, iperf3"
+    print_status "CLI: tree, mc, ranger, fzf, ripgrep, bat"
+    print_status "Editors: geany"
 }
 
 # Run the tools setup
