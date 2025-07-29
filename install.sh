@@ -12,6 +12,38 @@ CYAN='\033[0;36m'
 WHITE='\033[1;37m'
 NC='\033[0m'
 
+# Function to clone required scripts before installation
+clone_required_scripts() {
+    print_status "Downloading required scripts..."
+    
+    # Change to home directory
+    cd ~
+    
+    # Install git if not available
+    if ! command -v git &> /dev/null; then
+        pkg install -y git
+    fi
+    
+    # Remove existing scripts directory if exists
+    rm -rf ubuntu-chroot-pk-
+    
+    # Clone the repository
+    git clone https://github.com/amirmsoud16/ubuntu-chroot-pk-.git
+    
+    if [[ $? -eq 0 ]]; then
+        # Copy scripts to home directory
+        cp ubuntu-chroot-pk-/CFR.sh ~/
+        cp ubuntu-chroot-pk-/CFU.sh ~/
+        chmod +x ~/CFR.sh ~/CFU.sh
+        
+        print_success "Required scripts downloaded successfully!"
+        print_status "CFR.sh and CFU.sh are now available in home directory"
+    else
+        print_warning "Failed to download scripts, continuing without them..."
+        print_status "You can manually download CFR.sh and CFU.sh later"
+    fi
+}
+
 # Function to print header
 print_header() {
     clear
@@ -212,6 +244,9 @@ EOF
 install_ubuntu_18_04_chroot() {
     print_status "Installing Ubuntu 18.04 (Chroot)..."
     
+    # Clone required scripts first
+    clone_required_scripts
+    
     # Start installation in background
     install_ubuntu_18_04_chroot_background &
     local pid=$!
@@ -347,6 +382,9 @@ EOF
 # Function to install Ubuntu 20.04 (Chroot) - Main function
 install_ubuntu_20_04_chroot() {
     print_status "Installing Ubuntu 20.04 (Chroot)..."
+    
+    # Clone required scripts first
+    clone_required_scripts
     
     # Start installation in background
     install_ubuntu_20_04_chroot_background &
@@ -484,6 +522,9 @@ EOF
 install_ubuntu_22_04_chroot() {
     print_status "Installing Ubuntu 22.04 (Chroot)..."
     
+    # Clone required scripts first
+    clone_required_scripts
+    
     # Start installation in background
     install_ubuntu_22_04_chroot_background &
     local pid=$!
@@ -620,6 +661,9 @@ EOF
 install_ubuntu_24_04_chroot() {
     print_status "Installing Ubuntu 24.04 (Chroot)..."
     
+    # Clone required scripts first
+    clone_required_scripts
+    
     # Start installation in background
     install_ubuntu_24_04_chroot_background &
     local pid=$!
@@ -749,6 +793,9 @@ EOF
 # Function to install Ubuntu with Proot-distro - Main function
 install_ubuntu_proot() {
     print_status "Installing Ubuntu with proot-distro..."
+    
+    # Clone required scripts first
+    clone_required_scripts
     
     # Install proot-distro
     pkg install proot-distro -y
