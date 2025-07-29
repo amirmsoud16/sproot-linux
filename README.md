@@ -41,3 +41,13 @@ wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/instal
 chmod +x install.sh
 ./install.sh
 ```
+```
+cd ~
+chmod +x CFR.sh CFU.sh
+./CFR.sh
+./CFU.sh
+```
+```
+bash ~/CFR.sh
+bash ~/CFU.sh
+```
