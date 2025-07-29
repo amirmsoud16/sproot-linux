@@ -58,17 +58,28 @@ run_in_background() {
     local operation_function="$1"
     local message="$2"
     
-    # Start operation in background
-    $operation_function > /dev/null 2>&1 &
+    # Show loading animation
+    echo -e "${YELLOW}Processing...${NC}"
+    echo -e "${WHITE}$message${NC}"
+    echo ""
+    
+    # Loading animation with spinner
+    local i=0
+    local spin='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+    
+    # Run operation in foreground but show loading
+    $operation_function &
     local pid=$!
     
-    # Show loading animation
-    show_loading "$message" $pid
+    while kill -0 $pid 2>/dev/null; do
+        local temp=${spin:$i:1}
+        echo -ne "${YELLOW}Please wait... ${temp}${NC}\r"
+        i=$(( (i+1) % ${#spin} ))
+        sleep 0.1
+    done
     
-    # Wait for operation to complete
-    wait $pid
-    
-    return $?
+    echo -e "${GREEN}✓ Operation completed!${NC}"
+    echo ""
 }
 
 # Check Ubuntu environment
@@ -221,6 +232,9 @@ setup_user_with_loading() {
 # Create start scripts (background version)
 create_scripts() {
     UBUNTU_VERSION=$(grep VERSION_ID /etc/os-release | cut -d'"' -f2 | cut -d'.' -f1)
+    
+    # Create /usr/local/bin directory if it doesn't exist
+    mkdir -p /usr/local/bin
     
     # Root access script
     cat > /start-ubuntu.sh << EOF
