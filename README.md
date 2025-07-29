@@ -32,3 +32,12 @@ apt install wget curl proot tar git nano vim -y
 ```
 
 ---
+
+## 🚀 How to Run
+
+### Quick Start
+```bash
+wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/install.sh
+chmod +x install.sh
+./install.sh
+```
