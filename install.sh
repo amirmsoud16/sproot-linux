@@ -382,7 +382,7 @@ main_root_setup() {
 }
 
 # Run the root setup
-main_root_setup'
+main_root_setup
 
 # Ubuntu Tools Setup Script Content
 UBUNTU_TOOLS_SETUP_CONTENT='#!/bin/bash
