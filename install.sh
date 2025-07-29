@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Ubuntu Chroot Installer - Complete Self-Contained Script
+# Ubuntu Chroot & Proot Installer - Complete Self-Contained Script
 # GitHub Project: https://github.com/amirmsoud16/ubuntu-chroot-pk-
 
 # Colors
@@ -777,7 +777,7 @@ create_setup_scripts() {
 print_header() {
     clear
     echo -e "${CYAN}================================${NC}"
-    echo -e "${CYAN}  Ubuntu Chroot Installer${NC}"
+    echo -e "${CYAN}  Ubuntu Chroot & Proot Installer${NC}"
     echo -e "${CYAN}  GitHub: https://github.com/amirmsoud16/ubuntu-chroot-pk-${NC}"
     echo -e "${CYAN}================================${NC}"
     echo ""
@@ -1707,9 +1707,9 @@ main_menu() {
             3) remove_ubuntu ;;
             4)
                 print_header
-                echo -e "${GREEN}Goodbye!${NC}"
-                echo -e "${WHITE}Thank you for using Ubuntu Chroot Installer!${NC}"
-                echo -e "${WHITE}Don't forget to visit our GitHub repository!${NC}"
+                    echo -e "${GREEN}Goodbye!${NC}"
+    echo -e "${WHITE}Thank you for using Ubuntu Chroot & Proot Installer!${NC}"
+    echo -e "${WHITE}Don't forget to visit our GitHub repository!${NC}"
                 echo ""
                 sleep 2
                 exit 0
@@ -1724,7 +1724,7 @@ main_menu() {
 # Function to show welcome message
 show_welcome() {
     clear
-    echo -e "${CYAN}Welcome to Ubuntu Chroot Installer${NC}"
+    echo -e "${CYAN}Welcome to Ubuntu Chroot & Proot Installer${NC}"
     echo -e "${WHITE}This installer will help you install Ubuntu on Termux${NC}"
     echo -e "${WHITE}Choose from Chroot (rooted devices) or Proot (no root)${NC}"
     echo -e "${WHITE}Supported versions: 18.04, 20.04, 22.04, 24.04${NC}"
