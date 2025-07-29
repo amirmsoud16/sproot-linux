@@ -40,32 +40,11 @@ bash install.sh
 ```
 ┌─ Ubuntu Chroot & Proot Installer ─┐
 │ 1. System Check                    │
-│ 2. Install Ubuntu ← انتخاب         │
+│ 2. Install Ubuntu               │
 │ 3. Remove Ubuntu                   │
 │ 4. Exit                            │
 └────────────────────────────────────┘
 ```
-
-### 3️⃣ **انتخاب روش نصب**
-```
-┌─ Installation Methods ─┐
-│ 1. Chroot ← انتخاب     │
-│ 2. Proot              │
-│ 3. Show comparison     │
-│ 4. Back               │
-└───────────────────────┘
-```
-
-### 4️⃣ **انتخاب ورژن**
-```
-┌─ Ubuntu Versions ─┐
-│ 1. Ubuntu 18.04   │
-│ 2. Ubuntu 20.04   │
-│ 3. Ubuntu 22.04   │
-│ 4. Ubuntu 24.04   │
-└───────────────────┘
-```
-
 ### 5️⃣ **راه‌اندازی اولیه**
 ```bash
 # ورود به Ubuntu (بار اول بدون رمز)
