@@ -456,7 +456,7 @@ install_network_tools() {
     
     # Install network tools
     print_status "Installing network tools..."
-    sudo apt install -y netcat telnet nmap tcpdump iperf3
+    sudo apt install -y iperf3
     
     print_success "Network tools installed"
 }
@@ -500,7 +500,7 @@ install_python_packages() {
     
     # Install Python packages
     print_status "Installing Python packages..."
-    pip3 install requests beautifulsoup4 pandas numpy matplotlib jupyter flask django
+    pip3 install requests beautifulsoup4 pandas numpy matplotlib
     
     print_success "Python packages installed"
 }
@@ -656,60 +656,25 @@ install_language_tools() {
 install_container_tools() {
     print_status "🐳 Installing container tools..."
     
-    # Install Docker (if available)
-    if command -v docker &> /dev/null; then
-        print_status "Docker is already installed"
-    else
-        print_status "Installing Docker..."
-        sudo apt install -y docker.io docker-compose
-        sudo usermod -aG docker $USER
-    fi
-    
-    # Install Podman (alternative to Docker)
-    print_status "Installing Podman..."
-    sudo apt install -y podman
-    
-    print_success "Container tools installed"
+    print_status "Container tools installation skipped"
+    print_success "Container tools installation completed"
 }
 
 # Function to install cloud tools
 install_cloud_tools() {
     print_status "☁️ Installing cloud tools..."
     
-    # Install AWS CLI
-    print_status "Installing AWS CLI..."
-    curl "https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip" -o "awscliv2.zip"
-    unzip awscliv2.zip
-    sudo ./aws/install
-    rm -rf awscliv2.zip aws
-    
-    # Install Azure CLI
-    print_status "Installing Azure CLI..."
-    curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-    
-    # Install Google Cloud SDK
-    print_status "Installing Google Cloud SDK..."
-    echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
-    curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
-    sudo apt update && sudo apt install -y google-cloud-sdk
-    
-    print_success "Cloud tools installed"
+    print_status "Cloud tools installation skipped"
+    print_success "Cloud tools installation completed"
 }
 
 # Function to install IDE and editor tools
 install_ide_tools() {
     print_status "📝 Installing IDE and editor tools..."
     
-    # Install VS Code (if available)
-    print_status "Installing VS Code..."
-    wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg
-    sudo install -o root -g root -m 644 packages.microsoft.gpg /etc/apt/trusted.gpg.d/
-    sudo sh -c '\''echo "deb [arch=amd64,arm64,armhf signed-by=/etc/apt/trusted.gpg.d/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main" > /etc/apt/sources.list.d/vscode.list'\''
-    sudo apt update && sudo apt install -y code
-    
-    # Install additional editors
-    print_status "Installing additional editors..."
-    sudo apt install -y emacs vim-gtk3 geany
+    # Install basic editors only
+    print_status "Installing basic editors..."
+    sudo apt install -y geany
     
     print_success "IDE and editor tools installed"
 }
@@ -746,13 +711,11 @@ main_tools_setup() {
     echo ""
     print_status "Available tools:"
     print_status "• Development: gcc, g++, make, cmake, clang, gdb"
-    print_status "• Python: python3, pip3, jupyter, flask, django"
+    print_status "• Python: python3, pip3, requests, pandas, numpy"
     print_status "• Node.js: node, npm, yarn, npx"
-    print_status "• Network: curl, wget, git, nmap, tcpdump"
+    print_status "• Network: curl, wget, git, iperf3"
     print_status "• CLI: tree, mc, ranger, fzf, ripgrep, bat"
-    print_status "• Cloud: AWS CLI, Azure CLI, Google Cloud SDK"
-    print_status "• Containers: Docker, Podman"
-    print_status "• IDEs: VS Code, Vim, Emacs"
+    print_status "• Editors: geany"
 }
 
 # Run the tools setup
