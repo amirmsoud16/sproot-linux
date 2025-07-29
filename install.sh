@@ -295,6 +295,9 @@ EOF
         # Create setup scripts in Ubuntu directory
         create_setup_scripts_in_ubuntu $version $install_dir
         
+        # Create shortcuts for easy access
+        create_ubuntu_shortcuts $version $install_dir
+        
         echo "success:$version" > $HOME/ubuntu_install_result
     else
         echo "failed:$version" > $HOME/ubuntu_install_result
@@ -307,6 +310,9 @@ create_setup_scripts_in_ubuntu() {
     local install_dir=$2
     
     print_status "📝 Creating setup scripts in Ubuntu directory..."
+    
+    # Ensure the Ubuntu directory exists
+    mkdir -p $install_dir
     
     # Create ubuntu-root-setup.sh in Ubuntu directory
     cat > $install_dir/ubuntu-root-setup.sh << 'EOF'
@@ -349,7 +355,7 @@ check_ubuntu_environment() {
     if [[ ! -f "/etc/os-release" ]]; then
         print_error "This script must be run inside Ubuntu!"
         print_status "Please run this script after entering Ubuntu with:"
-        print_status "proot-distro login ubuntu-XX.04"
+        print_status "proot -0 -r . -b /dev -b /proc -b /sys -w /root /bin/bash"
         exit 1
     fi
     
@@ -363,7 +369,7 @@ check_ubuntu_environment() {
     if [[ $(id -u) -ne 0 ]]; then
         print_warning "This script requires root access!"
         print_status "Please run with sudo or as root"
-        print_status "You can enter as root with: proot-distro login ubuntu-XX.04"
+        print_status "You can enter as root with: proot -0 -r . -b /dev -b /proc -b /sys -w /root /bin/bash"
         exit 1
     fi
     
@@ -757,7 +763,7 @@ check_ubuntu_environment() {
     if [[ ! -f "/etc/os-release" ]]; then
         print_error "This script must be run inside Ubuntu!"
         print_status "Please run this script after entering Ubuntu with:"
-        print_status "proot-distro login ubuntu-XX.04"
+        print_status "proot -0 -r . -b /dev -b /proc -b /sys -w /root /bin/bash"
         exit 1
     fi
     
@@ -1109,6 +1115,85 @@ EOF
     print_log "• $install_dir/ubuntu-tools-setup.sh"
 }
 
+# Function to create Ubuntu shortcuts
+create_ubuntu_shortcuts() {
+    local version=$1
+    local install_dir=$2
+    
+    print_status "🔗 Creating Ubuntu shortcuts..."
+    
+    # Create shortcut script for root access
+    cat > $HOME/ubuntu${version} << EOF
+#!/bin/bash
+# Ubuntu ${version} Root Access Shortcut
+
+echo "🚀 Entering Ubuntu ${version} as root..."
+cd $install_dir
+proot -0 -r . -b /dev -b /proc -b /sys -w /root /bin/bash
+EOF
+    
+    # Create shortcut script for user access
+    cat > $HOME/ubuntu${version}-user << EOF
+#!/bin/bash
+# Ubuntu ${version} User Access Shortcut
+
+echo "👤 Entering Ubuntu ${version} as user..."
+cd $install_dir
+proot -0 -r . -b /dev -b /proc -b /sys -w /home/\$USER /bin/bash
+EOF
+    
+    # Create shortcut script for tools setup
+    cat > $HOME/ubuntu${version}-tools << EOF
+#!/bin/bash
+# Ubuntu ${version} Tools Setup Shortcut
+
+echo "🛠️  Entering Ubuntu ${version} for tools setup..."
+cd $install_dir
+proot -0 -r . -b /dev -b /proc -b /sys -w /root /bin/bash -c "./ubuntu-tools-setup.sh"
+EOF
+    
+    # Create shortcut script for root setup
+    cat > $HOME/ubuntu${version}-setup << EOF
+#!/bin/bash
+# Ubuntu ${version} Root Setup Shortcut
+
+echo "🔧 Entering Ubuntu ${version} for root setup..."
+cd $install_dir
+proot -0 -r . -b /dev -b /proc -b /sys -w /root /bin/bash -c "./ubuntu-root-setup.sh"
+EOF
+    
+    # Make shortcuts executable
+    chmod +x $HOME/ubuntu${version}
+    chmod +x $HOME/ubuntu${version}-user
+    chmod +x $HOME/ubuntu${version}-tools
+    chmod +x $HOME/ubuntu${version}-setup
+    
+    # Add shortcuts to PATH by creating symlinks in ~/bin
+    mkdir -p $HOME/bin
+    ln -sf $HOME/ubuntu${version} $HOME/bin/ubuntu${version}
+    ln -sf $HOME/ubuntu${version}-user $HOME/bin/ubuntu${version}-user
+    ln -sf $HOME/ubuntu${version}-tools $HOME/bin/ubuntu${version}-tools
+    ln -sf $HOME/ubuntu${version}-setup $HOME/bin/ubuntu${version}-setup
+    
+    # Add ~/bin to PATH if not already there
+    if ! grep -q "export PATH=\$HOME/bin:\$PATH" $HOME/.bashrc; then
+        echo 'export PATH=$HOME/bin:$PATH' >> $HOME/.bashrc
+    fi
+    
+    print_success "Ubuntu shortcuts created successfully!"
+    print_log "Shortcuts created:"
+    print_log "• ubuntu${version} - Enter as root"
+    print_log "• ubuntu${version}-user - Enter as user"
+    print_log "• ubuntu${version}-tools - Run tools setup"
+    print_log "• ubuntu${version}-setup - Run root setup"
+    print_log ""
+    print_log "Usage examples:"
+    print_log "  ubuntu${version}        # Enter Ubuntu as root"
+    print_log "  ubuntu${version}-user   # Enter Ubuntu as user"
+    print_log "  ubuntu${version}-tools  # Run tools setup"
+    print_log "  ubuntu${version}-setup  # Run root setup"
+}
+
 # Function to install Ubuntu Chroot with beautiful UI
 install_ubuntu_chroot() {
     local version=$1
@@ -1152,20 +1237,39 @@ show_post_install_menu_chroot() {
     
     echo ""
     echo "What would you like to do next?"
-    echo "  1. 🔧 Enter Ubuntu ${version} and run root setup"
-    echo "  2. 🛠️  Enter Ubuntu ${version} and run tools setup"
+    echo "  1. 🔧 Enter Ubuntu ${version} environment"
+    echo "  2. 🛠️  Show setup instructions"
     echo "  3. ↩️  Return to main menu"
     echo ""
     read -p "Enter your choice (1-3): " choice
     
     case $choice in
         1)
-            print_status "Entering Ubuntu ${version} for root setup..."
-            cd $HOME/ubuntu/ubuntu${version}-rootfs && ./ubuntu-root-setup.sh
+            print_status "Entering Ubuntu ${version} environment..."
+            print_status "After entering Ubuntu, run these commands:"
+            print_status "1. ./ubuntu-root-setup.sh (for root setup)"
+            print_status "2. ./ubuntu-tools-setup.sh (for tools setup)"
+            echo ""
+            cd $HOME/ubuntu/ubuntu${version}-rootfs
+            proot -0 -r . -b /dev -b /proc -b /sys -w /root /bin/bash
             ;;
         2)
-            print_status "Entering Ubuntu ${version} for tools setup..."
-            cd $HOME/ubuntu/ubuntu${version}-rootfs && ./ubuntu-tools-setup.sh
+            print_status "Setup Instructions:"
+            echo ""
+            echo "1. Enter Ubuntu environment:"
+            echo "   cd ~/ubuntu/ubuntu${version}-rootfs"
+            echo "   proot -0 -r . -b /dev -b /proc -b /sys -w /root /bin/bash"
+            echo ""
+            echo "2. Run root setup (inside Ubuntu):"
+            echo "   ./ubuntu-root-setup.sh"
+            echo ""
+            echo "3. Run tools setup (inside Ubuntu):"
+            echo "   ./ubuntu-tools-setup.sh"
+            echo ""
+            echo "Note: Scripts are already created in the Ubuntu directory."
+            echo "You just need to enter Ubuntu and run them manually."
+            echo ""
+            read -p "Press Enter to continue..."
             ;;
         3)
             print_status "Returning to main menu..."
