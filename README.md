@@ -69,18 +69,7 @@ ubuntu(18.or.20.or.22.or.24)-username
 - Git + GitHub CLI
 - GCC + Make
 - Vim + Nano
-
-### 🌐 **ابزارهای شبکه**
 - curl + wget
-- nmap + tcpdump
-- netcat + telnet
-
-### 🛠️ **ابزارهای توسعه**
-- Docker + Podman
-- AWS CLI + Azure CLI
-- VS Code + Vim
-- Jupyter + Flask
-
 ---
 
 ## ⚙️ ویژگی‌ها
