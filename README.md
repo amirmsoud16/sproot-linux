@@ -53,6 +53,6 @@ bash ~/CFU.sh
 ```
 ```
 # استفاده از دستورات سریع
-ubuntu18-amiri    # ورود به یوزر
-ubuntu18-root     # ورود به root
+ubuntu18-amiri    # user
+ubuntu18-root     # root
 ```
