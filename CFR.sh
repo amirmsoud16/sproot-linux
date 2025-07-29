@@ -271,7 +271,14 @@ show_final_instructions() {
     print_info "Quick root access: ubuntu${UBUNTU_VERSION}-root"
     print_info "From home: ~/ubuntu${UBUNTU_VERSION}-$USERNAME"
     echo ""
+    echo -e "${YELLOW}=== Next Steps ===${NC}"
+    print_info "1. Enter Ubuntu user: ubuntu${UBUNTU_VERSION}-$USERNAME"
+    print_info "2. Install tools: ./CFU.sh"
+    print_info "3. CFU.sh will install development tools and packages"
+    echo ""
     print_success "You can now use these commands from anywhere!"
+    echo ""
+    print_info "💡 Tip: Run CFU.sh after entering Ubuntu to install development tools!"
 }
 
 # Main function
