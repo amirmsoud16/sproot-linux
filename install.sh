@@ -81,7 +81,7 @@ get_user_credentials() {
     print_success "User configuration saved!"
     print_status "Username: $UBUNTU_USERNAME"
     print_status "Root password: ********"
-    print_status "User password: None (no password required)"
+    print_status "User password: None (no password needed)"
     echo ""
 }
 
@@ -373,7 +373,7 @@ main_root_setup() {
     print_success "✅ Ubuntu Root Setup completed successfully!"
     print_status "Username: $UBUNTU_USERNAME"
     print_status "Root password: ********"
-    print_status "User password: None (no password required)"
+    print_status "User password: None (no password needed)"
     echo ""
     print_status "Next steps:"
     print_status "1. Exit this Ubuntu environment: exit"
