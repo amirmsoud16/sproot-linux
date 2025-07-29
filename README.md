@@ -41,26 +41,31 @@ wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/instal
 chmod +x install.sh
 ./install.sh
 ```
+#1
 ```
 cd ~
 chmod +x CFR.sh CFU.sh
 ```
-```
-./CFR.sh
-```
-```
-./CFU.sh
-```
+#2
 ```
 bash ~/CFR.sh
 ```
+#3
+```
+exit
+```
+#4
+```
+ubuntu18-username
+ubuntu20-username
+ubuntu22-username
+ubuntu24-username
+```
+#5
 ```
 bash ~/CFU.sh
 ```
-```
-# استفاده از دستورات سریع
-ubuntu18-amiri    # user
-```
+#root
 ```
 ubuntu18-root     # root
 ```
