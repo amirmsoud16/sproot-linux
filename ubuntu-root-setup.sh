@@ -29,6 +29,35 @@ print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
+# Function to check if running in Ubuntu environment
+check_ubuntu_environment() {
+    print_status "🔍 Checking Ubuntu environment..."
+    
+    # Check if we're in a Linux environment
+    if [[ ! -f "/etc/os-release" ]]; then
+        print_error "This script must be run inside Ubuntu!"
+        print_status "Please run this script after entering Ubuntu with:"
+        print_status "proot-distro login ubuntu-XX.04"
+        exit 1
+    fi
+    
+    # Check if it's Ubuntu
+    if ! grep -q "Ubuntu" /etc/os-release; then
+        print_error "This script is designed for Ubuntu only!"
+        exit 1
+    fi
+    
+    # Check if we have root access
+    if [[ $(id -u) -ne 0 ]]; then
+        print_warning "This script requires root access!"
+        print_status "Please run with sudo or as root"
+        print_status "You can enter as root with: proot-distro login ubuntu-XX.04"
+        exit 1
+    fi
+    
+    print_success "Ubuntu environment detected"
+}
+
 # Function to get user credentials
 get_user_credentials() {
     echo -e "${CYAN}================================${NC}"
@@ -334,6 +363,9 @@ copy_scripts_to_ubuntu() {
 # Main root setup function
 main_root_setup() {
     print_status "🚀 Starting Ubuntu Root Setup..."
+    
+    # Check Ubuntu environment first
+    check_ubuntu_environment
     
     # Get user credentials first
     get_user_credentials
