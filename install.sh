@@ -154,8 +154,8 @@ fix_apt_issues() {
     
     # Configure dpkg to handle broken packages
     print_status "Configuring dpkg..."
-    echo '\''Dpkg::Options::="--force-confnew";'\'' > /etc/apt/apt.conf.d/local
-    echo '\''Dpkg::Options::="--force-confmiss";'\'' >> /etc/apt/apt.conf.d/local
+    echo 'Dpkg::Options::="--force-confnew";' > /etc/apt/apt.conf.d/local
+    echo 'Dpkg::Options::="--force-confmiss";' >> /etc/apt/apt.conf.d/local
     
     # Fix broken packages
     print_status "Fixing broken packages..."
@@ -526,14 +526,14 @@ setup_user_environment() {
     
     # Add helpful aliases
     print_status "Adding helpful aliases..."
-    echo '\''alias ll="ls -la"'\'' >> ~/.bashrc
-    echo '\''alias la="ls -A"'\'' >> ~/.bashrc
-    echo '\''alias l="ls -CF"'\'' >> ~/.bashrc
-    echo '\''alias ..="cd .."'\'' >> ~/.bashrc
-    echo '\''alias ...="cd ../.."'\'' >> ~/.bashrc
-    echo '\''alias ....="cd ../../.."'\'' >> ~/.bashrc
-    echo '\''alias home="cd ~"'\'' >> ~/.bashrc
-    echo '\''alias cls="clear"'\'' >> ~/.bashrc
+    echo 'alias ll="ls -la"' >> ~/.bashrc
+    echo 'alias la="ls -A"' >> ~/.bashrc
+    echo 'alias l="ls -CF"' >> ~/.bashrc
+    echo 'alias ..="cd .."' >> ~/.bashrc
+    echo 'alias ...="cd ../.."' >> ~/.bashrc
+    echo 'alias ....="cd ../../.."' >> ~/.bashrc
+    echo 'alias home="cd ~"' >> ~/.bashrc
+    echo 'alias cls="clear"' >> ~/.bashrc
     
     # Configure SSH directory
     print_status "Configuring SSH directory..."
