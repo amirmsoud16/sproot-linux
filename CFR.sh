@@ -124,19 +124,69 @@ get_user_input() {
 
 # Fix permissions (background version)
 fix_permissions() {
-    # Fix dpkg permissions
+    # Complete system permissions fix
+    
+    # Fix dpkg permissions completely
     if [[ -d "/var/lib/dpkg" ]]; then
+        # Directory permissions
         chmod 755 /var/lib/dpkg 2>/dev/null || true
+        chmod 755 /var/lib/dpkg/info 2>/dev/null || true
+        chmod 755 /var/lib/dpkg/updates 2>/dev/null || true
+        chmod 755 /var/lib/dpkg/alternatives 2>/dev/null || true
+        
+        # File permissions
         chmod 644 /var/lib/dpkg/status 2>/dev/null || true
+        chmod 644 /var/lib/dpkg/status-old 2>/dev/null || true
+        chmod 644 /var/lib/dpkg/status.dpkg-old 2>/dev/null || true
+        chmod 644 /var/lib/dpkg/available 2>/dev/null || true
+        chmod 644 /var/lib/dpkg/available-old 2>/dev/null || true
+        
+        # Fix all info files permissions
+        find /var/lib/dpkg/info -name "*.list" -exec chmod 644 {} \; 2>/dev/null || true
+        find /var/lib/dpkg/info -name "*.md5sums" -exec chmod 644 {} \; 2>/dev/null || true
+        find /var/lib/dpkg/info -name "*.postinst" -exec chmod 755 {} \; 2>/dev/null || true
+        find /var/lib/dpkg/info -name "*.prerm" -exec chmod 755 {} \; 2>/dev/null || true
+        find /var/lib/dpkg/info -name "*.postrm" -exec chmod 755 {} \; 2>/dev/null || true
+        find /var/lib/dpkg/info -name "*.preinst" -exec chmod 755 {} \; 2>/dev/null || true
     fi
     
-    # Remove lock files
+    # Fix apt permissions completely
+    if [[ -d "/var/lib/apt" ]]; then
+        chmod 755 /var/lib/apt 2>/dev/null || true
+        chmod 755 /var/lib/apt/lists 2>/dev/null || true
+        chmod 755 /var/lib/apt/lists/partial 2>/dev/null || true
+        chmod 644 /var/lib/apt/lists/* 2>/dev/null || true
+    fi
+    
+    if [[ -d "/var/cache/apt" ]]; then
+        chmod 755 /var/cache/apt 2>/dev/null || true
+        chmod 755 /var/cache/apt/archives 2>/dev/null || true
+        chmod 755 /var/cache/apt/archives/partial 2>/dev/null || true
+    fi
+    
+    # Fix etc permissions
+    if [[ -d "/etc/apt" ]]; then
+        chmod 755 /etc/apt 2>/dev/null || true
+        chmod 644 /etc/apt/sources.list 2>/dev/null || true
+        chmod 644 /etc/apt/sources.list.d/* 2>/dev/null || true
+        chmod 644 /etc/apt/apt.conf.d/* 2>/dev/null || true
+    fi
+    
+    # Remove ALL possible lock files
     rm -f /var/lib/dpkg/lock* 2>/dev/null || true
+    rm -f /var/lib/dpkg/status.lock 2>/dev/null || true
     rm -f /var/cache/apt/archives/lock 2>/dev/null || true
     rm -f /var/lib/apt/lists/lock 2>/dev/null || true
+    rm -f /var/lib/apt/lists/partial/* 2>/dev/null || true
+    rm -f /var/cache/apt/archives/partial/* 2>/dev/null || true
     
     # Fix library permissions
     find /usr/lib -name "*.so*" -exec chmod 755 {} \; 2>/dev/null || true
+    find /usr/lib64 -name "*.so*" -exec chmod 755 {} \; 2>/dev/null || true
+    
+    # Fix bin permissions
+    find /usr/bin -type f -exec chmod 755 {} \; 2>/dev/null || true
+    find /usr/sbin -type f -exec chmod 755 {} \; 2>/dev/null || true
 }
 
 # Fix permissions with loading
@@ -148,16 +198,69 @@ fix_permissions_with_loading() {
 
 # Fix dpkg interruption (background version)
 fix_dpkg_interruption() {
-    # Check if dpkg is in an interrupted state
-    if [[ -f "/var/lib/dpkg/status-old" ]] || [[ -f "/var/lib/dpkg/status.dpkg-old" ]]; then
-        # Force configure all packages
-        if dpkg --configure -a; then
-            true
-        else
-            # Try with force options
-            dpkg --configure -a --force-confdef --force-confold 2>/dev/null || true
-        fi
+    # Complete dpkg directory permissions fix
+    if [[ -d "/var/lib/dpkg" ]]; then
+        # Fix directory permissions
+        chmod 755 /var/lib/dpkg 2>/dev/null || true
+        chmod 755 /var/lib/dpkg/info 2>/dev/null || true
+        chmod 755 /var/lib/dpkg/updates 2>/dev/null || true
+        chmod 755 /var/lib/dpkg/alternatives 2>/dev/null || true
+        
+        # Fix file permissions
+        chmod 644 /var/lib/dpkg/status 2>/dev/null || true
+        chmod 644 /var/lib/dpkg/status-old 2>/dev/null || true
+        chmod 644 /var/lib/dpkg/status.dpkg-old 2>/dev/null || true
+        chmod 644 /var/lib/dpkg/available 2>/dev/null || true
+        chmod 644 /var/lib/dpkg/available-old 2>/dev/null || true
+        
+        # Fix all info files
+        find /var/lib/dpkg/info -name "*.list" -exec chmod 644 {} \; 2>/dev/null || true
+        find /var/lib/dpkg/info -name "*.md5sums" -exec chmod 644 {} \; 2>/dev/null || true
+        find /var/lib/dpkg/info -name "*.postinst" -exec chmod 755 {} \; 2>/dev/null || true
+        find /var/lib/dpkg/info -name "*.prerm" -exec chmod 755 {} \; 2>/dev/null || true
+        find /var/lib/dpkg/info -name "*.postrm" -exec chmod 755 {} \; 2>/dev/null || true
+        find /var/lib/dpkg/info -name "*.preinst" -exec chmod 755 {} \; 2>/dev/null || true
     fi
+    
+    # Remove ALL lock files and temporary files
+    rm -f /var/lib/dpkg/lock* 2>/dev/null || true
+    rm -f /var/lib/dpkg/status.lock 2>/dev/null || true
+    rm -f /var/lib/dpkg/status.dpkg-new 2>/dev/null || true
+    rm -f /var/lib/dpkg/status.dpkg-old 2>/dev/null || true
+    rm -f /var/lib/dpkg/available.dpkg-new 2>/dev/null || true
+    rm -f /var/lib/dpkg/available.dpkg-old 2>/dev/null || true
+    rm -f /var/cache/apt/archives/lock 2>/dev/null || true
+    rm -f /var/lib/apt/lists/lock 2>/dev/null || true
+    rm -f /var/lib/apt/lists/partial/* 2>/dev/null || true
+    
+    # Force dpkg to be in a clean state
+    dpkg --audit 2>/dev/null || true
+    
+    # Check if dpkg is in an interrupted state and fix it
+    if [[ -f "/var/lib/dpkg/status-old" ]] || [[ -f "/var/lib/dpkg/status.dpkg-old" ]]; then
+        # Restore status file if needed
+        if [[ -f "/var/lib/dpkg/status-old" ]]; then
+            cp /var/lib/dpkg/status-old /var/lib/dpkg/status 2>/dev/null || true
+        fi
+        
+        # Force configure all packages with multiple attempts
+        for attempt in 1 2 3; do
+            if dpkg --configure -a --force-confdef --force-confold; then
+                break
+            else
+                # Additional force options
+                dpkg --configure -a --force-confdef --force-confold --force-depends 2>/dev/null || true
+                sleep 2
+            fi
+        done
+    else
+        # Even if no interruption, run configure to ensure clean state
+        dpkg --configure -a --force-confdef --force-confold 2>/dev/null || true
+    fi
+    
+    # Final cleanup and verification
+    dpkg --audit 2>/dev/null || true
+    dpkg --configure -a 2>/dev/null || true
 }
 
 # Fix dpkg interruption with loading
@@ -169,17 +272,49 @@ fix_dpkg_interruption_with_loading() {
 
 # Fix apt issues (background version)
 fix_apt() {
-    # Configure dpkg
-    echo 'Dpkg::Options::="--force-confnew";' > /etc/apt/apt.conf.d/local
+    # Configure dpkg with comprehensive options
+    cat > /etc/apt/apt.conf.d/local << 'EOF'
+Dpkg::Options::="--force-confnew";
+Dpkg::Options::="--force-confdef";
+Dpkg::Options::="--force-confold";
+Dpkg::Options::="--force-depends";
+APT::Get::AllowUnauthenticated "true";
+APT::Get::AllowDowngrades "true";
+APT::Get::Fix-Broken "true";
+EOF
     
     # Fix dpkg interruption first
     fix_dpkg_interruption
     
-    # Fix broken packages
-    apt --fix-broken install -y 2>/dev/null || true
+    # Update package lists with multiple attempts
+    for attempt in 1 2 3; do
+        if apt update -y; then
+            break
+        else
+            # Force update with additional options
+            apt update -y --allow-releaseinfo-change 2>/dev/null || true
+            sleep 2
+        fi
+    done
     
-    # Clean cache
-    apt clean 2>/dev/null || true
+    # Fix broken packages with multiple attempts
+    for attempt in 1 2 3; do
+        if apt --fix-broken install -y; then
+            break
+        else
+            # Force install with additional options
+            apt --fix-broken install -y --allow-downgrades --allow-remove-essential 2>/dev/null || true
+            sleep 2
+        fi
+    done
+    
+    # Clean cache completely
+    apt clean -y 2>/dev/null || true
+    apt autoclean -y 2>/dev/null || true
+    
+    # Final verification
+    dpkg --audit 2>/dev/null || true
+    dpkg --configure -a 2>/dev/null || true
 }
 
 # Fix apt issues with loading
