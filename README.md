@@ -43,7 +43,7 @@ chmod +x install.sh
 
 # ورود به عنوان root (بار اول بدون رمز)
 ```
-ubuntu(18.20.22.24)
+ubuntu(18or20or22or24)
 ```
 # اجرای setup اولیه-
 ```
@@ -55,7 +55,7 @@ exit
 ```
 # ورود به عنوان user (جایگزین username با نام کاربری خود)
 ```
-ubuntu(18.20.22.24)-username
+ubuntu(18or20or22or24)-username
 ```
 # اجرای setup ابزارها
 ```
