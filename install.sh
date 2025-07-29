@@ -1,19 +1,316 @@
 #!/bin/bash
 
-# Ubuntu Chroot & Proot Installer - Complete Self-Contained Script
-# GitHub Project: https://github.com/amirmsoud16/ubuntu-chroot-pk-
+# Ubuntu Installer for Termux
+# Modern Installation Script with Background Operations
 
-# Colors
+# Colors - Standard Color Scheme
+RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
-RED='\033[0;31m'
 BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 WHITE='\033[1;37m'
-NC='\033[0m'
+PURPLE='\033[0;35m'
+GRAY='\033[0;37m'
+NC='\033[0m' # No Color
 
-# Ubuntu Root Setup Script Content
-UBUNTU_ROOT_SETUP_CONTENT="#!/bin/bash
+# Loading animation characters
+SPINNER=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
+DOTS=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
+
+# Function to print header with logo
+print_header() {
+    clear
+    echo -e "${CYAN}Ubuntu Installer for Termux${NC}"
+    echo -e "${CYAN}Modern & Beautiful Setup${NC}"
+    echo ""
+}
+
+# Function to print status with standard colors
+print_status() {
+    echo -e "${BLUE}[INFO]${NC} $1"
+}
+
+print_success() {
+    echo -e "${GREEN}[SUCCESS]${NC} $1"
+}
+
+print_warning() {
+    echo -e "${YELLOW}[WARNING]${NC} $1"
+}
+
+print_error() {
+    echo -e "${RED}[ERROR]${NC} $1"
+}
+
+print_log() {
+    echo -e "${GRAY}[LOG]${NC} $1"
+}
+
+# Function to show loading animation
+show_loading() {
+    local message="$1"
+    local pid=$2
+    local i=0
+    
+    echo -e "${CYAN}🔄 $message${NC}"
+    
+    while kill -0 $pid 2>/dev/null; do
+        local temp=${SPINNER[$i]}
+        echo -ne "${YELLOW}⏳ Processing${dots} ${temp}${NC}\r"
+        i=$(( (i+1) % ${#SPINNER[@]} ))
+        sleep 0.1
+    done
+    
+    echo -e "${GREEN}✅ Completed successfully!${NC}"
+    echo ""
+}
+
+# Function to show progress bar
+show_progress() {
+    local message="$1"
+    local duration=$2
+    local i=0
+    
+    echo -e "${CYAN}📊 $message${NC}"
+    
+    for ((i=0; i<=100; i+=5)); do
+        local bar=""
+        local filled=$((i/5))
+        local empty=$((20-filled))
+        
+        for ((j=0; j<filled; j++)); do
+            bar+="█"
+        done
+        
+        for ((j=0; j<empty; j++)); do
+            bar+="░"
+        done
+        
+        echo -ne "${GREEN}Progress: [${bar}] ${i}%${NC}\r"
+        sleep $((duration/20))
+    done
+    
+    echo -e "${GREEN}✅ Progress completed!${NC}"
+    echo ""
+}
+
+# Function to print menu with beautiful design
+print_menu() {
+    echo "Available Options:"
+    echo "  1. 🚀 Install Ubuntu (Background Operation)"
+    echo "  2. 🗑️  Remove Ubuntu (Clean Uninstall)"
+    echo "  3. 📖 Installation Guide (Step by Step)"
+    echo "  4. 🔧 System Check (Prerequisites)"
+    echo "  5. ❌ Exit (Goodbye)"
+    echo ""
+}
+
+# Function to check prerequisites in background
+check_prerequisites_background() {
+    # Check if running in Termux
+    if [[ ! -d "/data/data/com.termux" ]]; then
+        echo "not_termux" > $HOME/prerequisites_result
+        return
+    fi
+    
+    # Update packages
+    pkg update -y > /dev/null 2>&1
+    
+    # Install required packages
+    pkg install wget curl proot tar git nano vim -y > /dev/null 2>&1
+    
+    # Check disk space
+    available_space=$(df $HOME | awk 'NR==2 {print $4}')
+    required_space=4194304  # 4GB in KB
+    
+    if [[ $available_space -lt $required_space ]]; then
+        echo "low_disk_space:$available_space" > $HOME/prerequisites_result
+        return
+    fi
+    
+    # Check internet connection
+    if ! ping -c 1 8.8.8.8 &> /dev/null; then
+        echo "no_internet" > $HOME/prerequisites_result
+        return
+    fi
+    
+    # Create directories
+    mkdir -p $HOME/ubuntu
+    mkdir -p $HOME/ubuntu/scripts
+    
+    echo "success" > $HOME/prerequisites_result
+}
+
+# Function to check prerequisites with loading
+check_prerequisites() {
+    print_status "🔍 Checking system prerequisites..."
+    
+    # Start background check
+    check_prerequisites_background &
+    local pid=$!
+    
+    # Show loading animation
+    show_loading "System Check & Prerequisites" $pid
+    
+    # Wait for completion
+    wait $pid
+    
+    # Check result
+    if [[ -f $HOME/prerequisites_result ]]; then
+        local result=$(cat $HOME/prerequisites_result)
+        rm -f $HOME/prerequisites_result
+        
+        case $result in
+            "success")
+                print_success "System prerequisites check completed successfully!"
+                print_log "✓ Termux environment detected"
+                print_log "✓ Required packages installed"
+                print_log "✓ Sufficient disk space available"
+                print_log "✓ Internet connection available"
+                print_log "✓ Directories created"
+                ;;
+            "not_termux")
+                print_error "This script must be run in Termux!"
+                print_status "Please install Termux from F-Droid and try again."
+                exit 1
+                ;;
+            "low_disk_space")
+                available_space_mb=$(($available_space / 1024))
+                print_warning "Low disk space detected!"
+                print_status "Available: ${available_space_mb}MB, Required: 4GB"
+                read -p "Continue anyway? (y/N): " continue_anyway
+                if [[ ! "$continue_anyway" =~ ^[Yy]$ ]]; then
+                    exit 1
+                fi
+                ;;
+            "no_internet")
+                print_error "No internet connection detected!"
+                print_status "Please check your internet connection and try again."
+                exit 1
+                ;;
+            *)
+                print_error "Unknown error during prerequisites check"
+                exit 1
+                ;;
+        esac
+    else
+        print_error "Prerequisites check failed"
+        exit 1
+    fi
+}
+
+# Function to install Ubuntu in background
+install_ubuntu_background() {
+    local version=$1
+    
+    # Install proot-distro if not installed
+    if ! command -v proot-distro &> /dev/null; then
+        pkg install proot-distro -y > /dev/null 2>&1
+    fi
+    
+    # Install Ubuntu
+    proot-distro install ubuntu-${version} > /dev/null 2>&1
+    
+    if [[ $? -eq 0 ]]; then
+        echo "success:$version" > $HOME/ubuntu_install_result
+    else
+        echo "failed:$version" > $HOME/ubuntu_install_result
+    fi
+}
+
+# Function to install Ubuntu with beautiful UI
+install_ubuntu_proot() {
+    local version=$1
+    
+    print_status "🚀 Installing Ubuntu ${version} with proot-distro..."
+    
+    # Start background installation
+    install_ubuntu_background $version &
+    local pid=$!
+    
+    # Show loading animation
+    show_loading "Installing Ubuntu ${version}" $pid
+    
+    # Wait for completion
+    wait $pid
+    
+    # Check result
+    if [[ -f $HOME/ubuntu_install_result ]]; then
+        local result=$(cat $HOME/ubuntu_install_result)
+        rm -f $HOME/ubuntu_install_result
+        
+        if [[ "$result" == "success:$version" ]]; then
+            print_success "Ubuntu ${version} installed successfully!"
+            
+            # Show post-install menu
+            show_post_install_menu $version
+        else
+            print_error "Failed to install Ubuntu ${version}"
+            print_status "Please check your internet connection and try again."
+        fi
+    else
+        print_error "Installation failed"
+    fi
+}
+
+# Function to install Ubuntu Chroot in background
+install_ubuntu_chroot_background() {
+    local version=$1
+    local codename=$2
+    local url=$3
+    
+    # Create installation directory
+    local install_dir="$HOME/ubuntu/ubuntu${version}-rootfs"
+    mkdir -p $install_dir
+    cd $install_dir
+    
+    # Download Ubuntu rootfs
+    wget -q --show-progress -O ubuntu-${version}-rootfs.tar.xz $url > /dev/null 2>&1
+    
+    if [[ $? -eq 0 ]]; then
+        # Extract rootfs
+        tar -xf ubuntu-${version}-rootfs.tar.xz --exclude='./dev' > /dev/null 2>&1
+        
+        # Create necessary directories
+        mkdir -p $install_dir/etc
+        mkdir -p $install_dir/dev
+        mkdir -p $install_dir/proc
+        mkdir -p $install_dir/sys
+        mkdir -p $install_dir/tmp
+        mkdir -p $install_dir/var/tmp
+        
+        # Fix groups file
+        cat >> $install_dir/etc/group <<'EOF'
+3003:3003:3003
+9997:9997:9997
+20238:20238:20238
+50238:50238:50238
+EOF
+        
+        # Set permissions
+        chmod -R 755 $install_dir
+        chown -R root:root $install_dir 2>/dev/null || true
+        
+        # Create setup scripts in Ubuntu directory
+        create_setup_scripts_in_ubuntu $version $install_dir
+        
+        echo "success:$version" > $HOME/ubuntu_install_result
+    else
+        echo "failed:$version" > $HOME/ubuntu_install_result
+    fi
+}
+
+# Function to create setup scripts inside Ubuntu directory
+create_setup_scripts_in_ubuntu() {
+    local version=$1
+    local install_dir=$2
+    
+    print_status "📝 Creating setup scripts in Ubuntu directory..."
+    
+    # Create ubuntu-root-setup.sh in Ubuntu directory
+    cat > $install_dir/ubuntu-root-setup.sh << 'EOF'
+#!/bin/bash
 
 # Ubuntu Root Setup Script
 # This script handles root-level configuration, user creation, and system fixes
@@ -42,6 +339,35 @@ print_warning() {
 
 print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
+}
+
+# Function to check if running in Ubuntu environment
+check_ubuntu_environment() {
+    print_status "🔍 Checking Ubuntu environment..."
+    
+    # Check if we're in a Linux environment
+    if [[ ! -f "/etc/os-release" ]]; then
+        print_error "This script must be run inside Ubuntu!"
+        print_status "Please run this script after entering Ubuntu with:"
+        print_status "proot-distro login ubuntu-XX.04"
+        exit 1
+    fi
+    
+    # Check if it's Ubuntu
+    if ! grep -q "Ubuntu" /etc/os-release; then
+        print_error "This script is designed for Ubuntu only!"
+        exit 1
+    fi
+    
+    # Check if we have root access
+    if [[ $(id -u) -ne 0 ]]; then
+        print_warning "This script requires root access!"
+        print_status "Please run with sudo or as root"
+        print_status "You can enter as root with: proot-distro login ubuntu-XX.04"
+        exit 1
+    fi
+    
+    print_success "Ubuntu environment detected"
 }
 
 # Function to get user credentials
@@ -231,7 +557,7 @@ create_ubuntu_start_scripts() {
     print_status "📝 Creating Ubuntu start scripts..."
     
     # Get Ubuntu version from /etc/os-release
-    UBUNTU_VERSION=$(grep VERSION_ID /etc/os-release | cut -d'" -f2 | cut -d'.' -f1)
+    UBUNTU_VERSION=$(grep VERSION_ID /etc/os-release | cut -d'"' -f2 | cut -d'.' -f1)
     
     # Create start script for root access (with password prompt)
     cat > /start-ubuntu.sh << EOF
@@ -304,7 +630,7 @@ create_termux_aliases() {
     print_status "📝 Creating Termux aliases..."
     
     # Get Ubuntu version from /etc/os-release
-    UBUNTU_VERSION=$(grep VERSION_ID /etc/os-release | cut -d'" -f2 | cut -d'.' -f1)
+    UBUNTU_VERSION=$(grep VERSION_ID /etc/os-release | cut -d'"' -f2 | cut -d'.' -f1)
     
     # Create simple aliases in Termux .bashrc
     echo "alias ubuntu${UBUNTU_VERSION}=\"cd ~/ubuntu/ubuntu${UBUNTU_VERSION}-rootfs && ./start-ubuntu.sh\"" >> ~/.bashrc
@@ -325,7 +651,7 @@ copy_scripts_to_ubuntu() {
     print_status "📁 Copying scripts to Ubuntu directory..."
     
     # Get Ubuntu version from /etc/os-release
-    UBUNTU_VERSION=$(grep VERSION_ID /etc/os-release | cut -d'" -f2 | cut -d'.' -f1)
+    UBUNTU_VERSION=$(grep VERSION_ID /etc/os-release | cut -d'"' -f2 | cut -d'.' -f1)
     
     # Create Ubuntu directory if it doesn't exist
     mkdir -p ~/ubuntu/ubuntu${UBUNTU_VERSION}-rootfs
@@ -349,6 +675,9 @@ copy_scripts_to_ubuntu() {
 # Main root setup function
 main_root_setup() {
     print_status "🚀 Starting Ubuntu Root Setup..."
+    
+    # Check Ubuntu environment first
+    check_ubuntu_environment
     
     # Get user credentials first
     get_user_credentials
@@ -383,9 +712,13 @@ main_root_setup() {
 
 # Run the root setup
 main_root_setup
-
-# Ubuntu Tools Setup Script Content
-UBUNTU_TOOLS_SETUP_CONTENT="#!/bin/bash
+EOF
+    
+    chmod +x $install_dir/ubuntu-root-setup.sh
+    
+    # Create ubuntu-tools-setup.sh in Ubuntu directory
+    cat > $install_dir/ubuntu-tools-setup.sh << 'EOF'
+#!/bin/bash
 
 # Ubuntu Tools Setup Script
 # This script installs all development tools and packages for regular users
@@ -414,6 +747,46 @@ print_warning() {
 
 print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
+}
+
+# Function to check if running in Ubuntu environment
+check_ubuntu_environment() {
+    print_status "🔍 Checking Ubuntu environment..."
+    
+    # Check if we're in a Linux environment
+    if [[ ! -f "/etc/os-release" ]]; then
+        print_error "This script must be run inside Ubuntu!"
+        print_status "Please run this script after entering Ubuntu with:"
+        print_status "proot-distro login ubuntu-XX.04"
+        exit 1
+    fi
+    
+    # Check if it's Ubuntu
+    if ! grep -q "Ubuntu" /etc/os-release; then
+        print_error "This script is designed for Ubuntu only!"
+        exit 1
+    fi
+    
+    print_success "Ubuntu environment detected"
+}
+
+# Function to check sudo availability
+check_sudo_availability() {
+    print_status "🔍 Checking sudo availability..."
+    
+    if ! command -v sudo &> /dev/null; then
+        print_error "sudo is not available!"
+        print_status "Please run ubuntu-root-setup.sh first to configure sudo"
+        exit 1
+    fi
+    
+    # Test sudo access
+    if ! sudo -n true 2>/dev/null; then
+        print_warning "sudo requires password!"
+        print_status "You may be prompted for password during installation"
+    fi
+    
+    print_success "sudo is available"
 }
 
 # Function to install system tools
@@ -683,6 +1056,12 @@ install_ide_tools() {
 main_tools_setup() {
     print_status "🚀 Starting Ubuntu Tools Setup..."
     
+    # Check Ubuntu environment first
+    check_ubuntu_environment
+    
+    # Check sudo availability
+    check_sudo_availability
+    
     # Install all tools
     install_system_tools
     install_dev_tools
@@ -719,124 +1098,397 @@ main_tools_setup() {
 }
 
 # Run the tools setup
-main_tools_setup'
-
-# Function to create setup scripts in Ubuntu directory
-create_setup_scripts() {
-    local ubuntu_dir="$1"
+main_tools_setup
+EOF
     
-    # Create ubuntu-root-setup.sh
-    echo "$UBUNTU_ROOT_SETUP_CONTENT" > "$ubuntu_dir/ubuntu-root-setup.sh"
-    chmod +x "$ubuntu_dir/ubuntu-root-setup.sh"
+    chmod +x $install_dir/ubuntu-tools-setup.sh
     
-    # Create ubuntu-tools-setup.sh
-    echo "$UBUNTU_TOOLS_SETUP_CONTENT" > "$ubuntu_dir/ubuntu-tools-setup.sh"
-    chmod +x "$ubuntu_dir/ubuntu-tools-setup.sh"
-    
-    print_success "Setup scripts created in $ubuntu_dir"
+    print_success "Setup scripts created in Ubuntu directory!"
+    print_log "Files created:"
+    print_log "• $install_dir/ubuntu-root-setup.sh"
+    print_log "• $install_dir/ubuntu-tools-setup.sh"
 }
 
-# Function to print header
-print_header() {
-    clear
-    echo -e "${CYAN}================================${NC}"
-    echo -e "${CYAN}  Ubuntu Chroot & Proot Installer${NC}"
-    echo -e "${CYAN}  GitHub: https://github.com/amirmsoud16/ubuntu-chroot-pk-${NC}"
-    echo -e "${CYAN}================================${NC}"
-    echo ""
-}
-
-# Function to print status
-print_status() {
-    echo -e "${GREEN}✓ [INFO] $1${NC}"
-}
-
-# Function to print success
-print_success() {
-    echo -e "${GREEN}✓ [SUCCESS] $1${NC}"
-}
-
-# Function to print warning
-print_warning() {
-    echo -e "${YELLOW}⚠ [WARNING] $1${NC}"
-}
-
-# Function to print error
-print_error() {
-    echo -e "${RED}✗ [ERROR] $1${NC}"
-}
-
-# Function to check and download Ubuntu rootfs
-download_ubuntu_rootfs() {
+# Function to install Ubuntu Chroot with beautiful UI
+install_ubuntu_chroot() {
     local version=$1
-    local url=$2
-    local filename=$3
-
-    print_status "Downloading Ubuntu ${version} rootfs..."
-    wget -O $filename $url
-
-    if [[ $? -eq 0 ]]; then
-        print_status "✓ Download successful"
-        return 0
+    local codename=$2
+    local url=$3
+    
+    print_status "🚀 Installing Ubuntu ${version} (Chroot)..."
+    
+    # Start background installation
+    install_ubuntu_chroot_background $version $codename $url &
+    local pid=$!
+    
+    # Show loading animation
+    show_loading "Installing Ubuntu ${version} (Chroot)" $pid
+    
+    # Wait for completion
+    wait $pid
+    
+    # Check result
+    if [[ -f $HOME/ubuntu_install_result ]]; then
+        local result=$(cat $HOME/ubuntu_install_result)
+        rm -f $HOME/ubuntu_install_result
+        
+        if [[ "$result" == "success:$version" ]]; then
+            print_success "Ubuntu ${version} (Chroot) installed successfully!"
+            
+            # Show post-install menu
+            show_post_install_menu_chroot $version
+        else
+            print_error "Failed to install Ubuntu ${version}"
+            print_status "Please check your internet connection and try again."
+        fi
     else
-        print_error "Failed to download from primary URL"
-        return 1
+        print_error "Installation failed"
     fi
 }
 
-# Function to print success message with box
-print_success_box() {
-    local message="$1"
-    echo -e "${GREEN}✓ SUCCESS: $message${NC}"
+# Function to show post-install menu for Chroot
+show_post_install_menu_chroot() {
+    local version=$1
+    
+    echo ""
+    echo "What would you like to do next?"
+    echo "  1. 🔧 Enter Ubuntu ${version} and run root setup"
+    echo "  2. 🛠️  Enter Ubuntu ${version} and run tools setup"
+    echo "  3. ↩️  Return to main menu"
+    echo ""
+    read -p "Enter your choice (1-3): " choice
+    
+    case $choice in
+        1)
+            print_status "Entering Ubuntu ${version} for root setup..."
+            cd $HOME/ubuntu/ubuntu${version}-rootfs && ./ubuntu-root-setup.sh
+            ;;
+        2)
+            print_status "Entering Ubuntu ${version} for tools setup..."
+            cd $HOME/ubuntu/ubuntu${version}-rootfs && ./ubuntu-tools-setup.sh
+            ;;
+        3)
+            print_status "Returning to main menu..."
+            ;;
+        *)
+            print_status "Returning to main menu..."
+            ;;
+    esac
 }
 
-# Function to print error message with box
-print_error_box() {
-    local message="$1"
-    echo -e "${RED}✗ ERROR: $message${NC}"
+# Function to create setup scripts in background
+create_setup_scripts_background() {
+    local version=$1
+    
+    # Create ubuntu-root-setup.sh
+    create_ubuntu_root_setup $version
+    
+    # Create ubuntu-tools-setup.sh
+    create_ubuntu_tools_setup $version
+    
+    echo "success" > $HOME/create_scripts_result
 }
 
-# Function to clear screen and wait
-clear_screen() {
+# Function to create setup scripts with loading
+create_setup_scripts() {
+    local version=$1
+    
+    print_status "📝 Creating setup scripts..."
+    
+    # Start background creation
+    create_setup_scripts_background $version &
+    local pid=$!
+    
+    # Show loading animation
+    show_loading "Creating setup scripts" $pid
+    
+    # Wait for completion
+    wait $pid
+    
+    # Check result
+    if [[ -f $HOME/create_scripts_result ]]; then
+        local result=$(cat $HOME/create_scripts_result)
+        rm -f $HOME/create_scripts_result
+        
+        if [[ "$result" == "success" ]]; then
+            print_success "Setup scripts created successfully!"
+            print_log "Files created:"
+            print_log "• ubuntu-root-setup.sh"
+            print_log "• ubuntu-tools-setup.sh"
+        else
+            print_error "Failed to create setup scripts"
+        fi
+    fi
+}
+
+# Function to copy setup scripts in background
+copy_setup_scripts_background() {
+    local version=$1
+    
+    # Get Ubuntu directory path
+    local ubuntu_dir=$(proot-distro list | grep "ubuntu-${version}" | awk '{print $2}')
+    
+    if [[ -n "$ubuntu_dir" ]]; then
+        # Copy scripts to Ubuntu directory
+        cp ubuntu-root-setup.sh "$ubuntu_dir/" 2>/dev/null || true
+        cp ubuntu-tools-setup.sh "$ubuntu_dir/" 2>/dev/null || true
+        
+        # Make scripts executable
+        chmod +x "$ubuntu_dir/ubuntu-root-setup.sh" 2>/dev/null || true
+        chmod +x "$ubuntu_dir/ubuntu-tools-setup.sh" 2>/dev/null || true
+        
+        echo "success" > $HOME/copy_result
+    else
+        echo "failed" > $HOME/copy_result
+    fi
+}
+
+# Function to copy setup scripts with loading
+copy_setup_scripts() {
+    local version=$1
+    
+    print_status "📁 Copying setup scripts to Ubuntu ${version}..."
+    
+    # Start background copy
+    copy_setup_scripts_background $version &
+    local pid=$!
+    
+    # Show loading animation
+    show_loading "Copying setup scripts" $pid
+    
+    # Wait for completion
+    wait $pid
+    
+    # Check result
+    if [[ -f $HOME/copy_result ]]; then
+        local result=$(cat $HOME/copy_result)
+        rm -f $HOME/copy_result
+        
+        if [[ "$result" == "success" ]]; then
+            print_success "Setup scripts copied successfully!"
+            print_log "You can run them inside Ubuntu:"
+            print_log "• ./ubuntu-root-setup.sh"
+            print_log "• ./ubuntu-tools-setup.sh"
+        else
+            print_warning "Could not copy setup scripts"
+            print_status "You can copy them manually later"
+        fi
+    fi
+}
+
+# Function to show post-install menu
+show_post_install_menu() {
+    local version=$1
+    
+    echo ""
+    echo "What would you like to do next?"
+    echo "  1. 🔧 Enter Ubuntu ${version} and run root setup"
+    echo "  2. 🛠️  Enter Ubuntu ${version} and run tools setup"
+    echo "  3. ↩️  Return to main menu"
+    echo ""
+    read -p "Enter your choice (1-3): " choice
+    
+    case $choice in
+        1)
+            print_status "Entering Ubuntu ${version} for root setup..."
+            proot-distro login ubuntu-${version}
+            ;;
+        2)
+            print_status "Entering Ubuntu ${version} for tools setup..."
+            proot-distro login ubuntu-${version}
+            ;;
+        3)
+            print_status "Returning to main menu..."
+            ;;
+        *)
+            print_status "Returning to main menu..."
+            ;;
+    esac
+}
+
+# Function to remove Ubuntu in background
+remove_ubuntu_background() {
+    # Remove proot-distro installations
+    proot-distro remove ubuntu-18.04 2>/dev/null || true
+    proot-distro remove ubuntu-20.04 2>/dev/null || true
+    proot-distro remove ubuntu-22.04 2>/dev/null || true
+    proot-distro remove ubuntu-24.04 2>/dev/null || true
+    
+    # Clean up
+    rm -rf $HOME/ubuntu 2>/dev/null || true
+    
+    echo "success" > $HOME/remove_result
+}
+
+# Function to remove Ubuntu with loading
+remove_ubuntu() {
+    print_header
+    print_warning "⚠️  This will remove all Ubuntu installations!"
+    echo ""
+    read -p "Are you sure? (y/N): " confirm_remove
+    
+    if [[ "$confirm_remove" =~ ^[Yy]$ ]]; then
+        print_status "🗑️  Removing Ubuntu installations..."
+        
+        # Start background removal
+        remove_ubuntu_background &
+        local pid=$!
+        
+        # Show loading animation
+        show_loading "Removing Ubuntu installations" $pid
+        
+        # Wait for completion
+        wait $pid
+        
+        # Check result
+        if [[ -f $HOME/remove_result ]]; then
+            local result=$(cat $HOME/remove_result)
+            rm -f $HOME/remove_result
+            
+            if [[ "$result" == "success" ]]; then
+                print_success "Ubuntu installations removed successfully!"
+            else
+                print_error "Failed to remove Ubuntu installations"
+            fi
+        fi
+    else
+        print_status "Removal cancelled."
+    fi
+    
     echo ""
     read -p "Press Enter to continue..."
-    clear
 }
 
-
-
-
-
-
-
-# Function to print menu
-print_menu() {
-    echo -e "\n${WHITE}Available Options:${NC}"
-    echo -e "${BLUE}1.${NC} System Check & Preparation"
-    echo -e "${BLUE}2.${NC} Install Ubuntu (Chroot/Proot)"
-    echo -e "${BLUE}3.${NC} Remove Ubuntu"
-    echo -e "${BLUE}4.${NC} Exit"
-    echo ""
-}
-
-# Function to check and prepare system (now just shows info)
-system_check() {
+# Function to show installation guide
+show_installation_guide() {
     print_header
-    print_success_box "System prerequisites already checked and installed!"
-    print_status "✓ Termux environment: OK"
-    print_status "✓ Required packages: Installed"
-    print_status "✓ Disk space: Sufficient"
-    print_status "✓ Internet connection: Available"
-    print_status "✓ Directories: Created"
-    print_status "✓ DNS: Configured"
-    print_status ""
-    print_status "Your system is ready for Ubuntu installation!"
-
-    # Show system information
+    echo "Installation Guide:"
     echo ""
-    echo -e "${CYAN}System Information:${NC}"
+    echo "Step 1: 🚀 Install Ubuntu"
+    echo "   Choose your Ubuntu version and install it."
+    echo ""
+    echo "Step 2: 🔧 Root Setup"
+    echo "   After installation, enter Ubuntu and run:"
+    echo "   ./ubuntu-root-setup.sh"
+    echo ""
+    echo "Step 3: 🛠️  Tools Setup"
+    echo "   After root setup, run:"
+    echo "   ./ubuntu-tools-setup.sh"
+    echo ""
+    echo "Step 4: 🎉 Enjoy!"
+    echo "   Your Ubuntu environment is ready for development!"
+    echo ""
+    read -p "Press Enter to continue..."
+}
 
-    # Get system info
+# Function to install Ubuntu (main menu)
+install_ubuntu() {
+    print_header
+    print_status "🚀 Ubuntu Installation Menu"
+    echo ""
+    echo "Select Installation Method:"
+    echo "  1. 🐧 Proot-Distro (Recommended - Easy)"
+    echo "  2. 🔧 Chroot (Advanced - Auto Setup Scripts)"
+    echo "  3. ↩️  Return to Main Menu"
+    echo ""
+    read -p "Enter your choice (1-3): " choice
+    
+    case $choice in
+        1)
+            install_ubuntu_proot_menu
+            ;;
+        2)
+            install_ubuntu_chroot_menu
+            ;;
+        3)
+            return
+            ;;
+        *)
+            print_error "Invalid choice"
+            ;;
+    esac
+}
+
+# Function to show Proot installation menu
+install_ubuntu_proot_menu() {
+    print_header
+    print_status "🐧 Proot-Distro Installation"
+    echo ""
+    echo "Select Ubuntu Version:"
+    echo "  1. 🐧 Ubuntu 18.04 LTS (Bionic Beaver)"
+    echo "  2. 🐧 Ubuntu 20.04 LTS (Focal Fossa)"
+    echo "  3. 🐧 Ubuntu 22.04 LTS (Jammy Jellyfish)"
+    echo "  4. 🐧 Ubuntu 24.04 LTS (Noble Numbat)"
+    echo "  5. ↩️  Return to Installation Menu"
+    echo ""
+    read -p "Enter your choice (1-5): " choice
+    
+    case $choice in
+        1)
+            install_ubuntu_proot "18.04"
+            ;;
+        2)
+            install_ubuntu_proot "20.04"
+            ;;
+        3)
+            install_ubuntu_proot "22.04"
+            ;;
+        4)
+            install_ubuntu_proot "24.04"
+            ;;
+        5)
+            return
+            ;;
+        *)
+            print_error "Invalid choice"
+            ;;
+    esac
+}
+
+# Function to show Chroot installation menu
+install_ubuntu_chroot_menu() {
+    print_header
+    print_status "🔧 Chroot Installation"
+    echo ""
+    echo "Select Ubuntu Version:"
+    echo "  1. 🐧 Ubuntu 18.04 LTS (Bionic Beaver)"
+    echo "  2. 🐧 Ubuntu 20.04 LTS (Focal Fossa)"
+    echo "  3. 🐧 Ubuntu 22.04 LTS (Jammy Jellyfish)"
+    echo "  4. 🐧 Ubuntu 24.04 LTS (Noble Numbat)"
+    echo "  5. ↩️  Return to Installation Menu"
+    echo ""
+    read -p "Enter your choice (1-5): " choice
+    
+    case $choice in
+        1)
+            install_ubuntu_chroot "18.04" "bionic" "https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-arm64-root.tar.xz"
+            ;;
+        2)
+            install_ubuntu_chroot "20.04" "focal" "https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-arm64-root.tar.xz"
+            ;;
+        3)
+            install_ubuntu_chroot "22.04" "jammy" "https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-arm64-root.tar.xz"
+            ;;
+        4)
+            install_ubuntu_chroot "24.04" "noble" "https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-arm64-root.tar.xz"
+            ;;
+        5)
+            return
+            ;;
+        *)
+            print_error "Invalid choice"
+            ;;
+    esac
+}
+
+# Function to show system check
+show_system_check() {
+    print_header
+    print_success "System Check Results:"
+    echo ""
+    
+    # Show system information
+    echo -e "${CYAN}System Information:${NC}"
     available_space=$(df $HOME | awk 'NR==2 {print $4}')
     available_space_mb=$(($available_space / 1024))
     total_space=$(df $HOME | awk 'NR==2 {print $2}')
@@ -848,813 +1500,18 @@ system_check() {
     echo -e "${WHITE}Android Version: $(getprop ro.build.version.release)${NC}"
     echo -e "${WHITE}Architecture: $(uname -m)${NC}"
     echo -e "${WHITE}Termux Version: $(pkg --version 2>/dev/null || echo "Unknown")${NC}"
-
-    # Show root status
+    
     echo ""
     echo -e "${CYAN}Root Status:${NC}"
     if [[ $(id -u) -eq 0 ]]; then
         echo -e "${GREEN}✓ Root access available${NC}"
-        echo -e "${WHITE}You can use Chroot installation method${NC}"
     else
-        echo -e "${YELLOW}⚠ No root access${NC}"
-        echo -e "${WHITE}You can use Proot installation method${NC}"
+        echo -e "${YELLOW}⚠ No root access (Proot will be used)${NC}"
     fi
-
-    clear_screen
-}
-
-
-
-
-
-# Function to install Ubuntu 18.04 (Chroot) in background
-install_ubuntu_18_04_chroot_background() {
-    INSTALL_DIR=$HOME/ubuntu/ubuntu18-rootfs
-    mkdir -p $INSTALL_DIR
-    cd $INSTALL_DIR
-
-    # Use reliable Ubuntu 18.04 rootfs URL for Android
-    ROOTFS_URL="https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-arm64-root.tar.xz"
-
-    # Download Ubuntu 18.04 rootfs (silent with progress)
-    wget -q --show-progress -O ubuntu-18.04-rootfs.tar.xz $ROOTFS_URL > /dev/null 2>&1
-
-    if [[ $? -ne 0 ]]; then
-        echo "chroot_failed" > $HOME/ubuntu_install_result
-        return
-    fi
-
-    # Extract xz file (silent)
-    tar -xf ubuntu-18.04-rootfs.tar.xz --exclude='./dev' > /dev/null 2>&1
-
-    # Create necessary directories and files
-    mkdir -p $INSTALL_DIR/etc
-    mkdir -p $INSTALL_DIR/dev
-    mkdir -p $INSTALL_DIR/proc
-    mkdir -p $INSTALL_DIR/sys
-    mkdir -p $INSTALL_DIR/tmp
-    mkdir -p $INSTALL_DIR/var/tmp
-
-    # Fix groups file to prevent group ID errors
-    cat >> $INSTALL_DIR/etc/group <<'EOF'
-3003:3003:3003
-9997:9997:9997
-20238:20238:20238
-50238:50238:50238
-EOF
-
-    # Set proper permissions for full root access
-    chmod -R 755 $INSTALL_DIR
-    chown -R root:root $INSTALL_DIR 2>/dev/null || true
-
-
     
-    # Create start script with limited root access
-    cat > start-ubuntu-18.04.sh <<'EOF'
-#!/bin/bash
-unset LD_PRELOAD
-
-proot -0 -r $HOME/ubuntu/ubuntu18-rootfs \
-    -b /dev -b /proc -b /sys \
-    -b $HOME:/root \
-    -w /root /usr/bin/env -i HOME=/root TERM="$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/bash --login
-EOF
-    chmod +x start-ubuntu-18.04.sh
-
-    echo "chroot_success" > $HOME/ubuntu_install_result
-}
-
-# Function to install Ubuntu 18.04 (Chroot) - Main function
-install_ubuntu_18_04_chroot() {
-    print_status "Installing Ubuntu 18.04 Chroot..."
-
-    # Start installation in background
-    install_ubuntu_18_04_chroot_background &
-    local pid=$!
-
-    # Show loading animation
-    show_loading "Installing Ubuntu 18.04 (Chroot)..." $pid
-
-    # Wait for installation to complete
-    wait $pid
-
-    # Check result
-    if [[ -f $HOME/ubuntu_install_result ]]; then
-        local result=$(cat $HOME/ubuntu_install_result)
-        rm -f $HOME/ubuntu_install_result
-
-        if [[ "$result" == "chroot_success" ]]; then
-            print_success_box "Ubuntu 18.04 (Chroot) installed successfully!"
-            
-            print_status "Ubuntu 18.04 installed successfully!"
-            print_status "Creating setup scripts in Ubuntu directory..."
-            
-            # Create setup scripts in Ubuntu directory
-            create_setup_scripts "$HOME/ubuntu/ubuntu18-rootfs"
-            
-            print_status "Setup scripts created successfully!"
-            print_status "Next steps:"
-            print_status "1. Enter Ubuntu as root: ubuntu18"
-            print_status "2. Run ubuntu-root-setup.sh to configure user and system"
-            print_status "3. Exit and enter as user: ubuntu18-username"
-            print_status "4. Run ubuntu-tools-setup.sh to install tools"
-        elif [[ "$result" == "chroot_failed" ]]; then
-            print_error_box "Failed to download Ubuntu 18.04 rootfs"
-            print_status "Please check your internet connection and try again"
-        else
-            print_error_box "Failed to install Ubuntu 18.04"
-        fi
-    else
-        print_error_box "Installation failed"
-    fi
-
-    clear_screen
-}
-
-# Function to install Ubuntu 20.04 (Chroot) in background
-install_ubuntu_20_04_chroot_background() {
-    INSTALL_DIR=$HOME/ubuntu/ubuntu20-rootfs
-    mkdir -p $INSTALL_DIR
-    cd $INSTALL_DIR
-
-    # Use reliable Ubuntu 20.04 rootfs URL for Android
-    ROOTFS_URL="https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-arm64-root.tar.xz"
-
-    # Download Ubuntu 20.04 rootfs (silent with progress)
-    wget -q --show-progress -O ubuntu-20.04-rootfs.tar.xz $ROOTFS_URL > /dev/null 2>&1
-
-    if [[ $? -ne 0 ]]; then
-        echo "chroot_failed" > $HOME/ubuntu_install_result
-        return
-    fi
-
-    # Extract xz file (silent)
-    tar -xf ubuntu-20.04-rootfs.tar.xz --exclude='./dev' > /dev/null 2>&1
-
-    # Create necessary directories and files
-    mkdir -p $INSTALL_DIR/etc
-    mkdir -p $INSTALL_DIR/dev
-    mkdir -p $INSTALL_DIR/proc
-    mkdir -p $INSTALL_DIR/sys
-    mkdir -p $INSTALL_DIR/tmp
-    mkdir -p $INSTALL_DIR/var/tmp
-
-    # Fix groups file to prevent group ID errors
-    cat >> $INSTALL_DIR/etc/group <<'EOF'
-3003:3003:3003
-9997:9997:9997
-20238:20238:20238
-50238:50238:50238
-EOF
-
-    # Set proper permissions for full root access
-    chmod -R 755 $INSTALL_DIR
-    chown -R root:root $INSTALL_DIR 2>/dev/null || true
-
-
-    
-    # Create start script with limited root access
-    cat > start-ubuntu-20.04.sh <<'EOF'
-#!/bin/bash
-unset LD_PRELOAD
-
-proot -0 -r $HOME/ubuntu/ubuntu20-rootfs \
-    -b /dev -b /proc -b /sys \
-    -b $HOME:/root \
-    -w /root /usr/bin/env -i HOME=/root TERM="$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/bash --login
-EOF
-    chmod +x start-ubuntu-20.04.sh
-
-    echo "chroot_success" > $HOME/ubuntu_install_result
-}
-
-# Function to install Ubuntu 20.04 (Chroot) - Main function
-install_ubuntu_20_04_chroot() {
-    print_status "Installing Ubuntu 20.04 Chroot..."
-
-    # Start installation in background
-    install_ubuntu_20_04_chroot_background &
-    local pid=$!
-
-    # Show loading animation
-    show_loading "Installing Ubuntu 20.04 (Chroot)..." $pid
-
-    # Wait for installation to complete
-    wait $pid
-
-    # Check result
-    if [[ -f $HOME/ubuntu_install_result ]]; then
-        local result=$(cat $HOME/ubuntu_install_result)
-        rm -f $HOME/ubuntu_install_result
-
-        if [[ "$result" == "chroot_success" ]]; then
-            print_success_box "Ubuntu 20.04 (Chroot) installed successfully!"
-            
-            print_status "Ubuntu 20.04 installed successfully!"
-            print_status "Creating setup scripts in Ubuntu directory..."
-            
-            # Create setup scripts in Ubuntu directory
-            create_setup_scripts "$HOME/ubuntu/ubuntu20-rootfs"
-            
-            print_status "Setup scripts created successfully!"
-            print_status "Next steps:"
-            print_status "1. Enter Ubuntu as root: ubuntu20"
-            print_status "2. Run ubuntu-root-setup.sh to configure user and system"
-            print_status "3. Exit and enter as user: ubuntu20-username"
-            print_status "4. Run ubuntu-tools-setup.sh to install tools"
-        elif [[ "$result" == "chroot_failed" ]]; then
-            print_error_box "Failed to download Ubuntu 20.04 rootfs"
-            print_status "Please check your internet connection and try again"
-        else
-            print_error_box "Failed to install Ubuntu 20.04"
-        fi
-    else
-        print_error_box "Installation failed"
-    fi
-
-    clear_screen
-}
-
-# Function to install Ubuntu 22.04 (Chroot) in background
-install_ubuntu_22_04_chroot_background() {
-    INSTALL_DIR=$HOME/ubuntu/ubuntu22-rootfs
-    mkdir -p $INSTALL_DIR
-    cd $INSTALL_DIR
-
-    # Use reliable Ubuntu 22.04 rootfs URL for Android
-    ROOTFS_URL="https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-arm64-root.tar.xz"
-
-    # Download Ubuntu 22.04 rootfs (silent with progress)
-    wget -q --show-progress -O ubuntu-22.04-rootfs.tar.xz $ROOTFS_URL > /dev/null 2>&1
-
-    if [[ $? -ne 0 ]]; then
-        echo "chroot_failed" > $HOME/ubuntu_install_result
-        return
-    fi
-
-    # Extract xz file (silent)
-    tar -xf ubuntu-22.04-rootfs.tar.xz --exclude='./dev' > /dev/null 2>&1
-
-    # Create necessary directories and files
-    mkdir -p $INSTALL_DIR/etc
-    mkdir -p $INSTALL_DIR/dev
-    mkdir -p $INSTALL_DIR/proc
-    mkdir -p $INSTALL_DIR/sys
-    mkdir -p $INSTALL_DIR/tmp
-    mkdir -p $INSTALL_DIR/var/tmp
-
-    # Fix groups file to prevent group ID errors
-    cat >> $INSTALL_DIR/etc/group <<'EOF'
-3003:3003:3003
-9997:9997:9997
-20238:20238:20238
-50238:50238:50238
-EOF
-
-    # Set proper permissions for full root access
-    chmod -R 755 $INSTALL_DIR
-    chown -R root:root $INSTALL_DIR 2>/dev/null || true
-
-
-    
-    # Create start script with limited root access
-    cat > start-ubuntu-22.04.sh <<'EOF'
-#!/bin/bash
-unset LD_PRELOAD
-
-proot -0 -r $HOME/ubuntu/ubuntu22-rootfs \
-    -b /dev -b /proc -b /sys \
-    -b $HOME:/root \
-    -w /root /usr/bin/env -i HOME=/root TERM="$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/bash --login
-EOF
-    chmod +x start-ubuntu-22.04.sh
-
-    echo "chroot_success" > $HOME/ubuntu_install_result
-}
-
-# Function to install Ubuntu 22.04 (Chroot) - Main function
-install_ubuntu_22_04_chroot() {
-    print_status "Installing Ubuntu 22.04 Chroot..."
-
-    # Start installation in background
-    install_ubuntu_22_04_chroot_background &
-    local pid=$!
-
-    # Show loading animation
-    show_loading "Installing Ubuntu 22.04 (Chroot)..." $pid
-
-    # Wait for installation to complete
-    wait $pid
-
-    # Check result
-    if [[ -f $HOME/ubuntu_install_result ]]; then
-        local result=$(cat $HOME/ubuntu_install_result)
-        rm -f $HOME/ubuntu_install_result
-
-        if [[ "$result" == "chroot_success" ]]; then
-            print_success_box "Ubuntu 22.04 (Chroot) installed successfully!"
-            
-            print_status "Ubuntu 22.04 installed successfully!"
-            print_status "Creating setup scripts in Ubuntu directory..."
-            
-            # Create setup scripts in Ubuntu directory
-            create_setup_scripts "$HOME/ubuntu/ubuntu22-rootfs"
-            
-            print_status "Setup scripts created successfully!"
-            print_status "Next steps:"
-            print_status "1. Enter Ubuntu as root: ubuntu22"
-            print_status "2. Run ubuntu-root-setup.sh to configure user and system"
-            print_status "3. Exit and enter as user: ubuntu22-username"
-            print_status "4. Run ubuntu-tools-setup.sh to install tools"
-        elif [[ "$result" == "chroot_failed" ]]; then
-            print_error_box "Failed to download Ubuntu 22.04 rootfs"
-            print_status "Please check your internet connection and try again"
-        else
-            print_error_box "Failed to install Ubuntu 22.04"
-        fi
-    else
-        print_error_box "Installation failed"
-    fi
-
-    clear_screen
-}
-
-# Function to install Ubuntu 24.04 (Chroot) in background
-install_ubuntu_24_04_chroot_background() {
-    INSTALL_DIR=$HOME/ubuntu/ubuntu24-rootfs
-    mkdir -p $INSTALL_DIR
-    cd $INSTALL_DIR
-
-    # Use reliable Ubuntu 24.04 rootfs URL for Android
-    ROOTFS_URL="https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-arm64-root.tar.xz"
-
-    # Download Ubuntu 24.04 rootfs (silent with progress)
-    wget -q --show-progress -O ubuntu-24.04-rootfs.tar.xz $ROOTFS_URL > /dev/null 2>&1
-
-    if [[ $? -ne 0 ]]; then
-        echo "chroot_failed" > $HOME/ubuntu_install_result
-        return
-    fi
-
-    # Extract xz file (silent)
-    tar -xf ubuntu-24.04-rootfs.tar.xz --exclude='./dev' > /dev/null 2>&1
-
-    # Create necessary directories and files
-    mkdir -p $INSTALL_DIR/etc
-    mkdir -p $INSTALL_DIR/dev
-    mkdir -p $INSTALL_DIR/proc
-    mkdir -p $INSTALL_DIR/sys
-    mkdir -p $INSTALL_DIR/tmp
-    mkdir -p $INSTALL_DIR/var/tmp
-
-    # Fix groups file to prevent group ID errors
-    cat >> $INSTALL_DIR/etc/group <<'EOF'
-3003:3003:3003
-9997:9997:9997
-20238:20238:20238
-50238:50238:50238
-EOF
-
-    # Set proper permissions for full root access
-    chmod -R 755 $INSTALL_DIR
-    chown -R root:root $INSTALL_DIR 2>/dev/null || true
-
-
-    
-    # Create start script with limited root access
-    cat > start-ubuntu-24.04.sh <<'EOF'
-#!/bin/bash
-unset LD_PRELOAD
-
-proot -0 -r $HOME/ubuntu/ubuntu24-rootfs \
-    -b /dev -b /proc -b /sys \
-    -b $HOME:/root \
-    -w /root /usr/bin/env -i HOME=/root TERM="$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/bash --login
-EOF
-    chmod +x start-ubuntu-24.04.sh
-
-    echo "chroot_success" > $HOME/ubuntu_install_result
-}
-
-# Function to install Ubuntu 24.04 (Chroot) - Main function
-install_ubuntu_24_04_chroot() {
-    print_status "Installing Ubuntu 24.04 Chroot..."
-
-    # Start installation in background
-    install_ubuntu_24_04_chroot_background &
-    local pid=$!
-
-    # Show loading animation
-    show_loading "Installing Ubuntu 24.04 (Chroot)..." $pid
-
-    # Wait for installation to complete
-    wait $pid
-
-    # Check result
-    if [[ -f $HOME/ubuntu_install_result ]]; then
-        local result=$(cat $HOME/ubuntu_install_result)
-        rm -f $HOME/ubuntu_install_result
-
-        if [[ "$result" == "chroot_success" ]]; then
-            print_success_box "Ubuntu 24.04 (Chroot) installed successfully!"
-            
-            print_status "Ubuntu 24.04 installed successfully!"
-            print_status "Creating setup scripts in Ubuntu directory..."
-            
-            # Create setup scripts in Ubuntu directory
-            create_setup_scripts "$HOME/ubuntu/ubuntu24-rootfs"
-            
-            print_status "Setup scripts created successfully!"
-            print_status "Next steps:"
-            print_status "1. Enter Ubuntu as root: ubuntu24"
-            print_status "2. Run ubuntu-root-setup.sh to configure user and system"
-            print_status "3. Exit and enter as user: ubuntu24-username"
-            print_status "4. Run ubuntu-tools-setup.sh to install tools"
-        elif [[ "$result" == "chroot_failed" ]]; then
-            print_error_box "Failed to download Ubuntu 24.04 rootfs"
-            print_status "Please check your internet connection and try again"
-        else
-            print_error_box "Failed to install Ubuntu 24.04"
-        fi
-    else
-        print_error_box "Installation failed"
-    fi
-
-    clear_screen
-}
-
-# Function to install Ubuntu with Proot-distro in background
-install_ubuntu_proot_background() {
-    local version="$1"
-
-    # Install proot-distro
-    pkg install proot-distro -y
-
-    # Use specific proot URLs for better compatibility
-    case $version in
-        "18.04")
-            # Use Andronix-style URL for Ubuntu 18.04
-            PROOT_URL="https://github.com/AndronixApp/AndronixOrigin/raw/master/Ubuntu/Ubuntu-18.04/arm64/ubuntu-18.04-arm64.tar.gz"
-            ;;
-        "20.04")
-            # Use Andronix-style URL for Ubuntu 20.04
-            PROOT_URL="https://github.com/AndronixApp/AndronixOrigin/raw/master/Ubuntu/Ubuntu-20.04/arm64/ubuntu-20.04-arm64.tar.gz"
-            ;;
-        "22.04")
-            # Use Andronix-style URL for Ubuntu 22.04
-            PROOT_URL="https://github.com/AndronixApp/AndronixOrigin/raw/master/Ubuntu/Ubuntu-22.04/arm64/ubuntu-22.04-arm64.tar.gz"
-            ;;
-        "24.04")
-            # Use Andronix-style URL for Ubuntu 24.04
-            PROOT_URL="https://github.com/AndronixApp/AndronixOrigin/raw/master/Ubuntu/Ubuntu-24.04/arm64/ubuntu-24.04-arm64.tar.gz"
-            ;;
-        *)
-            # Fallback to proot-distro
-            proot-distro install ubuntu-${version}
-            if [[ $? -eq 0 ]]; then
-                echo "proot_success" > $HOME/ubuntu_install_result
-            else
-                echo "proot_failed" > $HOME/ubuntu_install_result
-            fi
-            return
-            ;;
-    esac
-
-    # Create proot directory
-    mkdir -p $HOME/ubuntu/proot-${version}
-    cd $HOME/ubuntu/proot-${version}
-
-    # Download proot rootfs (silent with progress)
-    wget -q --show-progress -O ubuntu-${version}-proot.tar.gz $PROOT_URL > /dev/null 2>&1
-
-    if [[ $? -eq 0 ]]; then
-        # Extract proot rootfs (silent)
-        tar -xzf ubuntu-${version}-proot.tar.gz --exclude='./dev' > /dev/null 2>&1
-
-        # Create start script for proot
-        cat > start-ubuntu-${version}-proot.sh <<'EOF'
-#!/bin/bash
-unset LD_PRELOAD
-proot -r $HOME/ubuntu/proot-${version} -b /dev -b /proc -b /sys -b /data/data/com.termux/files/home:/root -w /root /usr/bin/env -i HOME=/root TERM="$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/bash --login
-EOF
-        chmod +x start-ubuntu-${version}-proot.sh
-
-        echo "proot_success" > $HOME/ubuntu_install_result
-    else
-        # Fallback to proot-distro if download fails
-        cd $HOME
-        proot-distro install ubuntu-${version}
-        if [[ $? -eq 0 ]]; then
-            echo "proot_success" > $HOME/ubuntu_install_result
-        else
-            echo "proot_failed" > $HOME/ubuntu_install_result
-        fi
-    fi
-}
-
-# Function to install Ubuntu with Proot-distro - Main function
-install_ubuntu_proot() {
-    print_status "Installing Ubuntu with proot-distro..."
-
-    # Install proot-distro
-    pkg install proot-distro -y
-
-    print_header
-    echo -e "${WHITE}Select Ubuntu Version for Proot:${NC}"
-    echo -e "${BLUE}1.${NC} Ubuntu 18.04"
-    echo -e "${BLUE}2.${NC} Ubuntu 20.04"
-    echo -e "${BLUE}3.${NC} Ubuntu 22.04"
-    echo -e "${BLUE}4.${NC} Ubuntu 24.04"
-    echo ""
-
-    read -p "Select Ubuntu version (1-4): " proot_version
-
-    case $proot_version in
-        1)
-            # Start installation in background
-            install_ubuntu_proot_background "18.04" &
-            local pid=$!
-
-            # Show loading animation
-            show_loading "Installing Ubuntu 18.04 (Proot)..." $pid
-
-            # Wait for installation to complete
-            wait $pid
-
-            # Check result
-            if [[ -f $HOME/ubuntu_install_result ]]; then
-                local result=$(cat $HOME/ubuntu_install_result)
-                rm -f $HOME/ubuntu_install_result
-
-                if [[ "$result" == "proot_success" ]]; then
-                    print_success_box "Ubuntu 18.04 (Proot) installed successfully!"
-                    print_status "To enter Ubuntu: cd $HOME/ubuntu/proot-18.04 && ./start-ubuntu-18.04-proot.sh"
-                    print_status "Or use: proot-distro login ubuntu-18.04"
-                else
-                    print_error_box "Failed to install Ubuntu 18.04"
-                fi
-            else
-                print_error_box "Installation failed"
-            fi
-            clear_screen
-            ;;
-        2)
-            # Start installation in background
-            install_ubuntu_proot_background "20.04" &
-            local pid=$!
-
-            # Show loading animation
-            show_loading "Installing Ubuntu 20.04 (Proot)..." $pid
-
-            # Wait for installation to complete
-            wait $pid
-
-            # Check result
-            if [[ -f $HOME/ubuntu_install_result ]]; then
-                local result=$(cat $HOME/ubuntu_install_result)
-                rm -f $HOME/ubuntu_install_result
-
-                if [[ "$result" == "proot_success" ]]; then
-                    print_success_box "Ubuntu 20.04 (Proot) installed successfully!"
-                    print_status "To enter Ubuntu: cd $HOME/ubuntu/proot-20.04 && ./start-ubuntu-20.04-proot.sh"
-                    print_status "Or use: proot-distro login ubuntu-20.04"
-                else
-                    print_error_box "Failed to install Ubuntu 20.04"
-                fi
-            else
-                print_error_box "Installation failed"
-            fi
-            clear_screen
-            ;;
-        3)
-            # Start installation in background
-            install_ubuntu_proot_background "22.04" &
-            local pid=$!
-
-            # Show loading animation
-            show_loading "Installing Ubuntu 22.04 (Proot)..." $pid
-
-            # Wait for installation to complete
-            wait $pid
-
-            # Check result
-            if [[ -f $HOME/ubuntu_install_result ]]; then
-                local result=$(cat $HOME/ubuntu_install_result)
-                rm -f $HOME/ubuntu_install_result
-
-                if [[ "$result" == "proot_success" ]]; then
-                    print_success_box "Ubuntu 22.04 (Proot) installed successfully!"
-                    print_status "To enter Ubuntu: cd $HOME/ubuntu/proot-22.04 && ./start-ubuntu-22.04-proot.sh"
-                    print_status "Or use: proot-distro login ubuntu-22.04"
-                else
-                    print_error_box "Failed to install Ubuntu 22.04"
-                fi
-            else
-                print_error_box "Installation failed"
-            fi
-            clear_screen
-            ;;
-        4)
-            # Start installation in background
-            install_ubuntu_proot_background "24.04" &
-            local pid=$!
-
-            # Show loading animation
-            show_loading "Installing Ubuntu 24.04 (Proot)..." $pid
-
-            # Wait for installation to complete
-            wait $pid
-
-            # Check result
-            if [[ -f $HOME/ubuntu_install_result ]]; then
-                local result=$(cat $HOME/ubuntu_install_result)
-                rm -f $HOME/ubuntu_install_result
-
-                if [[ "$result" == "proot_success" ]]; then
-                    print_success_box "Ubuntu 24.04 (Proot) installed successfully!"
-                    print_status "To enter Ubuntu: cd $HOME/ubuntu/proot-24.04 && ./start-ubuntu-24.04-proot.sh"
-                    print_status "Or use: proot-distro login ubuntu-24.04"
-                else
-                    print_error_box "Failed to install Ubuntu 24.04"
-                fi
-            else
-                print_error_box "Installation failed"
-            fi
-            clear_screen
-            ;;
-        *)
-            print_error "Invalid choice"
-            return 1
-            ;;
-    esac
-}
-
-# Function to check and request root access
-check_root_access() {
-    print_header
-    echo -e "${YELLOW}Root Access Required for Chroot Installation${NC}"
-    echo -e "${WHITE}Chroot installation requires root access to work properly.${NC}"
-    echo -e "${WHITE}Please grant root access to Termux when prompted.${NC}"
-    echo ""
-    echo -e "${BLUE}Note:${NC} If you don't have root access, consider using Proot instead."
-    echo ""
-
-    # Show root status
-    if [[ $(id -u) -eq 0 ]]; then
-        echo -e "${GREEN}✓ Root access already available${NC}"
-    else
-        echo -e "${YELLOW}⚠ Root status: No root access${NC}"
-    fi
-    echo ""
-
-    read -p "Press Enter to continue with root access request..."
-
-    # Check if we have root access
-    if [[ $(id -u) -eq 0 ]]; then
-        print_success_box "Root access confirmed!"
-        return 0
-    else
-        # Try to get root access
-        echo -e "${YELLOW}Requesting root access...${NC}"
-        su -c "echo 'Root access granted'" 2>/dev/null
-
-        if [[ $? -eq 0 ]]; then
-            print_success_box "Root access granted successfully!"
-            return 0
-        else
-            print_error_box "Failed to get root access!"
-            echo ""
-            echo -e "${WHITE}Possible solutions:${NC}"
-            echo -e "${BLUE}1.${NC} Make sure your device is rooted"
-            echo -e "${BLUE}2.${NC} Grant root access to Termux in SuperSU/Magisk"
-            echo -e "${BLUE}3.${NC} Use Proot instead (no root required)"
-            echo ""
-            echo -e "${WHITE}You can:${NC}"
-            echo -e "${BLUE}1.${NC} Try again"
-            echo -e "${BLUE}2.${NC} Use Proot instead (no root required)"
-            echo -e "${BLUE}3.${NC} Go back to main menu"
-            echo ""
-            read -p "Enter your choice (1-3): " root_choice
-
-            case $root_choice in
-                1) check_root_access ;;
-                2) install_ubuntu_proot ;;
-                3) return 1 ;;
-                *) return 1 ;;
-            esac
-        fi
-    fi
-}
-
-# Function to show installation method comparison
-show_installation_methods() {
-    print_header
-    echo -e "${WHITE}Installation Methods Comparison:${NC}"
-    echo ""
-    echo -e "${CYAN}Chroot (Root Required):${NC}"
-    echo -e "${WHITE}✓ Better performance${NC}"
-    echo -e "${WHITE}✓ Full system access${NC}"
-    echo -e "${WHITE}✓ Native Linux environment${NC}"
-    echo -e "${WHITE}✗ Requires root access${NC}"
-    echo -e "${WHITE}✗ May void warranty${NC}"
-    echo ""
-    echo -e "${CYAN}Proot (No Root Required):${NC}"
-    echo -e "${WHITE}✓ No root access needed${NC}"
-    echo -e "${WHITE}✓ Safe and secure${NC}"
-    echo -e "${WHITE}✓ Easy to install${NC}"
-    echo -e "${WHITE}✗ Slower performance${NC}"
-    echo -e "${WHITE}✗ Limited system access${NC}"
     echo ""
     read -p "Press Enter to continue..."
 }
-
-# Function to install Ubuntu (main menu)
-install_ubuntu() {
-    print_header
-    echo -e "${WHITE}Select Installation Method:${NC}"
-    echo -e "${BLUE}1.${NC} Chroot (for rooted devices)"
-    echo -e "${BLUE}2.${NC} Proot (no root required)"
-    echo -e "${BLUE}3.${NC} Show comparison"
-    echo -e "${BLUE}4.${NC} Back to main menu"
-    echo ""
-
-    read -p "Enter your choice (1-4): " method_choice
-
-    case $method_choice in
-        1)
-            # Check root access before proceeding
-            if check_root_access; then
-                print_header
-                echo -e "${WHITE}Select Ubuntu Version for Chroot:${NC}"
-                echo -e "${BLUE}1.${NC} Ubuntu 18.04"
-                echo -e "${BLUE}2.${NC} Ubuntu 20.04"
-                echo -e "${BLUE}3.${NC} Ubuntu 22.04"
-                echo -e "${BLUE}4.${NC} Ubuntu 24.04"
-                echo -e "${BLUE}5.${NC} Back to main menu"
-                echo ""
-
-                read -p "Enter your choice (1-5): " version_choice
-
-                case $version_choice in
-                    1) install_ubuntu_18_04_chroot ;;
-                    2) install_ubuntu_20_04_chroot ;;
-                    3) install_ubuntu_22_04_chroot ;;
-                    4) install_ubuntu_24_04_chroot ;;
-                    5) return ;;
-                    *) print_error "Invalid choice" ;;
-                esac
-            fi
-            ;;
-        2)
-            install_ubuntu_proot
-            ;;
-        3)
-            show_installation_methods
-            install_ubuntu
-            ;;
-        4)
-            return
-            ;;
-        *)
-            print_error "Invalid choice"
-            ;;
-    esac
-
-    clear_screen
-}
-
-
-
-# Function to remove Ubuntu
-remove_ubuntu() {
-    print_header
-    print_warning "This will remove all Ubuntu installations!"
-    read -p "Are you sure? (y/N): " confirm_remove
-
-    if [[ "$confirm_remove" =~ ^[Yy]$ ]]; then
-        print_status "Removing Ubuntu installations..."
-
-        # Remove chroot installations
-        rm -rf $HOME/ubuntu/ubuntu*-rootfs
-
-        # Remove proot-distro installations
-        proot-distro remove ubuntu-18.04 2>/dev/null || true
-        proot-distro remove ubuntu-20.04 2>/dev/null || true
-        proot-distro remove ubuntu-22.04 2>/dev/null || true
-        proot-distro remove ubuntu-24.04 2>/dev/null || true
-
-        # Clean up
-        rm -rf $HOME/ubuntu
-
-        print_success_box "Ubuntu installations removed successfully!"
-    else
-        print_status "Removal cancelled."
-    fi
-
-    clear_screen
-}
-
-
 
 # Main menu function
 main_menu() {
@@ -1662,23 +1519,24 @@ main_menu() {
         print_header
         print_menu
 
-        read -p "Enter your choice (1-4): " choice
+        read -p "Enter your choice (1-5): " choice
 
         case $choice in
-            1) system_check ;;
-            2) install_ubuntu ;;
-            3) remove_ubuntu ;;
-            4)
+            1) install_ubuntu ;;
+            2) remove_ubuntu ;;
+            3) show_installation_guide ;;
+            4) show_system_check ;;
+            5)
                 print_header
-                    echo -e "${GREEN}Goodbye!${NC}"
-    echo -e "${WHITE}Thank you for using Ubuntu Chroot & Proot Installer!${NC}"
-    echo -e "${WHITE}Don't forget to visit our GitHub repository!${NC}"
+                echo -e "${GREEN}👋 Goodbye!${NC}"
+                echo -e "${WHITE}Thank you for using Ubuntu Installer!${NC}"
+                echo -e "${WHITE}Don't forget to visit our GitHub repository!${NC}"
                 echo ""
                 sleep 2
                 exit 0
                 ;;
             *)
-                print_error "Invalid choice. Please enter 1-4."
+                print_error "Invalid choice. Please enter 1-5."
                 ;;
         esac
     done
@@ -1687,168 +1545,15 @@ main_menu() {
 # Function to show welcome message
 show_welcome() {
     clear
-    echo -e "${CYAN}Welcome to Ubuntu Chroot & Proot Installer${NC}"
-    echo -e "${WHITE}This installer will help you install Ubuntu on Termux${NC}"
-    echo -e "${WHITE}Choose from Chroot (rooted devices) or Proot (no root)${NC}"
-    echo -e "${WHITE}Supported versions: 18.04, 20.04, 22.04, 24.04${NC}"
+    echo -e "${CYAN}Welcome to Ubuntu Installer for Termux${NC}"
+    echo -e "${CYAN}This installer will help you install Ubuntu on Termux${NC}"
+    echo -e "${CYAN}Supported versions: 18.04, 20.04, 22.04, 24.04${NC}"
+    echo -e "${CYAN}All operations run in background with beautiful UI${NC}"
     echo ""
-    sleep 2
+    sleep 3
 }
-
-# Function to check and install prerequisites in background
-check_and_install_prerequisites_background() {
-    # Check if running in Termux
-    if [[ ! -d "/data/data/com.termux" ]]; then
-        echo "not_termux" > $HOME/prerequisites_result
-        return
-    fi
-
-    # Update Termux packages
-    pkg update -y > /dev/null 2>&1
-
-    # Install required packages
-    pkg install wget curl proot tar git nano vim -y > /dev/null 2>&1
-
-    # Check disk space
-    available_space=$(df $HOME | awk 'NR==2 {print $4}')
-    required_space=4194304  # 4GB in KB
-
-    if [[ $available_space -lt $required_space ]]; then
-        echo "low_disk_space:$available_space" > $HOME/prerequisites_result
-        return
-    fi
-
-    # Check internet connection
-    if ! ping -c 1 8.8.8.8 &> /dev/null; then
-        echo "no_internet" > $HOME/prerequisites_result
-        return
-    fi
-
-    # Create necessary directories
-    mkdir -p $HOME/ubuntu
-    mkdir -p $HOME/ubuntu/scripts
-
-    # Set DNS
-    echo 'nameserver 8.8.8.8' > $HOME/.resolv.conf
-    echo 'nameserver 8.8.4.4' >> $HOME/.resolv.conf
-
-    echo "success" > $HOME/prerequisites_result
-}
-
-# Function to check and install prerequisites
-check_and_install_prerequisites() {
-    print_status "Checking system prerequisites..."
-
-    # Start prerequisites check in background
-    check_and_install_prerequisites_background &
-    local pid=$!
-
-    # Show loading animation with detailed steps
-    echo -e "${YELLOW}System Check & Setup${NC}"
-    echo -e "${WHITE}Checking Termux environment...${NC}"
-    echo -e "${WHITE}Updating package repositories...${NC}"
-    echo -e "${WHITE}Installing required packages...${NC}"
-    echo -e "${WHITE}Checking disk space...${NC}"
-    echo -e "${WHITE}Testing internet connection...${NC}"
-    echo -e "${WHITE}Creating directories...${NC}"
-    echo -e "${WHITE}Configuring DNS...${NC}"
-
-    # Loading animation
-    local i=0
-    local spin='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
-
-    while kill -0 $pid 2>/dev/null; do
-        local temp=${spin:$i:1}
-        echo -ne "${YELLOW}Please wait... ${temp}${NC}\r"
-        i=$(( (i+1) % ${#spin} ))
-        sleep 0.1
-    done
-
-    echo -e "${GREEN}System check completed!${NC}"
-    echo ""
-
-    # Wait for prerequisites check to complete
-    wait $pid
-
-    # Check result
-    if [[ -f $HOME/prerequisites_result ]]; then
-        local result=$(cat $HOME/prerequisites_result)
-        rm -f $HOME/prerequisites_result
-
-        case $result in
-            "success")
-                print_success_box "System prerequisites check completed successfully!"
-                print_status "✓ Termux environment detected"
-                print_status "✓ Required packages installed"
-                print_status "✓ Sufficient disk space available"
-                print_status "✓ Internet connection available"
-                print_status "✓ Directories created"
-                print_status "✓ DNS configured"
-                ;;
-            "not_termux")
-                print_error_box "This script must be run in Termux!"
-                print_status "Please install Termux from F-Droid and try again."
-                exit 1
-                ;;
-            "low_disk_space")
-                available_space_mb=$(($available_space / 1024))
-                print_warning "Low disk space detected!"
-                print_status "Available: ${available_space_mb}MB, Required: 4GB"
-                read -p "Continue anyway? (y/N): " continue_anyway
-                if [[ ! "$continue_anyway" =~ ^[Yy]$ ]]; then
-                    exit 1
-                fi
-                ;;
-            "no_internet")
-                print_error_box "No internet connection detected!"
-                print_status "Please check your internet connection and try again."
-                exit 1
-                ;;
-            *)
-                print_error_box "Unknown error during prerequisites check"
-                exit 1
-                ;;
-        esac
-    else
-        print_error_box "Prerequisites check failed"
-        exit 1
-    fi
-
-    clear_screen
-}
-
-# Function to show loading animation
-show_loading() {
-    local message="$1"
-    local pid=$2
-
-    echo -e "${YELLOW}Installing...${NC}"
-    echo -e "${WHITE}$message${NC}"
-    echo ""
-
-    # Loading animation with progress bar
-    local i=0
-    local spin='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
-    local dots=""
-
-    while kill -0 $pid 2>/dev/null; do
-        local temp=${spin:$i:1}
-        dots="${dots}."
-        if [[ ${#dots} -gt 3 ]]; then
-            dots=""
-        fi
-        echo -ne "${YELLOW}Downloading and installing${dots} ${temp}${NC}\r"
-        i=$(( (i+1) % ${#spin} ))
-        sleep 0.2
-    done
-
-    echo -e "${GREEN}✓ Installation completed successfully!${NC}"
-    echo ""
-}
-
-
 
 # Start the installer
 show_welcome
-check_and_install_prerequisites
+check_prerequisites
 main_menu
