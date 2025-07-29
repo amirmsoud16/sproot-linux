@@ -51,3 +51,8 @@ chmod +x CFR.sh CFU.sh
 bash ~/CFR.sh
 bash ~/CFU.sh
 ```
+```
+# استفاده از دستورات سریع
+ubuntu18-amiri    # ورود به یوزر
+ubuntu18-root     # ورود به root
+```
