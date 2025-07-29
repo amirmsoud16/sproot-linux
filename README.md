@@ -1,66 +1,118 @@
-# 🐧 Ubuntu Chroot & Proot Installer for Termux
+# 🐧 Ubuntu Installer for Termux
 
 > **نصب آسان Ubuntu در Termux با یک کلیک!**
 
-[![GitHub](https://img.shields.io/badge/GitHub-Repository-blue?style=flat&logo=github)](https://github.com/amirmsoud16/ubuntu-chroot-pk-)
-[![Termux](https://img.shields.io/badge/Termux-Compatible-green?style=flat&logo=android)](https://termux.dev/)
-[![Ubuntu](https://img.shields.io/badge/Ubuntu-18.04%20%7C%2020.04%20%7C%2022.04%20%7C%2024.04-orange?style=flat&logo=ubuntu)](https://ubuntu.com/)
-
----
-
 ## 🚀 نصب سریع
-### مرحله 1: نصب پیشنیاز ها 
-```bash
-apt update -y
-apt upgrade -y
-```
 
-```bash
-apt install -y wget curl git nano vim tar proot
-```
-### مرحله 2: اجرا 
+### مرحله 1: دانلود
 ```bash
 wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/install.sh
-chmod +x install.sh
-./install.sh
 ```
+
+### مرحله 2: اجرا
+```bash
+bash install.sh
+```
+
+### مرحله 3: انتخاب
+- گزینه `1` را انتخاب کنید (Install Ubuntu)
+- گزینه `2` را انتخاب کنید (Chroot)
+- ورژن مورد نظر را انتخاب کنید
+
+---
 
 ## 📋 مراحل کامل نصب
 
 ### 1️⃣ **نصب Ubuntu**
+```bash
+# دانلود و اجرا
+wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/install.sh
+bash install.sh
+```
 
+### 2️⃣ **انتخاب در منو**
 ```
-┌─ Ubuntu Chroot & Proot Installer  ─┐
-│ 1. System Check                    │
-│ 2. Install Ubuntu                  │
-│ 3. Remove Ubuntu                   │
-│ 4. Exit                            │
-└────────────────────────────────────┘
+Ubuntu Installer for Termux
+Modern & Beautiful Setup
+
+Available Options:
+  1. 🚀 Install Ubuntu (Background Operation)
+  2. 🗑️  Remove Ubuntu (Clean Uninstall)
+  3. 📖 Installation Guide (Step by Step)
+  4. 🔧 System Check (Prerequisites)
+  5. ❌ Exit (Goodbye)
 ```
+
+### 3️⃣ **انتخاب روش نصب**
+```
+🚀 Ubuntu Installation Menu
+
+Select Installation Method:
+  1. 🐧 Proot-Distro (Recommended - Easy)
+  2. 🔧 Chroot (Advanced - Auto Setup Scripts)
+  3. ↩️  Return to Main Menu
+```
+
+### 4️⃣ **انتخاب ورژن**
+```
+🔧 Chroot Installation
+
+Select Ubuntu Version:
+  1. 🐧 Ubuntu 18.04 LTS (Bionic Beaver)
+  2. 🐧 Ubuntu 20.04 LTS (Focal Fossa)
+  3. 🐧 Ubuntu 22.04 LTS (Jammy Jellyfish)
+  4. 🐧 Ubuntu 24.04 LTS (Noble Numbat)
+  5. ↩️  Return to Installation Menu
+```
+
+### 5️⃣ **راه‌اندازی اولیه**
+```bash
+# ورود به محیط Ubuntu
+cd ~/ubuntu/ubuntu18-rootfs
+proot -0 -r . -b /dev -b /proc -b /sys -w /root /bin/bash
+
+# اجرای setup اولیه (در محیط Ubuntu)
+./ubuntu-root-setup.sh
+
+# خروج از Ubuntu
+exit
+
+# ورود مجدد به Ubuntu
+cd ~/ubuntu/ubuntu18-rootfs
+proot -0 -r . -b /dev -b /proc -b /sys -w /root /bin/bash
+
+# نصب ابزارها (در محیط Ubuntu)
+./ubuntu-tools-setup.sh
+```
+
+**نکته مهم:** اسکریپت‌های `ubuntu-root-setup.sh` و `ubuntu-tools-setup.sh` به صورت خودکار در دایرکتوری Ubuntu ساخته می‌شوند. شما فقط باید وارد محیط Ubuntu شوید و آنها را اجرا کنید.
+
+**شورت‌کات‌های آسان:**
+```bash
+# بعد از نصب، می‌توانید از این دستورات استفاده کنید:
+ubuntu18        # ورود به Ubuntu 18.04 به عنوان root
+ubuntu18-user   # ورود به Ubuntu 18.04 به عنوان کاربر
+ubuntu18-setup  # اجرای root setup
+ubuntu18-tools  # اجرای tools setup
+```
+
+---
+
 ## 🎯 دستورات دسترسی سریع
 
 | دستور | توضیح |
+|-------|-------|
+| `ubuntu18` | ورود به Ubuntu 18.04 به عنوان root |
+| `ubuntu18-user` | ورود به Ubuntu 18.04 به عنوان کاربر |
+| `ubuntu18-setup` | اجرای root setup |
+| `ubuntu18-tools` | اجرای tools setup |
+| `cd ~/ubuntu/ubuntu18-rootfs && proot -0 -r . -b /dev -b /proc -b /sys -w /root /bin/bash` | ورود دستی به محیط Ubuntu |
+| `./ubuntu-root-setup.sh` | اجرای root setup (در Ubuntu) |
+| `./ubuntu-tools-setup.sh` | اجرای tools setup (در Ubuntu) |
+| `fix-internet-18` | رفع مشکل اینترنت |
 
-# ورود به عنوان root (بار اول بدون رمز)
-```
-ubuntu(18.or.20.or.22.or.24)
-```
-# اجرای setup اولیه-
-```
-./ubuntu-root-setup.sh
-```
-# خروج از محیط root
-```
-exit
-```
-# ورود به عنوان user (جایگزین username با نام کاربری خود)
-```
-ubuntu(18.or.20.or.22.or.24)-username
-```
-# اجرای setup ابزارها
-```
-./ubuntu-tools-setup.sh
-```
+---
+
 ## 📦 ابزارهای نصب شده
 
 ### 🔧 **ابزارهای اصلی**
@@ -69,7 +121,18 @@ ubuntu(18.or.20.or.22.or.24)-username
 - Git + GitHub CLI
 - GCC + Make
 - Vim + Nano
+
+### 🌐 **ابزارهای شبکه**
 - curl + wget
+- nmap + tcpdump
+- netcat + telnet
+
+### 🛠️ **ابزارهای توسعه**
+- Docker + Podman
+- AWS CLI + Azure CLI
+- VS Code + Vim
+- Jupyter + Flask
+
 ---
 
 ## ⚙️ ویژگی‌ها
@@ -117,7 +180,7 @@ fix-internet-18
 su
 
 # یا استفاده از Proot
-# در منو گزینه 2 را انتخاب کنید
+# در منو گزینه 1 را انتخاب کنید
 ```
 
 ---
@@ -135,7 +198,7 @@ su
 
 ```bash
 # حمایت از پروژه
-echo "Thanks for using Ubuntu Chroot Installer!"
+echo "Thanks for using Ubuntu Installer!"
 ```
 
 ---
