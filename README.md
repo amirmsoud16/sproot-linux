@@ -63,7 +63,7 @@ ubuntu18-username
 # ورود به عنوان root (بار اول بدون رمز)
 
 ```
-ubuntu18
+ubuntu(18.20.22.24)
 ---
 # اجرای setup اولیه--
 ---
@@ -75,7 +75,7 @@ exit
 ---
 # ورود به عنوان user (جایگزین username با نام کاربری خود)
 ---
-ubuntu18-username
+ubuntu(18.20.22.24)-username
 ---
 # اجرای setup ابزارها
 ---
