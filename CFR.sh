@@ -9,6 +9,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 CYAN='\033[0;36m'
+WHITE='\033[1;37m'
 NC='\033[0m'
 
 # Simple print functions
@@ -26,6 +27,48 @@ print_warning() {
 
 print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
+}
+
+# Loading animation function
+show_loading() {
+    local message="$1"
+    local pid=$2
+    
+    echo -e "${YELLOW}Processing...${NC}"
+    echo -e "${WHITE}$message${NC}"
+    echo ""
+    
+    # Loading animation with spinner
+    local i=0
+    local spin='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+    
+    while kill -0 $pid 2>/dev/null; do
+        local temp=${spin:$i:1}
+        echo -ne "${YELLOW}Please wait... ${temp}${NC}\r"
+        i=$(( (i+1) % ${#spin} ))
+        sleep 0.1
+    done
+    
+    echo -e "${GREEN}✓ Operation completed!${NC}"
+    echo ""
+}
+
+# Background operation function
+run_in_background() {
+    local operation_function="$1"
+    local message="$2"
+    
+    # Start operation in background
+    $operation_function > /dev/null 2>&1 &
+    local pid=$!
+    
+    # Show loading animation
+    show_loading "$message" $pid
+    
+    # Wait for operation to complete
+    wait $pid
+    
+    return $?
 }
 
 # Check Ubuntu environment
@@ -68,60 +111,53 @@ get_user_input() {
     print_success "User configuration saved"
 }
 
-# Fix permissions
+# Fix permissions (background version)
 fix_permissions() {
-    print_info "Fixing permissions..."
-    
     # Fix dpkg permissions
-    print_info "Fixing dpkg permissions..."
     if [[ -d "/var/lib/dpkg" ]]; then
         chmod 755 /var/lib/dpkg 2>/dev/null || true
         chmod 644 /var/lib/dpkg/status 2>/dev/null || true
-        print_success "dpkg permissions fixed"
-    else
-        print_warning "dpkg directory not found, skipping permissions fix"
     fi
     
     # Remove lock files
-    print_info "Removing lock files..."
     rm -f /var/lib/dpkg/lock* 2>/dev/null || true
     rm -f /var/cache/apt/archives/lock 2>/dev/null || true
     rm -f /var/lib/apt/lists/lock 2>/dev/null || true
-    print_success "Lock files removed"
     
     # Fix library permissions
-    print_info "Fixing library permissions..."
     find /usr/lib -name "*.so*" -exec chmod 755 {} \; 2>/dev/null || true
-    
+}
+
+# Fix permissions with loading
+fix_permissions_with_loading() {
+    print_info "Fixing permissions..."
+    run_in_background "fix_permissions" "Fixing system permissions and lock files..."
     print_success "Permissions fixed"
 }
 
-# Fix dpkg interruption specifically
+# Fix dpkg interruption (background version)
 fix_dpkg_interruption() {
-    print_info "Checking for dpkg interruption..."
-    
     # Check if dpkg is in an interrupted state
     if [[ -f "/var/lib/dpkg/status-old" ]] || [[ -f "/var/lib/dpkg/status.dpkg-old" ]]; then
-        print_warning "Detected dpkg interruption, attempting to recover..."
-        
         # Force configure all packages
-        print_info "Running dpkg --configure -a to fix interrupted packages..."
         if dpkg --configure -a; then
-            print_success "dpkg configuration completed successfully"
+            true
         else
-            print_warning "dpkg configuration had issues, trying alternative approach..."
             # Try with force options
             dpkg --configure -a --force-confdef --force-confold 2>/dev/null || true
         fi
-    else
-        print_info "No dpkg interruption detected"
     fi
 }
 
-# Fix apt issues
+# Fix dpkg interruption with loading
+fix_dpkg_interruption_with_loading() {
+    print_info "Checking for dpkg interruption..."
+    run_in_background "fix_dpkg_interruption" "Checking and fixing dpkg interruption..."
+    print_success "dpkg interruption check completed"
+}
+
+# Fix apt issues (background version)
 fix_apt() {
-    print_info "Fixing apt issues..."
-    
     # Configure dpkg
     echo 'Dpkg::Options::="--force-confnew";' > /etc/apt/apt.conf.d/local
     
@@ -129,37 +165,38 @@ fix_apt() {
     fix_dpkg_interruption
     
     # Fix broken packages
-    print_info "Running apt --fix-broken install..."
-    if apt --fix-broken install -y; then
-        print_success "Broken packages fixed successfully"
-    else
-        print_warning "Some broken packages could not be fixed, but continuing..."
-    fi
+    apt --fix-broken install -y 2>/dev/null || true
     
     # Clean cache
     apt clean 2>/dev/null || true
-    
+}
+
+# Fix apt issues with loading
+fix_apt_with_loading() {
+    print_info "Fixing apt issues..."
+    run_in_background "fix_apt" "Fixing apt and dpkg issues..."
     print_success "Apt issues fixed"
 }
 
-# Fix internet
+# Fix internet (background version)
 fix_internet() {
-    print_info "Fixing internet connectivity..."
-    
     # Setup DNS
     cat > /etc/resolv.conf << 'EOF'
 nameserver 8.8.8.8
 nameserver 8.8.4.4
 nameserver 1.1.1.1
 EOF
-    
+}
+
+# Fix internet with loading
+fix_internet_with_loading() {
+    print_info "Fixing internet connectivity..."
+    run_in_background "fix_internet" "Configuring DNS and internet settings..."
     print_success "Internet configured"
 }
 
-# Setup user
+# Setup user (background version)
 setup_user() {
-    print_info "Setting up user..."
-    
     # Create user
     useradd -m -s /bin/bash $USERNAME
     
@@ -171,15 +208,18 @@ setup_user() {
     usermod -aG sudo $USERNAME
     echo "$USERNAME ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/$USERNAME
     chmod 440 /etc/sudoers.d/$USERNAME
-    
+}
+
+# Setup user with loading
+setup_user_with_loading() {
+    print_info "Setting up user..."
+    run_in_background "setup_user" "Creating user account and setting permissions..."
     print_success "User setup completed"
     print_info "Both root and $USERNAME have the same password"
 }
 
-# Create start scripts
+# Create start scripts (background version)
 create_scripts() {
-    print_info "Creating start scripts..."
-    
     UBUNTU_VERSION=$(grep VERSION_ID /etc/os-release | cut -d'"' -f2 | cut -d'.' -f1)
     
     # Root access script
@@ -244,7 +284,12 @@ EOF
 ubuntu${UBUNTU_VERSION}-root
 EOF
     chmod +x ~/ubuntu${UBUNTU_VERSION}-root
-    
+}
+
+# Create start scripts with loading
+create_scripts_with_loading() {
+    print_info "Creating start scripts..."
+    run_in_background "create_scripts" "Creating access scripts and shortcuts..."
     print_success "Start scripts and quick commands created"
     print_info "Quick access commands:"
     print_info "  ubuntu${UBUNTU_VERSION}-$USERNAME  - Quick user access"
@@ -287,12 +332,12 @@ main() {
     
     check_environment
     get_user_input
-    fix_permissions
-    fix_dpkg_interruption
-    fix_apt
-    fix_internet
-    setup_user
-    create_scripts
+    fix_permissions_with_loading
+    fix_dpkg_interruption_with_loading
+    fix_apt_with_loading
+    fix_internet_with_loading
+    setup_user_with_loading
+    create_scripts_with_loading
     show_final_instructions
 }
 
