@@ -9,34 +9,26 @@
 ---
 
 ## 🚀 نصب سریع
+### مرحله 1: نصب پیشنیاز ها 
+```bash
+apt update -y
+apt upgrade -y
+```
 
-### مرحله 1: دانلود
+```bash
+apt install -y wget curl git nano vim tar proot
+```
+### مرحله 2: اجرا 
 ```bash
 wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/install.sh
+chmod +x install.sh
+./install.sh
 ```
-
-### مرحله 2: اجرا
-```bash
-bash install.sh
-```
-
-### مرحله 3: انتخاب
-- گزینه `2` را انتخاب کنید (Install Ubuntu)
-- گزینه `1` را انتخاب کنید (Chroot)
-- ورژن مورد نظر را انتخاب کنید
-
----
 
 ## 📋 مراحل کامل نصب
 
 ### 1️⃣ **نصب Ubuntu**
-```bash
-# دانلود و اجرا
-wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/install.sh
-bash install.sh
-```
 
-### 2️⃣ **انتخاب در منو**
 ```
 ┌─ Ubuntu Chroot & Proot Installer ─┐
 │ 1. System Check                    │
