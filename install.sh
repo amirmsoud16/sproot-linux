@@ -81,7 +81,7 @@ get_user_credentials() {
     print_success "User configuration saved!"
     print_status "Username: $UBUNTU_USERNAME"
     print_status "Root password: ********"
-    print_status "User password: None (no password needed)"
+    print_status "User password: None"
     echo ""
 }
 
