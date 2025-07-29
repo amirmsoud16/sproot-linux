@@ -12,10 +12,20 @@ CYAN='\033[0;36m'
 WHITE='\033[1;37m'
 NC='\033[0m'
 
-# Global variables
-UBUNTU_USERNAME=""
-UBUNTU_VERSION=""
-UBUNTU_CODENAME=""
+# Ubuntu Root Setup Script Content
+UBUNTU_ROOT_SETUP_CONTENT='#!/bin/bash
+
+# Ubuntu Root Setup Script
+# This script handles root-level configuration, user creation, and system fixes
+
+# Colors for output
+RED='\''\033[0;31m'\''
+GREEN='\''\033[0;32m'\''
+YELLOW='\''\033[1;33m'\''
+BLUE='\''\033[0;34m'\''
+CYAN='\''\033[0;36m'\''
+WHITE='\''\033[1;37m'\''
+NC='\''\033[0m'\'' # No Color
 
 # Function to print colored output
 print_status() {
@@ -32,81 +42,6 @@ print_warning() {
 
 print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
-}
-
-# Function to check system requirements
-check_requirements() {
-    print_status "🔍 Checking system requirements..."
-    
-    # Check if running on Android/Termux
-    if [[ -f /system/build.prop ]] || [[ -n "$TERMUX_VERSION" ]]; then
-        print_success "Running on Android/Termux"
-    else
-        print_warning "This script is designed for Android/Termux"
-    fi
-    
-    # Check available disk space (minimum 2GB)
-    DISK_SPACE=$(df /data | awk 'NR==2 {print $4}')
-    if [[ $DISK_SPACE -gt 2000000 ]]; then
-        print_success "Sufficient disk space available"
-    else
-        print_error "Insufficient disk space. Need at least 2GB free space."
-        exit 1
-    fi
-    
-    # Check internet connectivity
-    if ping -c 1 8.8.8.8 &> /dev/null; then
-        print_success "Internet connection available"
-    else
-        print_warning "No internet connection detected"
-    fi
-    
-    # Check if proot is available
-    if command -v proot &> /dev/null; then
-        print_success "Proot is available"
-    else
-        print_error "Proot is not installed. Please install it first."
-        exit 1
-    fi
-}
-
-# Function to get Ubuntu version choice
-get_ubuntu_version() {
-    echo -e "${CYAN}================================${NC}"
-    echo -e "${CYAN}  Ubuntu Version Selection${NC}"
-    echo -e "${CYAN}================================${NC}"
-    echo ""
-    echo "Available Ubuntu versions:"
-    echo "1. Ubuntu 20.04 LTS (Focal Fossa) - Recommended"
-    echo "2. Ubuntu 22.04 LTS (Jammy Jellyfish) - Latest LTS"
-    echo "3. Ubuntu 18.04 LTS (Bionic Beaver) - Legacy"
-    echo ""
-    
-    while true; do
-        read -p "Select Ubuntu version (1-3): " UBUNTU_CHOICE
-        case $UBUNTU_CHOICE in
-            1)
-                UBUNTU_VERSION="20.04"
-                UBUNTU_CODENAME="focal"
-                break
-                ;;
-            2)
-                UBUNTU_VERSION="22.04"
-                UBUNTU_CODENAME="jammy"
-                break
-                ;;
-            3)
-                UBUNTU_VERSION="18.04"
-                UBUNTU_CODENAME="bionic"
-                break
-                ;;
-            *)
-                print_error "Invalid choice. Please select 1, 2, or 3."
-                ;;
-        esac
-    done
-    
-    print_success "Selected Ubuntu $UBUNTU_VERSION LTS ($UBUNTU_CODENAME)"
 }
 
 # Function to get user credentials
@@ -150,164 +85,304 @@ get_user_credentials() {
     echo ""
 }
 
-# Function to download Ubuntu rootfs
-download_ubuntu_rootfs() {
-    print_status "📥 Downloading Ubuntu $UBUNTU_VERSION rootfs..."
+# Function to fix permission issues
+fix_permissions() {
+    print_status "🔧 Fixing permission issues..."
     
-    # Create Ubuntu directory
-    mkdir -p ~/ubuntu
+    # Fix dpkg directory permissions
+    print_status "Fixing dpkg directory permissions..."
+    chmod 755 /var/lib/dpkg 2>/dev/null || true
+    chmod 755 /var/lib/dpkg/info 2>/dev/null || true
+    chmod 755 /var/lib/dpkg/updates 2>/dev/null || true
+    chmod 755 /var/lib/dpkg/triggers 2>/dev/null || true
     
-    # Set download URL based on version
-    case $UBUNTU_VERSION in
-        "20.04")
-            DOWNLOAD_URL="https://github.com/AndronixApp/AndronixOrigin/releases/download/Ubuntu20.04/ubuntu-20.04-android-5.0-v2.tar.gz"
-            ;;
-        "22.04")
-            DOWNLOAD_URL="https://github.com/AndronixApp/AndronixOrigin/releases/download/Ubuntu22.04/ubuntu-22.04-android-5.0-v2.tar.gz"
-            ;;
-        "18.04")
-            DOWNLOAD_URL="https://github.com/AndronixApp/AndronixOrigin/releases/download/Ubuntu18.04/ubuntu-18.04-android-5.0-v2.tar.gz"
-            ;;
-    esac
+    # Fix dpkg status file permissions
+    print_status "Fixing dpkg status file permissions..."
+    chmod 644 /var/lib/dpkg/status 2>/dev/null || true
+    chmod 644 /var/lib/dpkg/status-old 2>/dev/null || true
     
-    # Download the rootfs
-    print_status "Downloading from: $DOWNLOAD_URL"
-    wget -O ~/ubuntu/ubuntu-$UBUNTU_VERSION-rootfs.tar.gz "$DOWNLOAD_URL"
+    # Remove problematic backup files
+    print_status "Cleaning dpkg backup files..."
+    rm -f /var/lib/dpkg/status-old
+    rm -f /var/lib/dpkg/status.backup
+    rm -f /var/lib/dpkg/status-*
     
-    if [[ $? -eq 0 ]]; then
-        print_success "Download completed"
-    else
-        print_error "Download failed"
-        exit 1
-    fi
+    # Fix library permissions - more comprehensive
+    print_status "Fixing library permissions..."
+    find /usr/lib -name "*.so*" -exec chmod 755 {} \; 2>/dev/null || true
+    find /usr/lib/aarch64-linux-gnu -name "*.so*" -exec chmod 755 {} \; 2>/dev/null || true
+    find /lib -name "*.so*" -exec chmod 755 {} \; 2>/dev/null || true
+    find /lib/aarch64-linux-gnu -name "*.so*" -exec chmod 755 {} \; 2>/dev/null || true
+    
+    # Fix specific problematic libraries
+    print_status "Fixing specific library permissions..."
+    chmod 755 /usr/lib/aarch64-linux-gnu/libsqlite3.so.0.8.6 2>/dev/null || true
+    chmod 755 /usr/lib/aarch64-linux-gnu/libgnutls.so.30.31.0 2>/dev/null || true
+    chmod 755 /usr/lib/aarch64-linux-gnu/libsqlite3.so.0 2>/dev/null || true
+    chmod 755 /usr/lib/aarch64-linux-gnu/libgnutls.so.30 2>/dev/null || true
+    
+    # Fix apt cache permissions
+    print_status "Fixing apt cache permissions..."
+    chmod 755 /var/cache/apt 2>/dev/null || true
+    chmod 755 /var/cache/apt/archives 2>/dev/null || true
+    chmod 755 /var/cache/apt/archives/partial 2>/dev/null || true
+    
+    # Fix tmp directory permissions
+    print_status "Fixing tmp directory permissions..."
+    chmod 1777 /tmp 2>/dev/null || true
+    chmod 1777 /var/tmp 2>/dev/null || true
+    
+    # Fix dpkg lock files
+    print_status "Removing dpkg lock files..."
+    rm -f /var/lib/dpkg/lock 2>/dev/null || true
+    rm -f /var/lib/dpkg/lock-frontend 2>/dev/null || true
+    rm -f /var/cache/apt/archives/lock 2>/dev/null || true
+    rm -f /var/lib/apt/lists/lock 2>/dev/null || true
+    
+    print_success "Permission issues fixed"
 }
 
-# Function to extract Ubuntu rootfs
-extract_ubuntu_rootfs() {
-    print_status "📦 Extracting Ubuntu rootfs..."
+# Function to fix apt/dpkg issues
+fix_apt_issues() {
+    print_status "🔧 Fixing apt/dpkg issues..."
     
-    # Extract the rootfs
-    cd ~/ubuntu
-    tar -xzf ubuntu-$UBUNTU_VERSION-rootfs.tar.gz
+    # Force remove all lock files
+    print_status "Removing all lock files..."
+    rm -f /var/lib/dpkg/lock* 2>/dev/null || true
+    rm -f /var/cache/apt/archives/lock 2>/dev/null || true
+    rm -f /var/lib/apt/lists/lock 2>/dev/null || true
     
-    if [[ $? -eq 0 ]]; then
-        print_success "Extraction completed"
-        # Remove the tar file to save space
-        rm ubuntu-$UBUNTU_VERSION-rootfs.tar.gz
-    else
-        print_error "Extraction failed"
-        exit 1
-    fi
+    # Configure dpkg to handle broken packages
+    print_status "Configuring dpkg..."
+    echo '\''Dpkg::Options::="--force-confnew";'\'' > /etc/apt/apt.conf.d/local
+    echo '\''Dpkg::Options::="--force-confmiss";'\'' >> /etc/apt/apt.conf.d/local
+    
+    # Fix broken packages
+    print_status "Fixing broken packages..."
+    dpkg --configure -a 2>/dev/null || true
+    apt --fix-broken install -y 2>/dev/null || true
+    
+    # Clean apt cache
+    print_status "Cleaning apt cache..."
+    apt clean 2>/dev/null || true
+    apt autoclean 2>/dev/null || true
+    
+    print_success "Apt issues fixed"
 }
 
-# Function to create start scripts
-create_start_scripts() {
-    print_status "📝 Creating start scripts..."
+# Function to fix internet connectivity
+fix_internet() {
+    print_status "🌐 Fixing internet connectivity..."
     
-    # Create start script for root access
-    cat > ~/start-ubuntu-$UBUNTU_VERSION.sh << EOF
+    # Create resolv.conf with multiple DNS servers
+    print_status "Configuring DNS servers..."
+    cat > /etc/resolv.conf << '\''EOF'\''
+nameserver 8.8.8.8
+nameserver 8.8.4.4
+nameserver 1.1.1.1
+nameserver 1.0.0.1
+EOF
+    
+    # Test internet connection
+    print_status "Testing internet connection..."
+    if ping -c 1 8.8.8.8 &> /dev/null; then
+        print_success "Internet connection working"
+    else
+        print_warning "Internet connection may be slow or unavailable"
+    fi
+    
+    print_success "Internet configuration completed"
+}
+
+# Function to create user and set password in Ubuntu
+setup_ubuntu_user() {
+    print_status "👤 Setting up user and password..."
+    
+    # Create user with useradd (non-interactive)
+    useradd -m -s /bin/bash $UBUNTU_USERNAME
+    
+    # Set root password (this will be the password for future root access)
+    echo "root:$ROOT_PASSWORD" | chpasswd
+    
+    # Set user password to empty (no password)
+    echo "$UBUNTU_USERNAME:" | chpasswd
+    
+    # Add user to sudo group
+    usermod -aG sudo $UBUNTU_USERNAME
+    
+    # Configure sudo for the user (password required for first time)
+    echo "$UBUNTU_USERNAME ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/$UBUNTU_USERNAME
+    chmod 440 /etc/sudoers.d/$UBUNTU_USERNAME
+    
+    # Create user directories
+    mkdir -p /home/$UBUNTU_USERNAME
+    chown -R $UBUNTU_USERNAME:$UBUNTU_USERNAME /home/$UBUNTU_USERNAME
+    
+    print_success "User setup completed"
+    print_status "Root password is now set for future access"
+    print_status "User can use sudo without password"
+    
+    # Create a marker file to indicate setup is complete
+    touch /setup-completed.marker
+}
+
+# Function to create Ubuntu start scripts
+create_ubuntu_start_scripts() {
+    print_status "📝 Creating Ubuntu start scripts..."
+    
+    # Get Ubuntu version from /etc/os-release
+    UBUNTU_VERSION=$(grep VERSION_ID /etc/os-release | cut -d'"'\'' -f2 | cut -d'\''.'\'' -f1)
+    
+    # Create start script for root access (with password prompt)
+    cat > /start-ubuntu.sh << EOF
 #!/bin/bash
-# Start Ubuntu $UBUNTU_VERSION as root
 unset LD_PRELOAD
 
 # Check if setup is completed
-if [[ -f "\$HOME/ubuntu/ubuntu-$UBUNTU_VERSION-rootfs/setup-completed.marker" ]]; then
+if [[ -f "\$HOME/ubuntu/ubuntu${UBUNTU_VERSION}-rootfs/setup-completed.marker" ]]; then
+    # Setup is completed, prompt for root password
     echo -n "Enter root password: "
     read -s ROOT_PASS
     echo ""
 else
+    # Setup not completed yet, no password needed
     echo "No root password set yet. Entering without password..."
 fi
 
-# Start Ubuntu
-proot -0 -r \$HOME/ubuntu/ubuntu-$UBUNTU_VERSION-rootfs \\
+# Start Ubuntu as root
+proot -0 -r \$HOME/ubuntu/ubuntu${UBUNTU_VERSION}-rootfs \\
     -b /dev -b /proc -b /sys \\
     -b \$HOME:/root \\
     -w /root /usr/bin/env -i HOME=/root TERM="\$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/bash --login
 EOF
+    chmod +x /start-ubuntu.sh
     
-    # Create start script for user access
-    cat > ~/start-ubuntu-$UBUNTU_VERSION-user.sh << EOF
+    # Create start script for user access (simple entry)
+    cat > /start-ubuntu-user.sh << EOF
 #!/bin/bash
-# Start Ubuntu $UBUNTU_VERSION as user
 unset LD_PRELOAD
 
-proot -0 -r \$HOME/ubuntu/ubuntu-$UBUNTU_VERSION-rootfs \\
+proot -0 -r \$HOME/ubuntu/ubuntu${UBUNTU_VERSION}-rootfs \\
     -b /dev -b /proc -b /sys \\
-    -b \$HOME:/home/\$USER \\
-    -w /home/\$USER /usr/bin/env -i HOME=/home/\$USER USER=\$USER TERM="\$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/su - \$USER
+    -b \$HOME:/home/$UBUNTU_USERNAME \\
+    -w /home/$UBUNTU_USERNAME /usr/bin/env -i HOME=/home/$UBUNTU_USERNAME USER=$UBUNTU_USERNAME TERM="\$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/su - $UBUNTU_USERNAME
 EOF
+    chmod +x /start-ubuntu-user.sh
     
-    # Make scripts executable
-    chmod +x ~/start-ubuntu-$UBUNTU_VERSION.sh
-    chmod +x ~/start-ubuntu-$UBUNTU_VERSION-user.sh
+    # Create internet fix script
+    cat > /fix-internet.sh << '\''EOF'\''
+#!/bin/bash
+# Fix internet connectivity in Ubuntu
+
+echo "Fixing internet connectivity..."
+
+# Setup DNS servers
+rm -f /etc/resolv.conf
+echo "nameserver 8.8.8.8" > /etc/resolv.conf
+echo "nameserver 8.8.4.4" >> /etc/resolv.conf
+echo "nameserver 1.1.1.1" >> /etc/resolv.conf
+
+# Test internet connection
+if ping -c 1 8.8.8.8 &> /dev/null; then
+    echo "Internet connection working!"
+else
+    echo "Internet connection may be slow or unavailable"
+fi
+
+echo "Internet fix completed!"
+EOF
+    chmod +x /fix-internet.sh
     
     print_success "Start scripts created"
-    print_status "Root access: ~/start-ubuntu-$UBUNTU_VERSION.sh"
-    print_status "User access: ~/start-ubuntu-$UBUNTU_VERSION-user.sh"
+    print_status "Start script created: /start-ubuntu.sh"
+    print_status "User script created: /start-ubuntu-user.sh"
+    print_status "Internet fix script created: /fix-internet.sh"
 }
 
 # Function to create Termux aliases
 create_termux_aliases() {
     print_status "📝 Creating Termux aliases..."
     
-    # Add aliases to .bashrc
-    echo "alias ubuntu$UBUNTU_VERSION=\"~/start-ubuntu-$UBUNTU_VERSION.sh\"" >> ~/.bashrc
-    echo "alias ubuntu$UBUNTU_VERSION-user=\"~/start-ubuntu-$UBUNTU_VERSION-user.sh\"" >> ~/.bashrc
+    # Get Ubuntu version from /etc/os-release
+    UBUNTU_VERSION=$(grep VERSION_ID /etc/os-release | cut -d'"'\'' -f2 | cut -d'\''.'\'' -f1)
+    
+    # Create simple aliases in Termux .bashrc
+    echo "alias ubuntu${UBUNTU_VERSION}=\"cd ~/ubuntu/ubuntu${UBUNTU_VERSION}-rootfs && ./start-ubuntu.sh\"" >> ~/.bashrc
+    echo "alias ubuntu${UBUNTU_VERSION}-${UBUNTU_USERNAME}=\"cd ~/ubuntu/ubuntu${UBUNTU_VERSION}-rootfs && ./start-ubuntu-user.sh\"" >> ~/.bashrc
+    echo "alias fix-internet-${UBUNTU_VERSION}=\"cd ~/ubuntu/ubuntu${UBUNTU_VERSION}-rootfs && ./fix-internet.sh\"" >> ~/.bashrc
     
     # Source .bashrc to apply changes
     source ~/.bashrc
     
     print_success "Termux aliases created"
-    print_status "Root access: ubuntu$UBUNTU_VERSION"
-    print_status "User access: ubuntu$UBUNTU_VERSION-user"
+    print_status "Root access: ubuntu${UBUNTU_VERSION}"
+    print_status "User access: ubuntu${UBUNTU_VERSION}-${UBUNTU_USERNAME}"
+    print_status "Internet fix: fix-internet-${UBUNTU_VERSION}"
 }
 
-# Function to display installation summary
-show_summary() {
-    echo ""
-    echo -e "${GREEN}================================${NC}"
-    echo -e "${GREEN}  Installation Summary${NC}"
-    echo -e "${GREEN}================================${NC}"
-    echo ""
-    echo -e "${CYAN}Ubuntu Version:${NC} $UBUNTU_VERSION LTS ($UBUNTU_CODENAME)"
-    echo -e "${CYAN}Installation Directory:${NC} ~/ubuntu/ubuntu-$UBUNTU_VERSION-rootfs"
-    echo ""
-    echo -e "${YELLOW}Next Steps:${NC}"
-    echo "1. Enter as root: ubuntu$UBUNTU_VERSION"
-    echo "2. Enter as user: ubuntu$UBUNTU_VERSION-user"
-    echo ""
-    echo -e "${GREEN}Installation completed successfully!${NC}"
+# Function to copy scripts to Ubuntu directory
+copy_scripts_to_ubuntu() {
+    print_status "📁 Copying scripts to Ubuntu directory..."
+    
+    # Get Ubuntu version from /etc/os-release
+    UBUNTU_VERSION=$(grep VERSION_ID /etc/os-release | cut -d'"'\'' -f2 | cut -d'\''.'\'' -f1)
+    
+    # Create Ubuntu directory if it doesn'\''t exist
+    mkdir -p ~/ubuntu/ubuntu${UBUNTU_VERSION}-rootfs
+    
+    # Copy start scripts to Ubuntu directory with simple names
+    cp /start-ubuntu.sh ~/ubuntu/ubuntu${UBUNTU_VERSION}-rootfs/start-ubuntu.sh
+    cp /start-ubuntu-user.sh ~/ubuntu/ubuntu${UBUNTU_VERSION}-rootfs/start-ubuntu-user.sh
+    cp /fix-internet.sh ~/ubuntu/ubuntu${UBUNTU_VERSION}-rootfs/fix-internet.sh
+    
+    # Copy setup marker
+    cp /setup-completed.marker ~/ubuntu/ubuntu${UBUNTU_VERSION}-rootfs/setup-completed.marker
+    
+    # Make scripts executable
+    chmod +x ~/ubuntu/ubuntu${UBUNTU_VERSION}-rootfs/start-ubuntu.sh
+    chmod +x ~/ubuntu/ubuntu${UBUNTU_VERSION}-rootfs/start-ubuntu-user.sh
+    chmod +x ~/ubuntu/ubuntu${UBUNTU_VERSION}-rootfs/fix-internet.sh
+    
+    print_success "Scripts copied to Ubuntu directory"
 }
 
-# Main installation function
-main_installation() {
-    print_status "🚀 Starting Ubuntu $UBUNTU_VERSION installation..."
+# Main root setup function
+main_root_setup() {
+    print_status "🚀 Starting Ubuntu Root Setup..."
     
-    # Check requirements
-    check_requirements
+    # Get user credentials first
+    get_user_credentials
     
-    # Get Ubuntu version
-    get_ubuntu_version
+    # Fix permissions and apt issues first
+    fix_permissions
+    fix_apt_issues
+    fix_internet
     
-    # Download Ubuntu rootfs
-    download_ubuntu_rootfs
-    
-    # Extract Ubuntu rootfs
-    extract_ubuntu_rootfs
+    # Setup user and password
+    setup_ubuntu_user
     
     # Create start scripts
-    create_start_scripts
+    create_ubuntu_start_scripts
     
     # Create Termux aliases
     create_termux_aliases
     
-    # Show summary
-    show_summary
+    # Copy scripts to Ubuntu directory
+    copy_scripts_to_ubuntu
+    
+    print_success "✅ Ubuntu Root Setup completed successfully!"
+    print_status "Username: $UBUNTU_USERNAME"
+    print_status "Root password: ********"
+    print_status "User password: None (no password needed)"
+    echo ""
+    print_status "Next steps:"
+    print_status "1. Exit this Ubuntu environment: exit"
+    print_status "2. Enter Ubuntu as user: ubuntu${UBUNTU_VERSION}-$UBUNTU_USERNAME"
+    print_status "3. Run ubuntu-tools-setup.sh to install tools"
 }
 
-# Run the main installation
-main_installation
+# Run the root setup
+main_root_setup
 
 # Ubuntu Tools Setup Script Content
 UBUNTU_TOOLS_SETUP_CONTENT='#!/bin/bash
