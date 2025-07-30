@@ -59,6 +59,8 @@ print_separator() {
 }
 
 # Ubuntu distributions configuration
+# ترتیب کلیدها را به صورت لیست مشخص می‌کنم تا ترتیب نمایش ثابت باشد
+UBUNTU_KEYS=("ubuntu18" "ubuntu20" "ubuntu22" "ubuntu23" "ubuntu24")
 declare -A DISTROS=(
     ["ubuntu18"]="Ubuntu 18.04 LTS|https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-arm64-root.tar.xz|ubuntu18-rootfs"
     ["ubuntu20"]="Ubuntu 20.04 LTS|https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-arm64-root.tar.xz|ubuntu20-rootfs"
@@ -110,18 +112,15 @@ show_main_menu() {
 show_ubuntu_menu() {
     clear
     print_header
-    
     echo -e "${WHITE}Available Ubuntu Versions:${NC}"
     echo ""
-    
     local counter=1
-    for distro in "${!DISTROS[@]}"; do
-        local info="${DISTROS[$distro]}"
+    for key in "${UBUNTU_KEYS[@]}"; do
+        local info="${DISTROS[$key]}"
         local name=$(echo "$info" | cut -d'|' -f1)
         print_menu_option "$counter." "$name"
         ((counter++))
     done
-    
     print_menu_option "$counter." "Back to Main Menu"
     echo ""
     print_separator
@@ -132,15 +131,13 @@ show_ubuntu_menu() {
 get_ubuntu_info() {
     local index="$1"
     local counter=1
-    
-    for distro in "${!DISTROS[@]}"; do
+    for key in "${UBUNTU_KEYS[@]}"; do
         if [[ $counter -eq $index ]]; then
-            echo "$distro"
+            echo "$key"
             return 0
         fi
         ((counter++))
     done
-    
     return 1
 }
 
