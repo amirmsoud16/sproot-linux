@@ -44,7 +44,7 @@ A powerful Linux distribution manager for Android/Termux that allows you to inst
 
 ### Prerequisites
 ```bash
-apt update -y apt upgrade -y
+apt update -y & apt upgrade -y
 ```
 ```
 apt install -y git wget proot tar
