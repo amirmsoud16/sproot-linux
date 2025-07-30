@@ -165,7 +165,18 @@ install_ubuntu() {
 
     cat > "$DISTROS_DIR/start-$distro.sh" << EOF
 #!/bin/bash
-proot -r "$rootfs_path" -b /dev -b /proc -b /sys -w /root /bin/bash --login -c 'source /usr/local/sproot/setup-environment.sh; exec /bin/bash'
+ROOTFS_PATH="$rootfs_path"
+if [ "\$(id -u)" -eq 0 ]; then
+    mount --bind /dev "\$ROOTFS_PATH/dev"
+    mount --bind /proc "\$ROOTFS_PATH/proc"
+    mount --bind /sys "\$ROOTFS_PATH/sys"
+    chroot "\$ROOTFS_PATH" /bin/bash --login -c 'source /usr/local/sproot/setup-environment.sh; exec /bin/bash'
+    umount "\$ROOTFS_PATH/dev"
+    umount "\$ROOTFS_PATH/proc"
+    umount "\$ROOTFS_PATH/sys"
+else
+    proot -r "\$ROOTFS_PATH" -b /dev -b /proc -b /sys -w /root /bin/bash --login -c 'source /usr/local/sproot/setup-environment.sh; exec /bin/bash'
+fi
 EOF
     chmod +x "$DISTROS_DIR/start-$distro.sh"
     clear
