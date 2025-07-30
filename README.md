@@ -58,11 +58,10 @@ git clone https://github.com/amirmsoud16/sproot-linux.git
 cd sproot-linux
 ```
 ```
-chmod +x sproot-complete.sh
-chmod +x linux-manager.sh
+chmod +x ubuntu-manager.sh
 ```
 ```
-./linux-manager.sh
+./ubuntu-manager.sh
 ```
 
 ## 📖 Usage
