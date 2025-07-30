@@ -44,26 +44,24 @@ A powerful Linux distribution manager for Android/Termux that allows you to inst
 
 ### Prerequisites
 ```bash
-# Update package lists
-pkg update
-
-# Install required packages
-pkg install -y git wget proot tar
+apt update -y apt upgrade -y
+```
+```
+apt install -y git wget proot tar
 ```
 
 ### Install SPROOT Linux Manager
 ```bash
-# Clone repository
 git clone https://github.com/amirmsoud16/sproot-linux.git
-
-# Navigate to directory
+```
+```
 cd sproot-linux
-
-# Make scripts executable
+```
+```
 chmod +x sproot-complete.sh
 chmod +x linux-manager.sh
-
-# Run Linux Manager
+```
+```
 ./linux-manager.sh
 ```
 
