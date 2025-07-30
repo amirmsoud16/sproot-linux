@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # =============================================================================
-# Linux Manager - Multi-Distribution Manager with SPROOT COMPLETE
+# Ubuntu Manager - Ubuntu Distribution Manager with SPROOT COMPLETE
 # =============================================================================
-# Description: Install and manage multiple Linux distributions using SPROOT
+# Description: Install and manage Ubuntu distributions using SPROOT
 # Author: Custom Ubuntu Setup
 # Version: 1.0
 # =============================================================================
@@ -22,16 +22,15 @@ NC='\033[0m'
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SPROOT_SCRIPT="$SCRIPT_DIR/sproot-complete.sh"
 MANAGER_VERSION="1.0"
-DISTROS_DIR="$HOME/linux-distros"
+DISTROS_DIR="$HOME/ubuntu-distros"
 
 # Print functions
 print_header() {
     clear
-    echo -e "${CYAN}╔══════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}║                    LINUX MANAGER                              ║${NC}"
-    echo -e "${CYAN}║              Multi-Distribution Manager                       ║${NC}"
-    echo -e "${CYAN}║                    Version $MANAGER_VERSION                          ║${NC}"
-    echo -e "${CYAN}╚══════════════════════════════════════════════════════════════╝${NC}"
+    echo -e "${CYAN}UBUNTU MANAGER${NC}"
+    echo -e "${CYAN}Ubuntu Distribution Manager${NC}"
+    echo -e "${CYAN}Version $MANAGER_VERSION${NC}"
+    echo -e "${CYAN}----------------------------------------${NC}"
     echo ""
 }
 
@@ -59,76 +58,36 @@ print_separator() {
     echo -e "${CYAN}──────────────────────────────────────────────────────────────────${NC}"
 }
 
-# Linux distributions configuration
+# Ubuntu distributions configuration
 declare -A DISTROS=(
-    # Ubuntu Family
-    ["ubuntu18"]="Ubuntu 18.04 LTS|https://raw.githubusercontent.com/AndronixApp/AndronixOrigin/master/Rootfs/Ubuntu/ubuntu-18.04-rootfs.tar.xz|ubuntu18-rootfs"
-    ["ubuntu20"]="Ubuntu 20.04 LTS|https://raw.githubusercontent.com/AndronixApp/AndronixOrigin/master/Rootfs/Ubuntu/ubuntu-20.04-rootfs.tar.xz|ubuntu20-rootfs"
-    ["ubuntu22"]="Ubuntu 22.04 LTS|https://raw.githubusercontent.com/AndronixApp/AndronixOrigin/master/Rootfs/Ubuntu/ubuntu-22.04-rootfs.tar.xz|ubuntu22-rootfs"
-    ["ubuntu23"]="Ubuntu 23.04|https://raw.githubusercontent.com/AndronixApp/AndronixOrigin/master/Rootfs/Ubuntu/ubuntu-23.04-rootfs.tar.xz|ubuntu23-rootfs"
-    ["ubuntu24"]="Ubuntu 24.04 LTS|https://raw.githubusercontent.com/AndronixApp/AndronixOrigin/master/Rootfs/Ubuntu/ubuntu-24.04-rootfs.tar.xz|ubuntu24-rootfs"
-    
-    # Debian Family
-    ["debian10"]="Debian 10 (Buster)|https://raw.githubusercontent.com/AndronixApp/AndronixOrigin/master/Rootfs/Debian/debian-10-rootfs.tar.xz|debian10-rootfs"
-    ["debian11"]="Debian 11 (Bullseye)|https://raw.githubusercontent.com/AndronixApp/AndronixOrigin/master/Rootfs/Debian/debian-11-rootfs.tar.xz|debian11-rootfs"
-    ["debian12"]="Debian 12 (Bookworm)|https://raw.githubusercontent.com/AndronixApp/AndronixOrigin/master/Rootfs/Debian/debian-12-rootfs.tar.xz|debian12-rootfs"
-    
-    # Security & Penetration Testing
-    ["kali"]="Kali Linux 2023|https://raw.githubusercontent.com/AndronixApp/AndronixOrigin/master/Rootfs/Kali/kali-2023-rootfs.tar.xz|kali-rootfs"
-    ["kali2024"]="Kali Linux 2024|https://raw.githubusercontent.com/AndronixApp/AndronixOrigin/master/Rootfs/Kali/kali-2024-rootfs.tar.xz|kali2024-rootfs"
-    ["parrot"]="Parrot OS|https://raw.githubusercontent.com/AndronixApp/AndronixOrigin/master/Rootfs/Parrot/parrot-rootfs.tar.xz|parrot-rootfs"
-    ["blackarch"]="BlackArch Linux|https://raw.githubusercontent.com/AndronixApp/AndronixOrigin/master/Rootfs/BlackArch/blackarch-rootfs.tar.xz|blackarch-rootfs"
-    
-    # Rolling Release
-    ["arch"]="Arch Linux|https://raw.githubusercontent.com/AndronixApp/AndronixOrigin/master/Rootfs/Arch/arch-rootfs.tar.xz|arch-rootfs"
-    ["manjaro"]="Manjaro Linux|https://raw.githubusercontent.com/AndronixApp/AndronixOrigin/master/Rootfs/Manjaro/manjaro-rootfs.tar.xz|manjaro-rootfs"
-    ["endeavouros"]="EndeavourOS|https://raw.githubusercontent.com/AndronixApp/AndronixOrigin/master/Rootfs/EndeavourOS/endeavouros-rootfs.tar.xz|endeavouros-rootfs"
-    
-    # Enterprise & Server
-    ["centos7"]="CentOS 7|https://raw.githubusercontent.com/AndronixApp/AndronixOrigin/master/Rootfs/CentOS/centos-7-rootfs.tar.xz|centos7-rootfs"
-    ["centos8"]="CentOS 8|https://raw.githubusercontent.com/AndronixApp/AndronixOrigin/master/Rootfs/CentOS/centos-8-rootfs.tar.xz|centos8-rootfs"
-    ["rocky8"]="Rocky Linux 8|https://raw.githubusercontent.com/AndronixApp/AndronixOrigin/master/Rootfs/Rocky/rocky-8-rootfs.tar.xz|rocky8-rootfs"
-    ["rocky9"]="Rocky Linux 9|https://raw.githubusercontent.com/AndronixApp/AndronixOrigin/master/Rootfs/Rocky/rocky-9-rootfs.tar.xz|rocky9-rootfs"
-    ["alma8"]="AlmaLinux 8|https://raw.githubusercontent.com/AndronixApp/AndronixOrigin/master/Rootfs/Alma/alma-8-rootfs.tar.xz|alma8-rootfs"
-    ["alma9"]="AlmaLinux 9|https://raw.githubusercontent.com/AndronixApp/AndronixOrigin/master/Rootfs/Alma/alma-9-rootfs.tar.xz|alma9-rootfs"
-    
-    # Fedora Family
-    ["fedora35"]="Fedora 35|https://raw.githubusercontent.com/AndronixApp/AndronixOrigin/master/Rootfs/Fedora/fedora-35-rootfs.tar.xz|fedora35-rootfs"
-    ["fedora36"]="Fedora 36|https://raw.githubusercontent.com/AndronixApp/AndronixOrigin/master/Rootfs/Fedora/fedora-36-rootfs.tar.xz|fedora36-rootfs"
-    ["fedora37"]="Fedora 37|https://raw.githubusercontent.com/AndronixApp/AndronixOrigin/master/Rootfs/Fedora/fedora-37-rootfs.tar.xz|fedora37-rootfs"
-    ["fedora38"]="Fedora 38|https://raw.githubusercontent.com/AndronixApp/AndronixOrigin/master/Rootfs/Fedora/fedora-38-rootfs.tar.xz|fedora38-rootfs"
-    ["fedora39"]="Fedora 39|https://raw.githubusercontent.com/AndronixApp/AndronixOrigin/master/Rootfs/Fedora/fedora-39-rootfs.tar.xz|fedora39-rootfs"
-    ["fedora40"]="Fedora 40|https://raw.githubusercontent.com/AndronixApp/AndronixOrigin/master/Rootfs/Fedora/fedora-40-rootfs.tar.xz|fedora40-rootfs"
-    
-    # Lightweight & Minimal
-    ["alpine"]="Alpine Linux|https://raw.githubusercontent.com/AndronixApp/AndronixOrigin/master/Rootfs/Alpine/alpine-rootfs.tar.xz|alpine-rootfs"
-    ["void"]="Void Linux|https://raw.githubusercontent.com/AndronixApp/AndronixOrigin/master/Rootfs/Void/void-rootfs.tar.xz|void-rootfs"
-    ["slackware"]="Slackware Linux|https://raw.githubusercontent.com/AndronixApp/AndronixOrigin/master/Rootfs/Slackware/slackware-rootfs.tar.xz|slackware-rootfs"
-    
-    # Development & Programming
-    ["opensuse"]="openSUSE Leap|https://raw.githubusercontent.com/AndronixApp/AndronixOrigin/master/Rootfs/openSUSE/opensuse-leap-rootfs.tar.xz|opensuse-rootfs"
-    ["tumbleweed"]="openSUSE Tumbleweed|https://raw.githubusercontent.com/AndronixApp/AndronixOrigin/master/Rootfs/openSUSE/opensuse-tumbleweed-rootfs.tar.xz|tumbleweed-rootfs"
-    ["gentoo"]="Gentoo Linux|https://raw.githubusercontent.com/AndronixApp/AndronixOrigin/master/Rootfs/Gentoo/gentoo-rootfs.tar.xz|gentoo-rootfs"
-    
-    # Specialized
-    ["nixos"]="NixOS|https://raw.githubusercontent.com/AndronixApp/AndronixOrigin/master/Rootfs/NixOS/nixos-rootfs.tar.xz|nixos-rootfs"
-    ["guix"]="GNU Guix|https://raw.githubusercontent.com/AndronixApp/AndronixOrigin/master/Rootfs/Guix/guix-rootfs.tar.xz|guix-rootfs"
-    ["clear"]="Clear Linux|https://raw.githubusercontent.com/AndronixApp/AndronixOrigin/master/Rootfs/Clear/clear-rootfs.tar.xz|clear-rootfs"
+    ["ubuntu18"]="Ubuntu 18.04 LTS|https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-arm64-root.tar.xz|ubuntu18-rootfs"
+    ["ubuntu20"]="Ubuntu 20.04 LTS|https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-arm64-root.tar.xz|ubuntu20-rootfs"
+    ["ubuntu22"]="Ubuntu 22.04 LTS|https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-arm64-root.tar.xz|ubuntu22-rootfs"
+    ["ubuntu23"]="Ubuntu 23.04|https://cloud-images.ubuntu.com/lunar/current/lunar-server-cloudimg-arm64-root.tar.xz|ubuntu23-rootfs"
+    ["ubuntu24"]="Ubuntu 24.04 LTS|https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-arm64-root.tar.xz|ubuntu24-rootfs"
 )
 
-# Function to check SPROOT script
-check_sproot_script() {
+# Function to check prerequisites
+check_prerequisites() {
+    print_info "Checking prerequisites..."
+    
+    # Check if required commands exist
+    local required_commands=("wget" "tar" "proot")
+    for cmd in "${required_commands[@]}"; do
+        if ! command -v "$cmd" &> /dev/null; then
+            print_error "$cmd is not installed. Please install it first."
+            print_info "Run: pkg install $cmd"
+            return 1
+        fi
+    done
+    
+    # Check if SPROOT script exists
     if [[ ! -f "$SPROOT_SCRIPT" ]]; then
         print_error "SPROOT Complete script not found: $SPROOT_SCRIPT"
-        print_info "Please make sure sproot-complete.sh is in the same directory"
         return 1
     fi
     
-    if [[ ! -x "$SPROOT_SCRIPT" ]]; then
-        print_warning "Making SPROOT script executable..."
-        chmod +x "$SPROOT_SCRIPT"
-    fi
-    
+    print_success "All prerequisites are satisfied"
     return 0
 }
 
@@ -139,23 +98,20 @@ show_main_menu() {
     
     echo -e "${WHITE}Main Menu:${NC}"
     echo ""
-    print_menu_option "1." "Install Linux Distribution"
-    print_menu_option "2." "Manage Installed Distributions"
-    print_menu_option "3." "Start Linux Environment"
-    print_menu_option "4." "System Status & Information"
-    print_menu_option "5." "Help & Documentation"
-    print_menu_option "6." "Exit"
+    print_menu_option "1." "Install Ubuntu + SPROOT"
+    print_menu_option "2." "Remove Ubuntu"
+    print_menu_option "3." "Exit"
     echo ""
     print_separator
-    echo -e "${YELLOW}Select an option (1-6):${NC} "
+    echo -e "${YELLOW}Select an option (1-3):${NC} "
 }
 
-# Function to show distribution selection menu
-show_distro_menu() {
+# Function to show Ubuntu selection menu
+show_ubuntu_menu() {
     clear
     print_header
     
-    echo -e "${WHITE}Available Linux Distributions:${NC}"
+    echo -e "${WHITE}Available Ubuntu Versions:${NC}"
     echo ""
     
     local counter=1
@@ -169,11 +125,11 @@ show_distro_menu() {
     print_menu_option "$counter." "Back to Main Menu"
     echo ""
     print_separator
-    echo -e "${YELLOW}Select a distribution (1-$counter):${NC} "
+    echo -e "${YELLOW}Select Ubuntu version (1-$counter):${NC} "
 }
 
-# Function to get distribution info
-get_distro_info() {
+# Function to get Ubuntu info
+get_ubuntu_info() {
     local index="$1"
     local counter=1
     
@@ -188,8 +144,8 @@ get_distro_info() {
     return 1
 }
 
-# Function to install distribution
-install_distribution() {
+# Function to install Ubuntu
+install_ubuntu() {
     local distro="$1"
     local info="${DISTROS[$distro]}"
     local name=$(echo "$info" | cut -d'|' -f1)
@@ -199,7 +155,7 @@ install_distribution() {
     
     clear
     print_header
-    echo -e "${WHITE}Installing $name...${NC}"
+    echo -e "${WHITE}Installing $name with SPROOT...${NC}"
     echo ""
     
     # Create distribution directory
@@ -234,7 +190,7 @@ install_distribution() {
     cat > "$DISTROS_DIR/start-$distro.sh" << EOF
 #!/bin/bash
 
-# $name Startup Script
+# $name Startup Script with SPROOT
 ROOTFS="$rootfs_path"
 
 # Check if rootfs exists
@@ -248,179 +204,98 @@ fi
 EOF
     
     chmod +x "$DISTROS_DIR/start-$distro.sh"
-    print_success "$name startup script created: $DISTROS_DIR/start-$distro.sh"
     
-    # Clean up
+    # Clean up downloaded file
     rm -f "${distro}-rootfs.tar.xz"
     
-    print_success "$name installed successfully!"
+    print_success "$name installed successfully with SPROOT!"
+    print_info "You can start it using: ./start-$distro.sh"
+    
     echo ""
-    echo -e "${YELLOW}To start $name:${NC}"
-    echo "  ./start-$distro.sh"
-    echo ""
+    print_separator
+    echo -e "${YELLOW}Press Enter to continue...${NC}"
+    read -r
 }
 
-# Function to show installed distributions
-show_installed_distros() {
+# Function to remove Ubuntu
+remove_ubuntu() {
     clear
     print_header
     
-    echo -e "${WHITE}Installed Linux Distributions:${NC}"
+    echo -e "${WHITE}Remove Ubuntu Installation${NC}"
     echo ""
     
     if [[ ! -d "$DISTROS_DIR" ]]; then
-        print_warning "No distributions installed"
-        echo "Install a distribution first"
+        print_warning "No Ubuntu installations found."
+        echo ""
+        print_separator
+        echo -e "${YELLOW}Press Enter to continue...${NC}"
+        read -r
         return
     fi
     
-    local counter=1
-    local found=false
-    
+    # List installed Ubuntu versions
+    local installed=()
     for distro in "${!DISTROS[@]}"; do
-        local info="${DISTROS[$distro]}"
-        local name=$(echo "$info" | cut -d'|' -f1)
-        local rootfs_name=$(echo "$info" | cut -d'|' -f3)
-        local rootfs_path="$DISTROS_DIR/$distro/$rootfs_name"
-        
-        if [[ -d "$rootfs_path" ]]; then
-            found=true
-            local size=$(du -sh "$rootfs_path" 2>/dev/null | cut -f1)
-            print_menu_option "$counter." "$name (Size: $size)"
-            ((counter++))
+        if [[ -d "$DISTROS_DIR/$distro" ]]; then
+            local info="${DISTROS[$distro]}"
+            local name=$(echo "$info" | cut -d'|' -f1)
+            installed+=("$distro|$name")
         fi
     done
     
-    if [[ "$found" == false ]]; then
-        print_warning "No distributions installed"
-        echo "Install a distribution first"
+    if [[ ${#installed[@]} -eq 0 ]]; then
+        print_warning "No Ubuntu installations found."
+        echo ""
+        print_separator
+        echo -e "${YELLOW}Press Enter to continue...${NC}"
+        read -r
+        return
+    fi
+    
+    echo "Installed Ubuntu versions:"
+    echo ""
+    local counter=1
+    for item in "${installed[@]}"; do
+        local distro=$(echo "$item" | cut -d'|' -f1)
+        local name=$(echo "$item" | cut -d'|' -f2)
+        print_menu_option "$counter." "$name"
+        ((counter++))
+    done
+    
+    print_menu_option "$counter." "Remove All Ubuntu Installations"
+    print_menu_option "$((counter+1))." "Back to Main Menu"
+    echo ""
+    print_separator
+    echo -e "${YELLOW}Select option (1-$((counter+1))):${NC} "
+    
+    read -r choice
+    
+    if [[ $choice -eq $counter ]]; then
+        # Remove all
+        print_warning "Removing all Ubuntu installations..."
+        rm -rf "$DISTROS_DIR"
+        print_success "All Ubuntu installations removed successfully!"
+    elif [[ $choice -eq $((counter+1)) ]]; then
+        return
+    elif [[ $choice -ge 1 && $choice -le ${#installed[@]} ]]; then
+        # Remove specific version
+        local selected_item="${installed[$((choice-1))]}"
+        local distro=$(echo "$selected_item" | cut -d'|' -f1)
+        local name=$(echo "$selected_item" | cut -d'|' -f2)
+        
+        print_warning "Removing $name..."
+        rm -rf "$DISTROS_DIR/$distro"
+        rm -f "$DISTROS_DIR/start-$distro.sh"
+        print_success "$name removed successfully!"
     else
-        print_menu_option "$counter." "Back to Main Menu"
+        print_error "Invalid option"
     fi
     
     echo ""
     print_separator
-    echo -e "${YELLOW}Select an option (1-$counter):${NC} "
-}
-
-# Function to manage distributions
-manage_distributions() {
-    clear
-    print_header
-    
-    echo -e "${WHITE}Distribution Management:${NC}"
-    echo ""
-    print_menu_option "1." "List Installed Distributions"
-    print_menu_option "2." "Remove Distribution"
-    print_menu_option "3." "Backup Distribution"
-    print_menu_option "4." "Restore Distribution"
-    print_menu_option "5." "Back to Main Menu"
-    echo ""
-    print_separator
-    echo -e "${YELLOW}Select an option (1-5):${NC} "
-}
-
-# Function to remove distribution
-remove_distribution() {
-    clear
-    print_header
-    
-    echo -e "${WHITE}Remove Distribution:${NC}"
-    echo ""
-    
-    local counter=1
-    local distros_list=()
-    
-    for distro in "${!DISTROS[@]}"; do
-        local info="${DISTROS[$distro]}"
-        local name=$(echo "$info" | cut -d'|' -f1)
-        local rootfs_name=$(echo "$info" | cut -d'|' -f3)
-        local rootfs_path="$DISTROS_DIR/$distro/$rootfs_name"
-        
-        if [[ -d "$rootfs_path" ]]; then
-            distros_list+=("$distro")
-            print_menu_option "$counter." "$name"
-            ((counter++))
-        fi
-    done
-    
-    if [[ ${#distros_list[@]} -eq 0 ]]; then
-        print_warning "No distributions installed"
-        return
-    fi
-    
-    print_menu_option "$counter." "Back to Main Menu"
-    echo ""
-    print_separator
-    echo -e "${YELLOW}Select distribution to remove (1-$counter):${NC} "
-    
-    read -r choice
-    
-    if [[ "$choice" =~ ^[0-9]+$ ]] && [[ $choice -ge 1 ]] && [[ $choice -le ${#distros_list[@]} ]]; then
-        local selected_distro="${distros_list[$((choice-1))]}"
-        local info="${DISTROS[$selected_distro]}"
-        local name=$(echo "$info" | cut -d'|' -f1)
-        
-        print_warning "This will remove $name completely!"
-        echo -e "${YELLOW}Are you sure? (y/n):${NC} "
-        read -r confirm
-        
-        if [[ "$confirm" == "y" ]]; then
-            print_info "Removing $name..."
-            rm -rf "$DISTROS_DIR/$selected_distro"
-            rm -f "$DISTROS_DIR/start-$selected_distro.sh"
-            print_success "$name removed successfully"
-        else
-            print_info "Removal cancelled"
-        fi
-    fi
-}
-
-# Function to start Linux environment
-start_linux_environment() {
-    clear
-    print_header
-    
-    echo -e "${WHITE}Start Linux Environment:${NC}"
-    echo ""
-    
-    local counter=1
-    local distros_list=()
-    
-    for distro in "${!DISTROS[@]}"; do
-        local info="${DISTROS[$distro]}"
-        local name=$(echo "$info" | cut -d'|' -f1)
-        local rootfs_name=$(echo "$info" | cut -d'|' -f3)
-        local rootfs_path="$DISTROS_DIR/$distro/$rootfs_name"
-        
-        if [[ -d "$rootfs_path" ]]; then
-            distros_list+=("$distro")
-            print_menu_option "$counter." "$name"
-            ((counter++))
-        fi
-    done
-    
-    if [[ ${#distros_list[@]} -eq 0 ]]; then
-        print_warning "No distributions installed"
-        echo "Install a distribution first"
-        return
-    fi
-    
-    print_menu_option "$counter." "Back to Main Menu"
-    echo ""
-    print_separator
-    echo -e "${YELLOW}Select distribution to start (1-$counter):${NC} "
-    
-    read -r choice
-    
-    if [[ "$choice" =~ ^[0-9]+$ ]] && [[ $choice -ge 1 ]] && [[ $choice -le ${#distros_list[@]} ]]; then
-        local selected_distro="${distros_list[$((choice-1))]}"
-        local info="${DISTROS[$selected_distro]}"
-        local name=$(echo "$info" | cut -d'|' -f1)
-        
-        print_info "Starting $name..."
-        "$DISTROS_DIR/start-$selected_distro.sh"
-    fi
+    echo -e "${YELLOW}Press Enter to continue...${NC}"
+    read -r
 }
 
 # Function to show system status
@@ -428,259 +303,92 @@ show_system_status() {
     clear
     print_header
     
-    echo -e "${WHITE}System Status & Information:${NC}"
+    echo -e "${WHITE}System Status & Information${NC}"
     echo ""
     
-    # Check SPROOT script
+    print_info "SPROOT Script: $SPROOT_SCRIPT"
     if [[ -f "$SPROOT_SCRIPT" ]]; then
-        print_success "SPROOT Complete script found"
+        print_success "✓ Found"
     else
-        print_error "SPROOT Complete script not found"
+        print_error "✗ Not found"
     fi
     
-    # Check distributions directory
+    print_info "Ubuntu Directory: $DISTROS_DIR"
     if [[ -d "$DISTROS_DIR" ]]; then
-        print_success "Distributions directory exists: $DISTROS_DIR"
-    else
-        print_warning "Distributions directory not found: $DISTROS_DIR"
-    fi
-    
-    # List installed distributions
-    echo ""
-    echo -e "${YELLOW}Installed Distributions:${NC}"
-    local installed_count=0
-    
-    for distro in "${!DISTROS[@]}"; do
-        local info="${DISTROS[$distro]}"
-        local name=$(echo "$info" | cut -d'|' -f1)
-        local rootfs_name=$(echo "$info" | cut -d'|' -f3)
-        local rootfs_path="$DISTROS_DIR/$distro/$rootfs_name"
-        
-        if [[ -d "$rootfs_path" ]]; then
-            local size=$(du -sh "$rootfs_path" 2>/dev/null | cut -f1)
-            print_success "✓ $name (Size: $size)"
-            ((installed_count++))
-        fi
-    done
-    
-    if [[ $installed_count -eq 0 ]]; then
-        print_warning "No distributions installed"
-    fi
-    
-    # System information
-    echo ""
-    echo -e "${YELLOW}System Information:${NC}"
-    echo "OS: $(uname -s)"
-    echo "Architecture: $(uname -m)"
-    echo "Kernel: $(uname -r)"
-    echo "Available Space: $(df -h . | tail -1 | awk '{print $4}')"
-    echo "Proot Available: $(command -v proot &>/dev/null && echo "Yes" || echo "No")"
-}
-
-# Function to show help
-show_help() {
-    clear
-    print_header
-    
-    echo -e "${WHITE}Help & Documentation:${NC}"
-    echo ""
-    print_menu_option "1." "Linux Manager Usage"
-    print_menu_option "2." "Available Distributions"
-    print_menu_option "3." "SPROOT Complete Information"
-    print_menu_option "4." "Troubleshooting"
-    print_menu_option "5." "About Linux Manager"
-    print_menu_option "6." "Back to Main Menu"
-    echo ""
-    print_separator
-    echo -e "${YELLOW}Select an option (1-6):${NC} "
-}
-
-# Function to handle help options
-handle_help_options() {
-    local option="$1"
-    
-    case "$option" in
-        1)
-            print_info "Linux Manager Usage:"
-            echo ""
-            echo "Linux Manager allows you to install and manage multiple"
-            echo "Linux distributions using SPROOT Complete technology."
-            echo ""
-            echo "Features:"
-            echo "• Install multiple Linux distributions"
-            echo "• Manage installed distributions"
-            echo "• Start any distribution easily"
-            echo "• Backup and restore distributions"
-            echo "• No root access required"
-            ;;
-        2)
-            print_info "Available Distributions:"
-            echo ""
-            for distro in "${!DISTROS[@]}"; do
+        print_success "✓ Found"
+        echo ""
+        echo "Installed Ubuntu versions:"
+        for distro in "${!DISTROS[@]}"; do
+            if [[ -d "$DISTROS_DIR/$distro" ]]; then
                 local info="${DISTROS[$distro]}"
                 local name=$(echo "$info" | cut -d'|' -f1)
-                echo "• $name"
-            done
-            ;;
-        3)
-            print_info "SPROOT Complete Information:"
-            echo ""
-            echo "SPROOT Complete is the core engine that provides:"
-            echo "• Full Ubuntu simulation without root"
-            echo "• Systemd, Snap, Services support"
-            echo "• Enhanced security and isolation"
-            echo "• Complete system access simulation"
-            ;;
-        4)
-            print_info "Troubleshooting:"
-            echo ""
-            echo "Common Issues:"
-            echo ""
-            echo "1. Download failed:"
-            echo "   Check internet connection"
-            echo ""
-            echo "2. Extraction failed:"
-            echo "   Ensure enough disk space"
-            echo ""
-            echo "3. SPROOT script not found:"
-            echo "   Make sure sproot-complete.sh is in the same directory"
-            echo ""
-            echo "4. Permission denied:"
-            echo "   chmod +x sproot-complete.sh"
-            ;;
-        5)
-            print_info "About Linux Manager:"
-            echo ""
-            echo "Linux Manager v$MANAGER_VERSION"
-            echo "Multi-Distribution Manager"
-            echo ""
-            echo "Features:"
-            echo "• Multiple Linux distributions"
-            echo "• Easy installation and management"
-            echo "• SPROOT Complete integration"
-            echo "• User-friendly interface"
-            echo ""
-            echo "Author: Custom Ubuntu Setup"
-            ;;
-        *)
-            print_error "Invalid option"
-            ;;
-    esac
-}
-
-# Function to handle main menu
-handle_main_menu() {
-    local choice="$1"
-    
-    case "$choice" in
-        1)
-            show_distro_menu
-            read -r distro_choice
-            
-            local distro_count=${#DISTROS[@]}
-            if [[ "$distro_choice" =~ ^[0-9]+$ ]] && [[ $distro_choice -ge 1 ]] && [[ $distro_choice -le $distro_count ]]; then
-                local selected_distro=$(get_distro_info "$distro_choice")
-                if [[ -n "$selected_distro" ]]; then
-                    install_distribution "$selected_distro"
-                fi
-            elif [[ "$distro_choice" == $((distro_count + 1)) ]]; then
-                return
-            else
-                print_error "Invalid option"
+                print_success "  ✓ $name"
             fi
-            ;;
-        2)
-            manage_distributions
-            read -r manage_choice
-            
-            case "$manage_choice" in
-                1)
-                    show_installed_distros
-                    read -r
-                    ;;
-                2)
-                    remove_distribution
-                    ;;
-                3|4)
-                    print_info "Backup/Restore feature coming soon..."
-                    ;;
-                5)
-                    return
-                    ;;
-                *)
-                    print_error "Invalid option"
-                    ;;
-            esac
-            ;;
-        3)
-            start_linux_environment
-            ;;
-        4)
-            show_system_status
-            echo ""
-            echo -e "${GREEN}Press Enter to continue...${NC}"
-            read -r
-            ;;
-        5)
-            show_help
-            read -r help_choice
-            handle_help_options "$help_choice"
-            ;;
-        6)
-            print_success "Goodbye!"
-            exit 0
-            ;;
-        *)
-            print_error "Invalid option. Please select 1-6."
-            ;;
-    esac
-}
-
-# Function to show welcome screen
-show_welcome() {
-    clear
-    print_header
+        done
+    else
+        print_warning "✗ No Ubuntu installations found"
+    fi
     
-    echo -e "${WHITE}Welcome to Linux Manager!${NC}"
     echo ""
-    echo -e "${CYAN}This tool allows you to install and manage multiple${NC}"
-    echo -e "${CYAN}Linux distributions using SPROOT Complete technology.${NC}"
-    echo ""
-    echo -e "${YELLOW}Features:${NC}"
-    echo "• Install multiple Linux distributions"
-    echo "• Manage installed distributions"
-    echo "• Start any distribution easily"
-    echo "• No root access required"
-    echo "• Enhanced security with SPROOT"
-    echo ""
-    echo -e "${GREEN}Press Enter to continue...${NC}"
+    print_separator
+    echo -e "${YELLOW}Press Enter to continue...${NC}"
     read -r
 }
 
 # Main function
 main() {
-    # Check if SPROOT script exists
-    if ! check_sproot_script; then
+    # Check prerequisites
+    if ! check_prerequisites; then
+        print_error "Prerequisites check failed. Please install required packages."
         exit 1
     fi
     
-    # Show welcome screen
-    show_welcome
+    # Create distributions directory
+    mkdir -p "$DISTROS_DIR"
     
-    # Main menu loop
     while true; do
         show_main_menu
         read -r choice
         
-        if [[ "$choice" =~ ^[1-6]$ ]]; then
-            handle_main_menu "$choice"
-        else
-            print_error "Invalid option. Please select 1-6."
-        fi
-        
-        echo ""
-        echo -e "${GREEN}Press Enter to continue...${NC}"
-        read -r
+        case $choice in
+            1)
+                # Install Ubuntu
+                show_ubuntu_menu
+                read -r ubuntu_choice
+                
+                local ubuntu_count=${#DISTROS[@]}
+                if [[ $ubuntu_choice -eq $((ubuntu_count+1)) ]]; then
+                    continue
+                elif [[ $ubuntu_choice -ge 1 && $ubuntu_choice -le $ubuntu_count ]]; then
+                    local selected_distro=$(get_ubuntu_info "$ubuntu_choice")
+                    if [[ -n "$selected_distro" ]]; then
+                        install_ubuntu "$selected_distro"
+                    else
+                        print_error "Invalid Ubuntu version selected"
+                        sleep 2
+                    fi
+                else
+                    print_error "Invalid option"
+                    sleep 2
+                fi
+                ;;
+            2)
+                # Remove Ubuntu
+                remove_ubuntu
+                ;;
+            3)
+                # Exit
+                clear
+                print_header
+                echo -e "${GREEN}Thank you for using Ubuntu Manager!${NC}"
+                echo ""
+                exit 0
+                ;;
+            *)
+                print_error "Invalid option. Please select 1-3."
+                sleep 2
+                ;;
+        esac
     done
 }
 
