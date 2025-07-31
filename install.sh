@@ -317,7 +317,7 @@ install_ubuntu_18_04_chroot_background() {
     VERSION="18.04"
     IMG="$HOME/ubuntu18.04.img"
     MNT="$HOME/ubuntu18.04-mnt"
-    SIZE_MB=4096
+    SIZE_MB=20480
     ROOTFS_URL="https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-arm64-root.tar.xz"
     ROOTFS_TAR="ubuntu-18.04-rootfs.tar.xz"
 
@@ -438,7 +438,7 @@ install_ubuntu_20_04_chroot_background() {
     VERSION="20.04"
     IMG="$HOME/ubuntu20.04.img"
     MNT="$HOME/ubuntu20.04-mnt"
-    SIZE_MB=4096
+    SIZE_MB=20480
     ROOTFS_URL="https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-arm64-root.tar.xz"
     ROOTFS_TAR="ubuntu-20.04-rootfs.tar.xz"
 
@@ -559,7 +559,7 @@ install_ubuntu_22_04_chroot_background() {
     VERSION="22.04"
     IMG="$HOME/ubuntu22.04.img"
     MNT="$HOME/ubuntu22.04-mnt"
-    SIZE_MB=4096
+    SIZE_MB=20480
     ROOTFS_URL="https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-arm64-root.tar.xz"
     ROOTFS_TAR="ubuntu-22.04-rootfs.tar.xz"
 
@@ -680,7 +680,7 @@ install_ubuntu_24_04_chroot_background() {
     VERSION="24.04"
     IMG="$HOME/ubuntu24.04.img"
     MNT="$HOME/ubuntu24.04-mnt"
-    SIZE_MB=4096
+    SIZE_MB=20480
     ROOTFS_URL="https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-arm64-root.tar.xz"
     ROOTFS_TAR="ubuntu-24.04-rootfs.tar.xz"
 
