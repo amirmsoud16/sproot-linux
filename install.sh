@@ -431,15 +431,7 @@ install_ubuntu_18_04_chroot_background() {
     create_safe_chroot_script "$IMG" "$MNT" "18"
     lock_installation_files
     create_readonly_environment "18.04"
-    print_success_box "Ubuntu 18.04 (Chroot) installation completed!"
-    clear
-    echo -e "${WHITE}What do you want to do next?${NC}"
-    echo "  1) Go to main menu"
-    echo "  2) Enter installed Ubuntu chroot"
-    read -p "Enter your choice (1 or 2): " next_action
-    if [[ "$next_action" == "2" ]]; then
-        $HOME/bin/ubuntu18
-    fi
+    return 0
 }
 
 # Function to install Ubuntu 20.04 (Chroot) in background - SAFE VERSION
@@ -494,15 +486,7 @@ install_ubuntu_20_04_chroot_background() {
     create_safe_chroot_script "$IMG" "$MNT" "20"
     lock_installation_files
     create_readonly_environment "20.04"
-    print_success_box "Ubuntu 20.04 (Chroot) installation completed!"
-    clear
-    echo -e "${WHITE}What do you want to do next?${NC}"
-    echo "  1) Go to main menu"
-    echo "  2) Enter installed Ubuntu chroot"
-    read -p "Enter your choice (1 or 2): " next_action
-    if [[ "$next_action" == "2" ]]; then
-        $HOME/bin/ubuntu20
-    fi
+    return 0
 }
 
 # Function to install Ubuntu 22.04 (Chroot) in background - SAFE VERSION
@@ -557,15 +541,7 @@ install_ubuntu_22_04_chroot_background() {
     create_safe_chroot_script "$IMG" "$MNT" "22"
     lock_installation_files
     create_readonly_environment "22.04"
-    print_success_box "Ubuntu 22.04 (Chroot) installation completed!"
-    clear
-    echo -e "${WHITE}What do you want to do next?${NC}"
-    echo "  1) Go to main menu"
-    echo "  2) Enter installed Ubuntu chroot"
-    read -p "Enter your choice (1 or 2): " next_action
-    if [[ "$next_action" == "2" ]]; then
-        $HOME/bin/ubuntu22
-    fi
+    return 0
 }
 
 # Function to install Ubuntu 24.04 (Chroot) in background - SAFE VERSION
@@ -620,15 +596,7 @@ install_ubuntu_24_04_chroot_background() {
     create_safe_chroot_script "$IMG" "$MNT" "24"
     lock_installation_files
     create_readonly_environment "24.04"
-    print_success_box "Ubuntu 24.04 (Chroot) installation completed!"
-    clear
-    echo -e "${WHITE}What do you want to do next?${NC}"
-    echo "  1) Go to main menu"
-    echo "  2) Enter installed Ubuntu chroot"
-    read -p "Enter your choice (1 or 2): " next_action
-    if [[ "$next_action" == "2" ]]; then
-        $HOME/bin/ubuntu24
-    fi
+    return 0
 }
 
 
@@ -643,62 +611,14 @@ install_ubuntu_proot() {
         pkg install proot-distro -y
     fi
 
-    print_header
-    echo -e "${WHITE}Select Ubuntu Version for Proot:${NC}"
-    echo -e "${BLUE}1.${NC} Ubuntu 18.04"
-    echo -e "${BLUE}2.${NC} Ubuntu 20.04"
-    echo -e "${BLUE}3.${NC} Ubuntu 22.04"
-    echo -e "${BLUE}4.${NC} Ubuntu 24.04"
-    echo ""
-
-    read -p "Select Ubuntu version (1-4): " proot_version
-
-    case $proot_version in
-        1)
-            print_status "Installing Ubuntu 18.04 with proot-distro..."
-            proot-distro install ubuntu-18.04
-            if [[ $? -eq 0 ]]; then
-                print_success_box "Ubuntu 18.04 (Proot) installed successfully!"
-                print_status "To enter Ubuntu: proot-distro login ubuntu-18.04"
-            else
-                print_error_box "Failed to install Ubuntu 18.04"
-            fi
-            ;;
-        2)
-            print_status "Installing Ubuntu 20.04 with proot-distro..."
-            proot-distro install ubuntu-20.04
-            if [[ $? -eq 0 ]]; then
-                print_success_box "Ubuntu 20.04 (Proot) installed successfully!"
-                print_status "To enter Ubuntu: proot-distro login ubuntu-20.04"
-            else
-                print_error_box "Failed to install Ubuntu 20.04"
-            fi
-            ;;
-        3)
-            print_status "Installing Ubuntu 22.04 with proot-distro..."
-            proot-distro install ubuntu-22.04
-            if [[ $? -eq 0 ]]; then
-                print_success_box "Ubuntu 22.04 (Proot) installed successfully!"
-                print_status "To enter Ubuntu: proot-distro login ubuntu-22.04"
-            else
-                print_error_box "Failed to install Ubuntu 22.04"
-            fi
-            ;;
-        4)
-            print_status "Installing Ubuntu 24.04 with proot-distro..."
-            proot-distro install ubuntu-24.04
-            if [[ $? -eq 0 ]]; then
-                print_success_box "Ubuntu 24.04 (Proot) installed successfully!"
-                print_status "To enter Ubuntu: proot-distro login ubuntu-24.04"
-            else
-                print_error_box "Failed to install Ubuntu 24.04"
-            fi
-            ;;
-        *)
-            print_error "Invalid choice"
-            return 1
-            ;;
-    esac
+    print_status "Installing Ubuntu 24.04 with proot-distro..."
+    proot-distro install ubuntu
+    if [[ $? -eq 0 ]]; then
+        print_success_box "Ubuntu 24.04 (Proot) installed successfully!"
+        print_status "To enter Ubuntu: proot-distro login ubuntu"
+    else
+        print_error_box "Failed to install Ubuntu 24.04"
+    fi
 }
 
 # Function to check and request root access
@@ -777,6 +697,7 @@ show_installation_methods() {
     echo -e "${WHITE}✓ Better performance${NC}"
     echo -e "${WHITE}✓ Full system access${NC}"
     echo -e "${WHITE}✓ Native Linux environment${NC}"
+    echo -e "${WHITE}✓ Multiple Ubuntu versions (18.04, 20.04, 22.04, 24.04)${NC}"
     echo -e "${WHITE}✗ Requires root access${NC}"
     echo -e "${WHITE}✗ May void warranty${NC}"
     echo ""
@@ -784,6 +705,7 @@ show_installation_methods() {
     echo -e "${WHITE}✓ No root access needed${NC}"
     echo -e "${WHITE}✓ Safe and secure${NC}"
     echo -e "${WHITE}✓ Easy to install${NC}"
+    echo -e "${WHITE}✓ Latest Ubuntu version (24.04)${NC}"
     echo -e "${WHITE}✗ Slower performance${NC}"
     echo -e "${WHITE}✗ Limited system access${NC}"
     echo ""
@@ -1171,32 +1093,44 @@ show_loading() {
 # Function to install Ubuntu 18.04 (Chroot) - Main function
 install_ubuntu_18_04_chroot() {
     print_status "Installing Ubuntu 18.04 (Chroot)..."
-    install_ubuntu_18_04_chroot_background
-    print_success_box "Ubuntu 18.04 (Chroot) installed successfully!"
+    if install_ubuntu_18_04_chroot_background; then
+        print_success_box "Ubuntu 18.04 (Chroot) installed successfully!"
+    else
+        print_error_box "Ubuntu 18.04 (Chroot) installation failed!"
+    fi
     clear_screen
 }
 
 # Function to install Ubuntu 20.04 (Chroot) - Main function
 install_ubuntu_20_04_chroot() {
     print_status "Installing Ubuntu 20.04 (Chroot)..."
-    install_ubuntu_20_04_chroot_background
-    print_success_box "Ubuntu 20.04 (Chroot) installed successfully!"
+    if install_ubuntu_20_04_chroot_background; then
+        print_success_box "Ubuntu 20.04 (Chroot) installed successfully!"
+    else
+        print_error_box "Ubuntu 20.04 (Chroot) installation failed!"
+    fi
     clear_screen
 }
 
 # Function to install Ubuntu 22.04 (Chroot) - Main function
 install_ubuntu_22_04_chroot() {
     print_status "Installing Ubuntu 22.04 (Chroot)..."
-    install_ubuntu_22_04_chroot_background
-    print_success_box "Ubuntu 22.04 (Chroot) installed successfully!"
+    if install_ubuntu_22_04_chroot_background; then
+        print_success_box "Ubuntu 22.04 (Chroot) installed successfully!"
+    else
+        print_error_box "Ubuntu 22.04 (Chroot) installation failed!"
+    fi
     clear_screen
 }
 
 # Function to install Ubuntu 24.04 (Chroot) - Main function
 install_ubuntu_24_04_chroot() {
     print_status "Installing Ubuntu 24.04 (Chroot)..."
-    install_ubuntu_24_04_chroot_background
-    print_success_box "Ubuntu 24.04 (Chroot) installed successfully!"
+    if install_ubuntu_24_04_chroot_background; then
+        print_success_box "Ubuntu 24.04 (Chroot) installed successfully!"
+    else
+        print_error_box "Ubuntu 24.04 (Chroot) installation failed!"
+    fi
     clear_screen
 }
 
