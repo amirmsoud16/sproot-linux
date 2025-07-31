@@ -409,7 +409,9 @@ install_ubuntu_18_04_chroot_background() {
 
     print_steps_progress 5
     if ! safe_chroot_setup "$IMG" "$MNT" "$ROOTFS_TAR"; then
-        print_error "Chroot setup failed. Falling back to Proot installation."
+        print_error "Chroot setup failed!"
+        print_status "Root access is required for Chroot installation."
+        print_status "Please root your device and try again."
         return 1
     fi
 
@@ -470,7 +472,9 @@ install_ubuntu_20_04_chroot_background() {
 
     print_steps_progress 5
     if ! safe_chroot_setup "$IMG" "$MNT" "$ROOTFS_TAR"; then
-        print_error "Chroot setup failed. Falling back to Proot installation."
+        print_error "Chroot setup failed!"
+        print_status "Root access is required for Chroot installation."
+        print_status "Please root your device and try again."
         return 1
     fi
 
@@ -531,7 +535,9 @@ install_ubuntu_22_04_chroot_background() {
 
     print_steps_progress 5
     if ! safe_chroot_setup "$IMG" "$MNT" "$ROOTFS_TAR"; then
-        print_error "Chroot setup failed. Falling back to Proot installation."
+        print_error "Chroot setup failed!"
+        print_status "Root access is required for Chroot installation."
+        print_status "Please root your device and try again."
         return 1
     fi
 
@@ -592,7 +598,9 @@ install_ubuntu_24_04_chroot_background() {
 
     print_steps_progress 5
     if ! safe_chroot_setup "$IMG" "$MNT" "$ROOTFS_TAR"; then
-        print_error "Chroot setup failed. Falling back to Proot installation."
+        print_error "Chroot setup failed!"
+        print_status "Root access is required for Chroot installation."
+        print_status "Please root your device and try again."
         return 1
     fi
 
@@ -700,53 +708,63 @@ check_root_access() {
     echo -e "${WHITE}Chroot installation requires root access to work properly.${NC}"
     echo -e "${WHITE}Please grant root access to Termux when prompted.${NC}"
     echo ""
-    echo -e "${BLUE}Note:${NC} If you don't have root access, consider using Proot instead."
-    echo ""
 
     # Show root status
     if [[ $(id -u) -eq 0 ]]; then
         echo -e "${GREEN}✓ Root access already available${NC}"
-    else
-        echo -e "${YELLOW}⚠ Root status: No root access${NC}"
-    fi
-    echo ""
-
-    read -p "Press Enter to continue with root access request..."
-
-    # Check if we have root access
-    if [[ $(id -u) -eq 0 ]]; then
         print_success_box "Root access confirmed!"
         return 0
     else
-        # Try to get root access
-        echo -e "${YELLOW}Requesting root access...${NC}"
-        su -c "echo 'Root access granted'" 2>/dev/null
+        echo -e "${YELLOW}⚠ Root status: No root access${NC}"
+        echo ""
+        echo -e "${WHITE}Your device needs to be rooted for Chroot installation.${NC}"
+        echo ""
+        echo -e "${WHITE}To root your device:${NC}"
+        echo -e "${BLUE}1.${NC} Install Magisk Manager"
+        echo -e "${BLUE}2.${NC} Patch your boot image"
+        echo -e "${BLUE}3.${NC} Flash the patched boot image"
+        echo -e "${BLUE}4.${NC} Grant root access to Termux"
+        echo ""
+        echo -e "${WHITE}You can:${NC}"
+        echo -e "${BLUE}1.${NC} Try to get root access"
+        echo -e "${BLUE}2.${NC} Go back to main menu"
+        echo ""
+        read -p "Enter your choice (1-2): " root_choice
 
-        if [[ $? -eq 0 ]]; then
-            print_success_box "Root access granted successfully!"
-            return 0
-        else
-            print_error_box "Failed to get root access!"
-            echo ""
-            echo -e "${WHITE}Possible solutions:${NC}"
-            echo -e "${BLUE}1.${NC} Make sure your device is rooted"
-            echo -e "${BLUE}2.${NC} Grant root access to Termux in SuperSU/Magisk"
-            echo -e "${BLUE}3.${NC} Use Proot instead (no root required)"
-            echo ""
-            echo -e "${WHITE}You can:${NC}"
-            echo -e "${BLUE}1.${NC} Try again"
-            echo -e "${BLUE}2.${NC} Use Proot instead (no root required)"
-            echo -e "${BLUE}3.${NC} Go back to main menu"
-            echo ""
-            read -p "Enter your choice (1-3): " root_choice
-
-            case $root_choice in
-                1) check_root_access ;;
-                2) install_ubuntu_proot ;;
-                3) return 1 ;;
-                *) return 1 ;;
-            esac
-        fi
+        case $root_choice in
+            1)
+                echo -e "${YELLOW}Attempting to get root access...${NC}"
+                # Try different root methods
+                if command -v tsu >/dev/null 2>&1; then
+                    echo -e "${WHITE}Trying tsu...${NC}"
+                    tsu -c "echo 'Root access test'" 2>/dev/null
+                    if [[ $? -eq 0 ]]; then
+                        print_success_box "Root access granted via tsu!"
+                        return 0
+                    fi
+                fi
+                
+                if command -v su >/dev/null 2>&1; then
+                    echo -e "${WHITE}Trying su...${NC}"
+                    su -c "echo 'Root access test'" 2>/dev/null
+                    if [[ $? -eq 0 ]]; then
+                        print_success_box "Root access granted via su!"
+                        return 0
+                    fi
+                fi
+                
+                print_error_box "Could not get root access!"
+                echo -e "${WHITE}Your device is not rooted or root access is not available.${NC}"
+                echo -e "${WHITE}Please root your device first, then try again.${NC}"
+                return 1
+                ;;
+            2)
+                return 1
+                ;;
+            *)
+                return 1
+                ;;
+        esac
     fi
 }
 
@@ -833,77 +851,50 @@ safe_chroot_setup() {
     local mnt="$2"
     local rootfs_tar="$3"
     
+    # Check root access first
+    if [[ $(id -u) -ne 0 ]]; then
+        print_error "Root access required for chroot installation."
+        print_status "Please root your device and try again."
+        return 1
+    fi
+    
+    # Check if mount command is available
+    if ! command -v mount >/dev/null 2>&1; then
+        print_error "Mount command not available."
+        return 1
+    fi
+    
     # Create mount directory
     mkdir -p "$mnt"
     
-    # Mount image (only if we have root access)
-    if command -v mount >/dev/null 2>&1 && [ -w /dev ]; then
-        mount -o loop "$img" "$mnt" 2>/dev/null || {
-            print_error "Failed to mount image. Root access may be required."
-            return 1
-        }
-        
-        # Extract rootfs
-        tar -xf "$rootfs_tar" -C "$mnt" --exclude='./dev' 2>/dev/null || {
-            print_error "Failed to extract rootfs"
-            umount "$mnt" 2>/dev/null || true
-            return 1
-        }
-        
-        # Setup DNS safely
-        if [ -d "$mnt/etc" ]; then
-            echo "nameserver 8.8.8.8" > "$mnt/etc/resolv.conf" 2>/dev/null || true
-            echo "nameserver 8.8.4.4" >> "$mnt/etc/resolv.conf" 2>/dev/null || true
-            echo "nameserver 1.1.1.1" >> "$mnt/etc/resolv.conf" 2>/dev/null || true
-        fi
-        
-        # Unmount
-        umount "$mnt" 2>/dev/null || true
-    else
-        print_warning "Root access required for chroot installation. Using Proot instead."
+    # Mount image
+    if ! mount -o loop "$img" "$mnt" 2>/dev/null; then
+        print_error "Failed to mount image. Please check permissions."
         return 1
     fi
+    
+    # Extract rootfs
+    if ! tar -xf "$rootfs_tar" -C "$mnt" --exclude='./dev' 2>/dev/null; then
+        print_error "Failed to extract rootfs"
+        umount "$mnt" 2>/dev/null || true
+        return 1
+    fi
+    
+    # Setup DNS safely
+    if [ -d "$mnt/etc" ]; then
+        echo "nameserver 8.8.8.8" > "$mnt/etc/resolv.conf" 2>/dev/null || true
+        echo "nameserver 8.8.4.4" >> "$mnt/etc/resolv.conf" 2>/dev/null || true
+        echo "nameserver 1.1.1.1" >> "$mnt/etc/resolv.conf" 2>/dev/null || true
+    fi
+    
+    # Unmount
+    umount "$mnt" 2>/dev/null || true
+    
+    print_success "Chroot setup completed successfully!"
+    return 0
 }
 
-# Function to safely mount and setup chroot
-safe_chroot_setup() {
-    local img="$1"
-    local mnt="$2"
-    local rootfs_tar="$3"
-    
-    # Create mount directory
-    mkdir -p "$mnt"
-    
-    # Mount image (only if we have root access)
-    if command -v mount >/dev/null 2>&1 && [ -w /dev ]; then
-        mount -o loop "$img" "$mnt" 2>/dev/null || {
-            print_error "Failed to mount image. Root access may be required."
-            return 1
-        }
-        
-        # Extract rootfs
-        tar -xf "$rootfs_tar" -C "$mnt" --exclude='./dev' 2>/dev/null || {
-            print_error "Failed to extract rootfs"
-            umount "$mnt" 2>/dev/null || true
-            return 1
-        }
-        
-        # Rootfs extracted successfully
-        
-        # Setup DNS safely
-        if [ -d "$mnt/etc" ]; then
-            echo "nameserver 8.8.8.8" > "$mnt/etc/resolv.conf" 2>/dev/null || true
-            echo "nameserver 8.8.4.4" >> "$mnt/etc/resolv.conf" 2>/dev/null || true
-            echo "nameserver 1.1.1.1" >> "$mnt/etc/resolv.conf" 2>/dev/null || true
-        fi
-        
-        # Unmount
-        umount "$mnt" 2>/dev/null || true
-    else
-        print_warning "Root access required for chroot installation. Using Proot instead."
-        return 1
-    fi
-}
+
 
 # Function to create safe chroot script
 create_safe_chroot_script() {
