@@ -245,6 +245,36 @@ clone_github_repo() {
     git clone "$REPO_URL" "$CLONE_DIR"
 }
 
+# Add at the top of the file (after color definitions):
+STEPS=(
+    "Download Ubuntu rootfs file"
+    "Create ext4 image file (20GB)"
+    "Create mount directory"
+    "Mount image"
+    "Extract rootfs into image"
+    "Remove Android-sensitive paths (if any)"
+    "Clean up rootfs archive"
+    "Set up DNS (resolv.conf)"
+    "Create chroot shortcut and finish installation"
+)
+
+print_steps_progress() {
+    local current=$1
+    clear
+    echo "Ubuntu Chroot Installation Progress:"
+    for i in "${!STEPS[@]}"; do
+        step_num=$((i+1))
+        if (( step_num < current )); then
+            echo -e "  $step_num. ${STEPS[$i]}  ${GREEN}✓${NC}"
+        elif (( step_num == current )); then
+            echo -e "  $step_num. ${STEPS[$i]}  ${YELLOW}...${NC}"
+        else
+            echo -e "  $step_num. ${STEPS[$i]}"
+        fi
+    done
+    echo ""
+}
+
 # Function to install Ubuntu 18.04 (Chroot) in background
 install_ubuntu_18_04_chroot_background() {
     TOTAL=10
@@ -255,7 +285,7 @@ install_ubuntu_18_04_chroot_background() {
     ROOTFS_URL="https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-arm64-root.tar.xz"
     ROOTFS_TAR="ubuntu-18.04-rootfs.tar.xz"
 
-    print_step 1 $TOTAL "Cloning GitHub repo for fix scripts..."
+    print_steps_progress 1
     REPO_URL="https://github.com/amirmsoud16/ubuntu-chroot-pk-"
     CLONE_DIR="$HOME/ubuntu-chroot-pk-"
     if [ -d "$CLONE_DIR" ]; then
@@ -263,29 +293,29 @@ install_ubuntu_18_04_chroot_background() {
     fi
     git clone "$REPO_URL" "$CLONE_DIR"
 
-    print_step 2 $TOTAL "Downloading Ubuntu rootfs file..."
+    print_steps_progress 2
     wget -O "$ROOTFS_TAR" "$ROOTFS_URL"
 
-    print_step 3 $TOTAL "Creating ext4 image (20GB)..."
+    print_steps_progress 3
     dd if=/dev/zero of="$IMG" bs=1M count=$SIZE_MB
     mkfs.ext4 "$IMG"
 
-    print_step 4 $TOTAL "Creating mount directory..."
+    print_steps_progress 4
     mkdir -p "$MNT"
 
-    print_step 5 $TOTAL "Mounting image..."
+    print_steps_progress 5
     sudo mount -o loop "$IMG" "$MNT"
 
-    print_step 6 $TOTAL "Extracting rootfs into image..."
+    print_steps_progress 6
     sudo tar -xf "$ROOTFS_TAR" -C "$MNT" --exclude='./dev'
 
-    print_step 7 $TOTAL "Removing Android-sensitive paths (if any)..."
+    print_steps_progress 7
     sudo rm -rf "$MNT/sdcard" "$MNT/data" "$MNT/system"
 
-    print_step 8 $TOTAL "Cleaning up rootfs archive..."
+    print_steps_progress 8
     rm -f "$ROOTFS_TAR"
 
-    print_step 9 $TOTAL "Setting up DNS (resolv.conf)..."
+    print_steps_progress 9
     sudo umount "$MNT"
     sudo mount -o loop "$IMG" "$MNT"
     echo "nameserver 8.8.8.8" | sudo tee "$MNT/etc/resolv.conf" > /dev/null
@@ -293,7 +323,7 @@ install_ubuntu_18_04_chroot_background() {
     echo "nameserver 1.1.1.1" | sudo tee -a "$MNT/etc/resolv.conf" > /dev/null
     sudo umount "$MNT"
 
-    print_step 10 $TOTAL "Creating chroot shortcut and finishing installation!"
+    print_steps_progress 10
     BIN_DIR="$HOME/bin"
     mkdir -p "$BIN_DIR"
     SHORTCUT="$BIN_DIR/ubuntu18"
@@ -311,15 +341,22 @@ sudo umount "\$MNT/sys"
 sudo umount "\$MNT"
 EOF
     chmod +x "$SHORTCUT"
+    print_success_box "Ubuntu 18.04 (Chroot) installation completed!"
+    clear
+    echo -e "${WHITE}What do you want to do next?${NC}"
+    echo "  1) Go to main menu"
+    echo "  2) Enter installed Ubuntu chroot"
+    read -p "Enter your choice (1 or 2): " next_action
+    if [[ "$next_action" == "2" ]]; then
+        cd $HOME/ubuntu/ubuntu18-rootfs
+        ./start-ubuntu-18.04.sh
+    fi
 }
 
 # Function to install Ubuntu 18.04 (Chroot) - Main function
 install_ubuntu_18_04_chroot() {
     print_status "Installing Ubuntu 18.04 (Chroot)..."
-    install_ubuntu_18_04_chroot_background &
-    local pid=$!
-    show_loading "Installing Ubuntu 18.04 (Chroot)..." $pid
-    wait $pid
+    install_ubuntu_18_04_chroot_background
     print_success_box "Ubuntu 18.04 (Chroot) installed successfully!"
     clear_screen
 }
@@ -334,7 +371,7 @@ install_ubuntu_20_04_chroot_background() {
     ROOTFS_URL="https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-arm64-root.tar.xz"
     ROOTFS_TAR="ubuntu-20.04-rootfs.tar.xz"
 
-    print_step 1 $TOTAL "Cloning GitHub repo for fix scripts..."
+    print_steps_progress 1
     REPO_URL="https://github.com/amirmsoud16/ubuntu-chroot-pk-"
     CLONE_DIR="$HOME/ubuntu-chroot-pk-"
     if [ -d "$CLONE_DIR" ]; then
@@ -342,29 +379,29 @@ install_ubuntu_20_04_chroot_background() {
     fi
     git clone "$REPO_URL" "$CLONE_DIR"
 
-    print_step 2 $TOTAL "Downloading Ubuntu rootfs file..."
+    print_steps_progress 2
     wget -O "$ROOTFS_TAR" "$ROOTFS_URL"
 
-    print_step 3 $TOTAL "Creating ext4 image (20GB)..."
+    print_steps_progress 3
     dd if=/dev/zero of="$IMG" bs=1M count=$SIZE_MB
     mkfs.ext4 "$IMG"
 
-    print_step 4 $TOTAL "Creating mount directory..."
+    print_steps_progress 4
     mkdir -p "$MNT"
 
-    print_step 5 $TOTAL "Mounting image..."
+    print_steps_progress 5
     sudo mount -o loop "$IMG" "$MNT"
 
-    print_step 6 $TOTAL "Extracting rootfs into image..."
+    print_steps_progress 6
     sudo tar -xf "$ROOTFS_TAR" -C "$MNT" --exclude='./dev'
 
-    print_step 7 $TOTAL "Removing Android-sensitive paths (if any)..."
+    print_steps_progress 7
     sudo rm -rf "$MNT/sdcard" "$MNT/data" "$MNT/system"
 
-    print_step 8 $TOTAL "Cleaning up rootfs archive..."
+    print_steps_progress 8
     rm -f "$ROOTFS_TAR"
 
-    print_step 9 $TOTAL "Setting up DNS (resolv.conf)..."
+    print_steps_progress 9
     sudo umount "$MNT"
     sudo mount -o loop "$IMG" "$MNT"
     echo "nameserver 8.8.8.8" | sudo tee "$MNT/etc/resolv.conf" > /dev/null
@@ -372,7 +409,7 @@ install_ubuntu_20_04_chroot_background() {
     echo "nameserver 1.1.1.1" | sudo tee -a "$MNT/etc/resolv.conf" > /dev/null
     sudo umount "$MNT"
 
-    print_step 10 $TOTAL "Creating chroot shortcut and finishing installation!"
+    print_steps_progress 10
     BIN_DIR="$HOME/bin"
     mkdir -p "$BIN_DIR"
     SHORTCUT="$BIN_DIR/ubuntu20"
@@ -390,15 +427,22 @@ sudo umount "\$MNT/sys"
 sudo umount "\$MNT"
 EOF
     chmod +x "$SHORTCUT"
+    print_success_box "Ubuntu 20.04 (Chroot) installation completed!"
+    clear
+    echo -e "${WHITE}What do you want to do next?${NC}"
+    echo "  1) Go to main menu"
+    echo "  2) Enter installed Ubuntu chroot"
+    read -p "Enter your choice (1 or 2): " next_action
+    if [[ "$next_action" == "2" ]]; then
+        cd $HOME/ubuntu/ubuntu20-rootfs
+        ./start-ubuntu-20.04.sh
+    fi
 }
 
 # Function to install Ubuntu 20.04 (Chroot) - Main function
 install_ubuntu_20_04_chroot() {
     print_status "Installing Ubuntu 20.04 (Chroot)..."
-    install_ubuntu_20_04_chroot_background &
-    local pid=$!
-    show_loading "Installing Ubuntu 20.04 (Chroot)..." $pid
-    wait $pid
+    install_ubuntu_20_04_chroot_background
     print_success_box "Ubuntu 20.04 (Chroot) installed successfully!"
     clear_screen
 }
@@ -413,7 +457,7 @@ install_ubuntu_22_04_chroot_background() {
     ROOTFS_URL="https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-arm64-root.tar.xz"
     ROOTFS_TAR="ubuntu-22.04-rootfs.tar.xz"
 
-    print_step 1 $TOTAL "Cloning GitHub repo for fix scripts..."
+    print_steps_progress 1
     REPO_URL="https://github.com/amirmsoud16/ubuntu-chroot-pk-"
     CLONE_DIR="$HOME/ubuntu-chroot-pk-"
     if [ -d "$CLONE_DIR" ]; then
@@ -421,29 +465,29 @@ install_ubuntu_22_04_chroot_background() {
     fi
     git clone "$REPO_URL" "$CLONE_DIR"
 
-    print_step 2 $TOTAL "Downloading Ubuntu rootfs file..."
+    print_steps_progress 2
     wget -O "$ROOTFS_TAR" "$ROOTFS_URL"
 
-    print_step 3 $TOTAL "Creating ext4 image (20GB)..."
+    print_steps_progress 3
     dd if=/dev/zero of="$IMG" bs=1M count=$SIZE_MB
     mkfs.ext4 "$IMG"
 
-    print_step 4 $TOTAL "Creating mount directory..."
+    print_steps_progress 4
     mkdir -p "$MNT"
 
-    print_step 5 $TOTAL "Mounting image..."
+    print_steps_progress 5
     sudo mount -o loop "$IMG" "$MNT"
 
-    print_step 6 $TOTAL "Extracting rootfs into image..."
+    print_steps_progress 6
     sudo tar -xf "$ROOTFS_TAR" -C "$MNT" --exclude='./dev'
 
-    print_step 7 $TOTAL "Removing Android-sensitive paths (if any)..."
+    print_steps_progress 7
     sudo rm -rf "$MNT/sdcard" "$MNT/data" "$MNT/system"
 
-    print_step 8 $TOTAL "Cleaning up rootfs archive..."
+    print_steps_progress 8
     rm -f "$ROOTFS_TAR"
 
-    print_step 9 $TOTAL "Setting up DNS (resolv.conf)..."
+    print_steps_progress 9
     sudo umount "$MNT"
     sudo mount -o loop "$IMG" "$MNT"
     echo "nameserver 8.8.8.8" | sudo tee "$MNT/etc/resolv.conf" > /dev/null
@@ -451,7 +495,7 @@ install_ubuntu_22_04_chroot_background() {
     echo "nameserver 1.1.1.1" | sudo tee -a "$MNT/etc/resolv.conf" > /dev/null
     sudo umount "$MNT"
 
-    print_step 10 $TOTAL "Creating chroot shortcut and finishing installation!"
+    print_steps_progress 10
     BIN_DIR="$HOME/bin"
     mkdir -p "$BIN_DIR"
     SHORTCUT="$BIN_DIR/ubuntu22"
@@ -469,15 +513,22 @@ sudo umount "\$MNT/sys"
 sudo umount "\$MNT"
 EOF
     chmod +x "$SHORTCUT"
+    print_success_box "Ubuntu 22.04 (Chroot) installation completed!"
+    clear
+    echo -e "${WHITE}What do you want to do next?${NC}"
+    echo "  1) Go to main menu"
+    echo "  2) Enter installed Ubuntu chroot"
+    read -p "Enter your choice (1 or 2): " next_action
+    if [[ "$next_action" == "2" ]]; then
+        cd $HOME/ubuntu/ubuntu22-rootfs
+        ./start-ubuntu-22.04.sh
+    fi
 }
 
 # Function to install Ubuntu 22.04 (Chroot) - Main function
 install_ubuntu_22_04_chroot() {
     print_status "Installing Ubuntu 22.04 (Chroot)..."
-    install_ubuntu_22_04_chroot_background &
-    local pid=$!
-    show_loading "Installing Ubuntu 22.04 (Chroot)..." $pid
-    wait $pid
+    install_ubuntu_22_04_chroot_background
     print_success_box "Ubuntu 22.04 (Chroot) installed successfully!"
     clear_screen
 }
@@ -492,7 +543,7 @@ install_ubuntu_24_04_chroot_background() {
     ROOTFS_URL="https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-arm64-root.tar.xz"
     ROOTFS_TAR="ubuntu-24.04-rootfs.tar.xz"
 
-    print_step 1 $TOTAL "Cloning GitHub repo for fix scripts..."
+    print_steps_progress 1
     REPO_URL="https://github.com/amirmsoud16/ubuntu-chroot-pk-"
     CLONE_DIR="$HOME/ubuntu-chroot-pk-"
     if [ -d "$CLONE_DIR" ]; then
@@ -500,29 +551,29 @@ install_ubuntu_24_04_chroot_background() {
     fi
     git clone "$REPO_URL" "$CLONE_DIR"
 
-    print_step 2 $TOTAL "Downloading Ubuntu rootfs file..."
+    print_steps_progress 2
     wget -O "$ROOTFS_TAR" "$ROOTFS_URL"
 
-    print_step 3 $TOTAL "Creating ext4 image (20GB)..."
+    print_steps_progress 3
     dd if=/dev/zero of="$IMG" bs=1M count=$SIZE_MB
     mkfs.ext4 "$IMG"
 
-    print_step 4 $TOTAL "Creating mount directory..."
+    print_steps_progress 4
     mkdir -p "$MNT"
 
-    print_step 5 $TOTAL "Mounting image..."
+    print_steps_progress 5
     sudo mount -o loop "$IMG" "$MNT"
 
-    print_step 6 $TOTAL "Extracting rootfs into image..."
+    print_steps_progress 6
     sudo tar -xf "$ROOTFS_TAR" -C "$MNT" --exclude='./dev'
 
-    print_step 7 $TOTAL "Removing Android-sensitive paths (if any)..."
+    print_steps_progress 7
     sudo rm -rf "$MNT/sdcard" "$MNT/data" "$MNT/system"
 
-    print_step 8 $TOTAL "Cleaning up rootfs archive..."
+    print_steps_progress 8
     rm -f "$ROOTFS_TAR"
 
-    print_step 9 $TOTAL "Setting up DNS (resolv.conf)..."
+    print_steps_progress 9
     sudo umount "$MNT"
     sudo mount -o loop "$IMG" "$MNT"
     echo "nameserver 8.8.8.8" | sudo tee "$MNT/etc/resolv.conf" > /dev/null
@@ -530,7 +581,7 @@ install_ubuntu_24_04_chroot_background() {
     echo "nameserver 1.1.1.1" | sudo tee -a "$MNT/etc/resolv.conf" > /dev/null
     sudo umount "$MNT"
 
-    print_step 10 $TOTAL "Creating chroot shortcut and finishing installation!"
+    print_steps_progress 10
     BIN_DIR="$HOME/bin"
     mkdir -p "$BIN_DIR"
     SHORTCUT="$BIN_DIR/ubuntu24"
@@ -548,15 +599,22 @@ sudo umount "\$MNT/sys"
 sudo umount "\$MNT"
 EOF
     chmod +x "$SHORTCUT"
+    print_success_box "Ubuntu 24.04 (Chroot) installation completed!"
+    clear
+    echo -e "${WHITE}What do you want to do next?${NC}"
+    echo "  1) Go to main menu"
+    echo "  2) Enter installed Ubuntu chroot"
+    read -p "Enter your choice (1 or 2): " next_action
+    if [[ "$next_action" == "2" ]]; then
+        cd $HOME/ubuntu/ubuntu24-rootfs
+        ./start-ubuntu-24.04.sh
+    fi
 }
 
 # Function to install Ubuntu 24.04 (Chroot) - Main function
 install_ubuntu_24_04_chroot() {
     print_status "Installing Ubuntu 24.04 (Chroot)..."
-    install_ubuntu_24_04_chroot_background &
-    local pid=$!
-    show_loading "Installing Ubuntu 24.04 (Chroot)..." $pid
-    wait $pid
+    install_ubuntu_24_04_chroot_background
     print_success_box "Ubuntu 24.04 (Chroot) installed successfully!"
     clear_screen
 }
