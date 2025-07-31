@@ -49,13 +49,14 @@ download_ubuntu_rootfs() {
     local filename=$3
 
     print_status "Downloading Ubuntu ${version} rootfs..."
+    check_internet
     wget -O $filename $url
 
-    if [[ $? -eq 0 ]]; then
+    if [[ $? -eq 0 && -f $filename ]]; then
         print_status "✓ Download successful"
         return 0
     else
-        print_error "Failed to download from primary URL"
+        print_error "Failed to download from primary URL or file not found!"
         return 1
     fi
 }
@@ -278,9 +279,28 @@ system_check() {
     clear_screen
 }
 
+# Function to check if a command exists
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
 
+# Check for required commands before proceeding
+for cmd in wget tar proot; do
+    if ! command_exists $cmd; then
+        print_error "Command '$cmd' not found! Please install it in Termux."
+        exit 1
+    fi
+done
 
-
+# Check for internet connection before downloading
+check_internet() {
+    print_status "Checking internet connection..."
+    if ! ping -c 1 8.8.8.8 >/dev/null 2>&1; then
+        print_error "No internet connection! Please connect to the internet and try again."
+        exit 1
+    fi
+    print_success "Internet connection is OK."
+}
 
 # Function to install Ubuntu 18.04 (Chroot) in background
 install_ubuntu_18_04_chroot_background() {
