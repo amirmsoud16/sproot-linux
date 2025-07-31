@@ -29,59 +29,82 @@ print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
+# Function to check if a command exists
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+# Check for required commands before proceeding
+for cmd in apt dpkg wget curl; do
+    if ! command_exists $cmd; then
+        echo -e "${RED}[ERROR]${NC} Command '$cmd' not found! Please make sure your Ubuntu chroot is healthy."
+        exit 1
+    fi
+done
+
+# Check for internet connection before updating or installing
+check_internet() {
+    print_status "Checking internet connection..."
+    if ! ping -c 1 8.8.8.8 >/dev/null 2>&1; then
+        print_error "No internet connection! Please connect to the internet and try again."
+        exit 1
+    fi
+    print_success "Internet connection is OK."
+}
+
 # Function to fix permission issues
 fix_permissions() {
     print_status "🔧 Fixing permission issues..."
     
     # Fix dpkg directory permissions
     print_status "Fixing dpkg directory permissions..."
-    chmod 755 /var/lib/dpkg 2>/dev/null || true
-    chmod 755 /var/lib/dpkg/info 2>/dev/null || true
-    chmod 755 /var/lib/dpkg/updates 2>/dev/null || true
-    chmod 755 /var/lib/dpkg/triggers 2>/dev/null || true
+    [ -d /var/lib/dpkg ] && chmod 755 /var/lib/dpkg 2>/dev/null || true
+    [ -d /var/lib/dpkg/info ] && chmod 755 /var/lib/dpkg/info 2>/dev/null || true
+    [ -d /var/lib/dpkg/updates ] && chmod 755 /var/lib/dpkg/updates 2>/dev/null || true
+    [ -d /var/lib/dpkg/triggers ] && chmod 755 /var/lib/dpkg/triggers 2>/dev/null || true
     
     # Fix dpkg status file permissions
     print_status "Fixing dpkg status file permissions..."
-    chmod 644 /var/lib/dpkg/status 2>/dev/null || true
-    chmod 644 /var/lib/dpkg/status-old 2>/dev/null || true
+    [ -f /var/lib/dpkg/status ] && chmod 644 /var/lib/dpkg/status 2>/dev/null || true
+    [ -f /var/lib/dpkg/status-old ] && chmod 644 /var/lib/dpkg/status-old 2>/dev/null || true
     
     # Remove problematic backup files
     print_status "Cleaning dpkg backup files..."
-    rm -f /var/lib/dpkg/status-old
-    rm -f /var/lib/dpkg/status.backup
-    rm -f /var/lib/dpkg/status-*
+    [ -f /var/lib/dpkg/status-old ] && rm -f /var/lib/dpkg/status-old
+    [ -f /var/lib/dpkg/status.backup ] && rm -f /var/lib/dpkg/status.backup
+    rm -f /var/lib/dpkg/status-* 2>/dev/null || true
     
     # Fix library permissions - more comprehensive
     print_status "Fixing library permissions..."
-    find /usr/lib -name "*.so*" -exec chmod 755 {} \; 2>/dev/null || true
-    find /usr/lib/aarch64-linux-gnu -name "*.so*" -exec chmod 755 {} \; 2>/dev/null || true
-    find /lib -name "*.so*" -exec chmod 755 {} \; 2>/dev/null || true
-    find /lib/aarch64-linux-gnu -name "*.so*" -exec chmod 755 {} \; 2>/dev/null || true
+    [ -d /usr/lib ] && find /usr/lib -name "*.so*" -exec chmod 755 {} \; 2>/dev/null || true
+    [ -d /usr/lib/aarch64-linux-gnu ] && find /usr/lib/aarch64-linux-gnu -name "*.so*" -exec chmod 755 {} \; 2>/dev/null || true
+    [ -d /lib ] && find /lib -name "*.so*" -exec chmod 755 {} \; 2>/dev/null || true
+    [ -d /lib/aarch64-linux-gnu ] && find /lib/aarch64-linux-gnu -name "*.so*" -exec chmod 755 {} \; 2>/dev/null || true
     
     # Fix specific problematic libraries
     print_status "Fixing specific library permissions..."
-    chmod 755 /usr/lib/aarch64-linux-gnu/libsqlite3.so.0.8.6 2>/dev/null || true
-    chmod 755 /usr/lib/aarch64-linux-gnu/libgnutls.so.30.31.0 2>/dev/null || true
-    chmod 755 /usr/lib/aarch64-linux-gnu/libsqlite3.so.0 2>/dev/null || true
-    chmod 755 /usr/lib/aarch64-linux-gnu/libgnutls.so.30 2>/dev/null || true
+    [ -f /usr/lib/aarch64-linux-gnu/libsqlite3.so.0.8.6 ] && chmod 755 /usr/lib/aarch64-linux-gnu/libsqlite3.so.0.8.6 2>/dev/null || true
+    [ -f /usr/lib/aarch64-linux-gnu/libgnutls.so.30.31.0 ] && chmod 755 /usr/lib/aarch64-linux-gnu/libgnutls.so.30.31.0 2>/dev/null || true
+    [ -f /usr/lib/aarch64-linux-gnu/libsqlite3.so.0 ] && chmod 755 /usr/lib/aarch64-linux-gnu/libsqlite3.so.0 2>/dev/null || true
+    [ -f /usr/lib/aarch64-linux-gnu/libgnutls.so.30 ] && chmod 755 /usr/lib/aarch64-linux-gnu/libgnutls.so.30 2>/dev/null || true
     
     # Fix apt cache permissions
     print_status "Fixing apt cache permissions..."
-    chmod 755 /var/cache/apt 2>/dev/null || true
-    chmod 755 /var/cache/apt/archives 2>/dev/null || true
-    chmod 755 /var/cache/apt/archives/partial 2>/dev/null || true
+    [ -d /var/cache/apt ] && chmod 755 /var/cache/apt 2>/dev/null || true
+    [ -d /var/cache/apt/archives ] && chmod 755 /var/cache/apt/archives 2>/dev/null || true
+    [ -d /var/cache/apt/archives/partial ] && chmod 755 /var/cache/apt/archives/partial 2>/dev/null || true
     
     # Fix tmp directory permissions
     print_status "Fixing tmp directory permissions..."
-    chmod 1777 /tmp 2>/dev/null || true
-    chmod 1777 /var/tmp 2>/dev/null || true
+    [ -d /tmp ] && chmod 1777 /tmp 2>/dev/null || true
+    [ -d /var/tmp ] && chmod 1777 /var/tmp 2>/dev/null || true
     
     # Fix dpkg lock files
     print_status "Removing dpkg lock files..."
-    rm -f /var/lib/dpkg/lock 2>/dev/null || true
-    rm -f /var/lib/dpkg/lock-frontend 2>/dev/null || true
-    rm -f /var/cache/apt/archives/lock 2>/dev/null || true
-    rm -f /var/lib/apt/lists/lock 2>/dev/null || true
+    [ -f /var/lib/dpkg/lock ] && rm -f /var/lib/dpkg/lock 2>/dev/null || true
+    [ -f /var/lib/dpkg/lock-frontend ] && rm -f /var/lib/dpkg/lock-frontend 2>/dev/null || true
+    [ -f /var/cache/apt/archives/lock ] && rm -f /var/cache/apt/archives/lock 2>/dev/null || true
+    [ -f /var/lib/apt/lists/lock ] && rm -f /var/lib/apt/lists/lock 2>/dev/null || true
     
     print_success "Permission issues fixed"
 }
@@ -387,6 +410,8 @@ main() {
     print_status "This will install all essential tools for Ubuntu"
     echo ""
     
+    # Step 0: Check internet and required commands
+    check_internet
     # Step 1: Fix permissions and update package lists
     print_status "🔧 Fixing permissions and updating package lists..."
     
