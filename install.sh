@@ -80,90 +80,6 @@ clear_screen() {
     clear
 }
 
-# Function to get user credentials
-get_user_credentials() {
-    echo -e "${CYAN}================================${NC}"
-    echo -e "${CYAN}  User Configuration${NC}"
-    echo -e "${CYAN}================================${NC}"
-    echo ""
-    
-    # Get username
-    while true; do
-        read -p "Enter username for Ubuntu: " UBUNTU_USERNAME
-        if [[ -n "$UBUNTU_USERNAME" ]]; then
-            break
-        else
-            print_error "Username cannot be empty!"
-        fi
-    done
-    
-    # Get root password
-    while true; do
-        read -s -p "Enter root password for Ubuntu: " ROOT_PASSWORD
-        echo ""
-        if [[ -n "$ROOT_PASSWORD" ]]; then
-            read -s -p "Confirm root password: " ROOT_PASSWORD_CONFIRM
-            echo ""
-            if [[ "$ROOT_PASSWORD" == "$ROOT_PASSWORD_CONFIRM" ]]; then
-                break
-            else
-                print_error "Passwords do not match!"
-            fi
-        else
-            print_error "Password cannot be empty!"
-        fi
-    done
-    
-
-    
-    print_success "User configuration saved!"
-    print_status "Username: $UBUNTU_USERNAME"
-    print_status "Root password: ********"
-    print_status "User password: None (no password required)"
-    echo ""
-}
-
-# Function to create user and set password in Ubuntu
-setup_ubuntu_user() {
-    local install_dir=$1
-    
-    # Create user setup script with proper variable substitution
-    cat > $install_dir/setup-user.sh << EOF
-#!/bin/bash
-# Setup user and password in Ubuntu
-
-# Create user with adduser (interactive)
-echo "$UBUNTU_USERNAME" | adduser --gecos "" $UBUNTU_USERNAME
-
-# Set root password
-echo "root:$ROOT_PASSWORD" | chpasswd
-
-# Set user password to empty (no password)
-echo "$UBUNTU_USERNAME:" | chpasswd
-
-# Add user to sudo group
-usermod -aG sudo $UBUNTU_USERNAME
-
-# Create user directories
-mkdir -p /home/$UBUNTU_USERNAME
-chown -R $UBUNTU_USERNAME:$UBUNTU_USERNAME /home/$UBUNTU_USERNAME
-
-# Setup DNS for internet connectivity
-rm -f /etc/resolv.conf
-echo "nameserver 8.8.8.8" > /etc/resolv.conf
-echo "nameserver 8.8.4.4" >> /etc/resolv.conf
-echo "nameserver 1.1.1.1" >> /etc/resolv.conf
-
-echo "User setup completed!"
-EOF
-    chmod +x $install_dir/setup-user.sh
-    
-    # Execute the setup script in Ubuntu environment
-    cd $install_dir
-    proot -0 -r . -b /dev -b /proc -b /sys -w / /bin/bash setup-user.sh
-    cd $HOME
-}
-
 # Function to create Ubuntu start scripts with different access levels
 create_ubuntu_start_scripts() {
     local version=$1
@@ -346,6 +262,13 @@ install_ubuntu_18_04_chroot_background() {
     # unmount
     sudo umount "$MNT"
 
+    # Mount the image again, set up DNS, then unmount.
+    sudo mount -o loop "$IMG" "$MNT"
+    echo "nameserver 8.8.8.8" | sudo tee "$MNT/etc/resolv.conf" > /dev/null
+    echo "nameserver 8.8.4.4" | sudo tee -a "$MNT/etc/resolv.conf" > /dev/null
+    echo "nameserver 1.1.1.1" | sudo tee -a "$MNT/etc/resolv.conf" > /dev/null
+    sudo umount "$MNT"
+
     # ساخت شورتکات ورود
     BIN_DIR="$HOME/bin"
     mkdir -p "$BIN_DIR"
@@ -369,67 +292,11 @@ EOF
 # Function to install Ubuntu 18.04 (Chroot) - Main function
 install_ubuntu_18_04_chroot() {
     print_status "Installing Ubuntu 18.04 (Chroot)..."
-
-    # Start installation in background
     install_ubuntu_18_04_chroot_background &
     local pid=$!
-
-    # Show loading animation
     show_loading "Installing Ubuntu 18.04 (Chroot)..." $pid
-
-    # Wait for installation to complete
     wait $pid
-
-    # Check result
-    if [[ -f $HOME/ubuntu_install_result ]]; then
-        local result=$(cat $HOME/ubuntu_install_result)
-        rm -f $HOME/ubuntu_install_result
-
-        if [[ "$result" == "chroot_success" ]]; then
-            print_success_box "Ubuntu 18.04 (Chroot) installed successfully!"
-            
-            # Create start scripts with different access levels
-            create_ubuntu_start_scripts "18" "$UBUNTU_USERNAME"
-            
-            print_status "Access commands created:"
-            print_status "• ubuntu18 - Enter as root (password required)"
-            print_status "• ubuntu18-$UBUNTU_USERNAME - Enter as user"
-
-            # Ask user what to do next
-            echo ""
-            echo -e "${CYAN}What would you like to do next?${NC}"
-            echo -e "${BLUE}1.${NC} Enter Ubuntu 18.04 as root"
-            echo -e "${BLUE}2.${NC} Enter Ubuntu 18.04 as user"
-            echo -e "${BLUE}3.${NC} Return to main menu"
-            echo ""
-            read -p "Enter your choice (1-3): " post_install_choice
-
-            case $post_install_choice in
-                1)
-                    print_status "Entering Ubuntu 18.04 as root..."
-                    cd $HOME/ubuntu/ubuntu18-rootfs && ./start-ubuntu-18.04.sh
-                    ;;
-                2)
-                    print_status "Entering Ubuntu 18.04 as user..."
-                    cd $HOME/ubuntu/ubuntu18-rootfs && ./start-ubuntu-18.04-user.sh
-                    ;;
-                3)
-                    print_status "Returning to main menu..."
-                    ;;
-                *)
-                    print_status "Returning to main menu..."
-                    ;;
-            esac
-        elif [[ "$result" == "chroot_failed" ]]; then
-            print_error_box "Failed to download Ubuntu 18.04 rootfs"
-            print_status "Please check your internet connection and try again"
-        else
-            print_error_box "Failed to install Ubuntu 18.04"
-        fi
-    else
-        print_error_box "Installation failed"
-    fi
-
+    print_success_box "Ubuntu 18.04 (Chroot) installed successfully!"
     clear_screen
 }
 
@@ -467,6 +334,13 @@ install_ubuntu_20_04_chroot_background() {
     # unmount
     sudo umount "$MNT"
 
+    # Mount the image again, set up DNS, then unmount.
+    sudo mount -o loop "$IMG" "$MNT"
+    echo "nameserver 8.8.8.8" | sudo tee "$MNT/etc/resolv.conf" > /dev/null
+    echo "nameserver 8.8.4.4" | sudo tee -a "$MNT/etc/resolv.conf" > /dev/null
+    echo "nameserver 1.1.1.1" | sudo tee -a "$MNT/etc/resolv.conf" > /dev/null
+    sudo umount "$MNT"
+
     # ساخت شورتکات ورود
     BIN_DIR="$HOME/bin"
     mkdir -p "$BIN_DIR"
@@ -490,67 +364,11 @@ EOF
 # Function to install Ubuntu 20.04 (Chroot) - Main function
 install_ubuntu_20_04_chroot() {
     print_status "Installing Ubuntu 20.04 (Chroot)..."
-
-    # Start installation in background
     install_ubuntu_20_04_chroot_background &
     local pid=$!
-
-    # Show loading animation
     show_loading "Installing Ubuntu 20.04 (Chroot)..." $pid
-
-    # Wait for installation to complete
     wait $pid
-
-    # Check result
-    if [[ -f $HOME/ubuntu_install_result ]]; then
-        local result=$(cat $HOME/ubuntu_install_result)
-        rm -f $HOME/ubuntu_install_result
-
-        if [[ "$result" == "chroot_success" ]]; then
-            print_success_box "Ubuntu 20.04 (Chroot) installed successfully!"
-            
-            # Create start scripts with different access levels
-            create_ubuntu_start_scripts "20" "$UBUNTU_USERNAME"
-            
-            print_status "Access commands created:"
-            print_status "• ubuntu20 - Enter as root (password required)"
-            print_status "• ubuntu20-$UBUNTU_USERNAME - Enter as user"
-
-            # Ask user what to do next
-            echo ""
-            echo -e "${CYAN}What would you like to do next?${NC}"
-            echo -e "${BLUE}1.${NC} Enter Ubuntu 20.04 as root"
-            echo -e "${BLUE}2.${NC} Enter Ubuntu 20.04 as user"
-            echo -e "${BLUE}3.${NC} Return to main menu"
-            echo ""
-            read -p "Enter your choice (1-3): " post_install_choice
-
-            case $post_install_choice in
-                1)
-                    print_status "Entering Ubuntu 20.04 as root..."
-                    cd $HOME/ubuntu/ubuntu20-rootfs && ./start-ubuntu-20.04.sh
-                    ;;
-                2)
-                    print_status "Entering Ubuntu 20.04 as user..."
-                    cd $HOME/ubuntu/ubuntu20-rootfs && ./start-ubuntu-20.04-user.sh
-                    ;;
-                3)
-                    print_status "Returning to main menu..."
-                    ;;
-                *)
-                    print_status "Returning to main menu..."
-                    ;;
-            esac
-        elif [[ "$result" == "chroot_failed" ]]; then
-            print_error_box "Failed to download Ubuntu 20.04 rootfs"
-            print_status "Please check your internet connection and try again"
-        else
-            print_error_box "Failed to install Ubuntu 20.04"
-        fi
-    else
-        print_error_box "Installation failed"
-    fi
-
+    print_success_box "Ubuntu 20.04 (Chroot) installed successfully!"
     clear_screen
 }
 
@@ -588,6 +406,13 @@ install_ubuntu_22_04_chroot_background() {
     # unmount
     sudo umount "$MNT"
 
+    # Mount the image again, set up DNS, then unmount.
+    sudo mount -o loop "$IMG" "$MNT"
+    echo "nameserver 8.8.8.8" | sudo tee "$MNT/etc/resolv.conf" > /dev/null
+    echo "nameserver 8.8.4.4" | sudo tee -a "$MNT/etc/resolv.conf" > /dev/null
+    echo "nameserver 1.1.1.1" | sudo tee -a "$MNT/etc/resolv.conf" > /dev/null
+    sudo umount "$MNT"
+
     # ساخت شورتکات ورود
     BIN_DIR="$HOME/bin"
     mkdir -p "$BIN_DIR"
@@ -611,67 +436,11 @@ EOF
 # Function to install Ubuntu 22.04 (Chroot) - Main function
 install_ubuntu_22_04_chroot() {
     print_status "Installing Ubuntu 22.04 (Chroot)..."
-
-    # Start installation in background
     install_ubuntu_22_04_chroot_background &
     local pid=$!
-
-    # Show loading animation
     show_loading "Installing Ubuntu 22.04 (Chroot)..." $pid
-
-    # Wait for installation to complete
     wait $pid
-
-    # Check result
-    if [[ -f $HOME/ubuntu_install_result ]]; then
-        local result=$(cat $HOME/ubuntu_install_result)
-        rm -f $HOME/ubuntu_install_result
-
-        if [[ "$result" == "chroot_success" ]]; then
-            print_success_box "Ubuntu 22.04 (Chroot) installed successfully!"
-            
-            # Create start scripts with different access levels
-            create_ubuntu_start_scripts "22" "$UBUNTU_USERNAME"
-            
-            print_status "Access commands created:"
-            print_status "• ubuntu22 - Enter as root (password required)"
-            print_status "• ubuntu22-$UBUNTU_USERNAME - Enter as user"
-
-            # Ask user what to do next
-            echo ""
-            echo -e "${CYAN}What would you like to do next?${NC}"
-            echo -e "${BLUE}1.${NC} Enter Ubuntu 22.04 as root"
-            echo -e "${BLUE}2.${NC} Enter Ubuntu 22.04 as user"
-            echo -e "${BLUE}3.${NC} Return to main menu"
-            echo ""
-            read -p "Enter your choice (1-3): " post_install_choice
-
-            case $post_install_choice in
-                1)
-                    print_status "Entering Ubuntu 22.04 as root..."
-                    cd $HOME/ubuntu/ubuntu22-rootfs && ./start-ubuntu-22.04.sh
-                    ;;
-                2)
-                    print_status "Entering Ubuntu 22.04 as user..."
-                    cd $HOME/ubuntu/ubuntu22-rootfs && ./start-ubuntu-22.04-user.sh
-                    ;;
-                3)
-                    print_status "Returning to main menu..."
-                    ;;
-                *)
-                    print_status "Returning to main menu..."
-                    ;;
-            esac
-        elif [[ "$result" == "chroot_failed" ]]; then
-            print_error_box "Failed to download Ubuntu 22.04 rootfs"
-            print_status "Please check your internet connection and try again"
-        else
-            print_error_box "Failed to install Ubuntu 22.04"
-        fi
-    else
-        print_error_box "Installation failed"
-    fi
-
+    print_success_box "Ubuntu 22.04 (Chroot) installed successfully!"
     clear_screen
 }
 
@@ -709,6 +478,13 @@ install_ubuntu_24_04_chroot_background() {
     # unmount
     sudo umount "$MNT"
 
+    # Mount the image again, set up DNS, then unmount.
+    sudo mount -o loop "$IMG" "$MNT"
+    echo "nameserver 8.8.8.8" | sudo tee "$MNT/etc/resolv.conf" > /dev/null
+    echo "nameserver 8.8.4.4" | sudo tee -a "$MNT/etc/resolv.conf" > /dev/null
+    echo "nameserver 1.1.1.1" | sudo tee -a "$MNT/etc/resolv.conf" > /dev/null
+    sudo umount "$MNT"
+
     # ساخت شورتکات ورود
     BIN_DIR="$HOME/bin"
     mkdir -p "$BIN_DIR"
@@ -732,67 +508,11 @@ EOF
 # Function to install Ubuntu 24.04 (Chroot) - Main function
 install_ubuntu_24_04_chroot() {
     print_status "Installing Ubuntu 24.04 (Chroot)..."
-
-    # Start installation in background
     install_ubuntu_24_04_chroot_background &
     local pid=$!
-
-    # Show loading animation
     show_loading "Installing Ubuntu 24.04 (Chroot)..." $pid
-
-    # Wait for installation to complete
     wait $pid
-
-    # Check result
-    if [[ -f $HOME/ubuntu_install_result ]]; then
-        local result=$(cat $HOME/ubuntu_install_result)
-        rm -f $HOME/ubuntu_install_result
-
-        if [[ "$result" == "chroot_success" ]]; then
-            print_success_box "Ubuntu 24.04 (Chroot) installed successfully!"
-            
-            # Create start scripts with different access levels
-            create_ubuntu_start_scripts "24" "$UBUNTU_USERNAME"
-            
-            print_status "Access commands created:"
-            print_status "• ubuntu24 - Enter as root (password required)"
-            print_status "• ubuntu24-$UBUNTU_USERNAME - Enter as user"
-
-            # Ask user what to do next
-            echo ""
-            echo -e "${CYAN}What would you like to do next?${NC}"
-            echo -e "${BLUE}1.${NC} Enter Ubuntu 24.04 as root"
-            echo -e "${BLUE}2.${NC} Enter Ubuntu 24.04 as user"
-            echo -e "${BLUE}3.${NC} Return to main menu"
-            echo ""
-            read -p "Enter your choice (1-3): " post_install_choice
-
-            case $post_install_choice in
-                1)
-                    print_status "Entering Ubuntu 24.04 as root..."
-                    cd $HOME/ubuntu/ubuntu24-rootfs && ./start-ubuntu-24.04.sh
-                    ;;
-                2)
-                    print_status "Entering Ubuntu 24.04 as user..."
-                    cd $HOME/ubuntu/ubuntu24-rootfs && ./start-ubuntu-24.04-user.sh
-                    ;;
-                3)
-                    print_status "Returning to main menu..."
-                    ;;
-                *)
-                    print_status "Returning to main menu..."
-                    ;;
-            esac
-        elif [[ "$result" == "chroot_failed" ]]; then
-            print_error_box "Failed to download Ubuntu 24.04 rootfs"
-            print_status "Please check your internet connection and try again"
-        else
-            print_error_box "Failed to install Ubuntu 24.04"
-        fi
-    else
-        print_error_box "Installation failed"
-    fi
-
+    print_success_box "Ubuntu 24.04 (Chroot) installed successfully!"
     clear_screen
 }
 
