@@ -29,6 +29,65 @@ print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
+# Function to check file integrity and prevent editing
+check_file_integrity() {
+    local file="$1"
+    local checksum_file="$2"
+    
+    # Create checksum if not exists
+    if [ ! -f "$checksum_file" ]; then
+        sha256sum "$file" > "$checksum_file" 2>/dev/null || true
+        return 0
+    fi
+    
+    # Check if file has been modified
+    if ! sha256sum -c "$checksum_file" >/dev/null 2>&1; then
+        print_error "File integrity check failed! File may have been modified."
+        print_warning "Please re-download the setup script from the official source."
+        return 1
+    fi
+    
+    return 0
+}
+
+# Function to protect setup files
+protect_setup_files() {
+    # Make this script read-only
+    chmod 444 "$0" 2>/dev/null || true
+    
+    # Protect any created scripts
+    if [ -d "$HOME/scripts" ]; then
+        find "$HOME/scripts" -name "*.sh" -exec chmod 444 {} \; 2>/dev/null || true
+    fi
+}
+
+# Function to restore setup file permissions
+restore_setup_permissions() {
+    # Make this script executable again
+    chmod 755 "$0" 2>/dev/null || true
+    
+    # Make scripts executable if needed
+    if [ -d "$HOME/scripts" ]; then
+        find "$HOME/scripts" -name "*.sh" -exec chmod 755 {} \; 2>/dev/null || true
+    fi
+}
+
+# Function to verify setup environment
+verify_setup_environment() {
+    print_status "Verifying setup environment..."
+    
+    # Check file integrity
+    local checksum_file="$HOME/.setup_checksum"
+    if ! check_file_integrity "$0" "$checksum_file"; then
+        exit 1
+    fi
+    
+    # Protect setup files
+    protect_setup_files
+    
+    print_success "Setup environment verification completed"
+}
+
 # Function to check if a command exists
 command_exists() {
     command -v "$1" >/dev/null 2>&1
@@ -56,17 +115,17 @@ check_internet() {
 fix_permissions() {
     print_status "🔧 Fixing permission issues..."
     
-    # Fix dpkg directory permissions
-    print_status "Fixing dpkg directory permissions..."
-    [ -d /var/lib/dpkg ] && chmod 755 /var/lib/dpkg 2>/dev/null || true
-    [ -d /var/lib/dpkg/info ] && chmod 755 /var/lib/dpkg/info 2>/dev/null || true
-    [ -d /var/lib/dpkg/updates ] && chmod 755 /var/lib/dpkg/updates 2>/dev/null || true
-    [ -d /var/lib/dpkg/triggers ] && chmod 755 /var/lib/dpkg/triggers 2>/dev/null || true
+    # Check dpkg directory permissions - SAFE VERSION
+    print_status "Checking dpkg directory permissions..."
+    [ -d /var/lib/dpkg ] && print_status "/var/lib/dpkg directory exists" || print_warning "/var/lib/dpkg directory not found"
+    [ -d /var/lib/dpkg/info ] && print_status "/var/lib/dpkg/info directory exists" || print_warning "/var/lib/dpkg/info directory not found"
+    [ -d /var/lib/dpkg/updates ] && print_status "/var/lib/dpkg/updates directory exists" || print_warning "/var/lib/dpkg/updates directory not found"
+    [ -d /var/lib/dpkg/triggers ] && print_status "/var/lib/dpkg/triggers directory exists" || print_warning "/var/lib/dpkg/triggers directory not found"
     
-    # Fix dpkg status file permissions
-    print_status "Fixing dpkg status file permissions..."
-    [ -f /var/lib/dpkg/status ] && chmod 644 /var/lib/dpkg/status 2>/dev/null || true
-    [ -f /var/lib/dpkg/status-old ] && chmod 644 /var/lib/dpkg/status-old 2>/dev/null || true
+    # Check dpkg status file permissions - SAFE VERSION
+    print_status "Checking dpkg status file permissions..."
+    [ -f /var/lib/dpkg/status ] && print_status "/var/lib/dpkg/status file exists" || print_warning "/var/lib/dpkg/status file not found"
+    [ -f /var/lib/dpkg/status-old ] && print_status "/var/lib/dpkg/status-old file exists" || print_warning "/var/lib/dpkg/status-old file not found"
     
     # Remove problematic backup files
     print_status "Cleaning dpkg backup files..."
@@ -74,30 +133,31 @@ fix_permissions() {
     [ -f /var/lib/dpkg/status.backup ] && rm -f /var/lib/dpkg/status.backup
     rm -f /var/lib/dpkg/status-* 2>/dev/null || true
     
-    # Fix library permissions - more comprehensive
-    print_status "Fixing library permissions..."
-    [ -d /usr/lib ] && find /usr/lib -name "*.so*" -exec chmod 755 {} \; 2>/dev/null || true
-    [ -d /usr/lib/aarch64-linux-gnu ] && find /usr/lib/aarch64-linux-gnu -name "*.so*" -exec chmod 755 {} \; 2>/dev/null || true
-    [ -d /lib ] && find /lib -name "*.so*" -exec chmod 755 {} \; 2>/dev/null || true
-    [ -d /lib/aarch64-linux-gnu ] && find /lib/aarch64-linux-gnu -name "*.so*" -exec chmod 755 {} \; 2>/dev/null || true
+    # Check library permissions - SAFE VERSION
+    print_status "Checking library directories..."
+    [ -d /usr/lib ] && print_status "/usr/lib directory exists" || print_warning "/usr/lib directory not found"
+    [ -d /usr/lib/aarch64-linux-gnu ] && print_status "/usr/lib/aarch64-linux-gnu directory exists" || print_warning "/usr/lib/aarch64-linux-gnu directory not found"
+    [ -d /lib ] && print_status "/lib directory exists" || print_warning "/lib directory not found"
+    [ -d /lib/aarch64-linux-gnu ] && print_status "/lib/aarch64-linux-gnu directory exists" || print_warning "/lib/aarch64-linux-gnu directory not found"
     
-    # Fix specific problematic libraries
-    print_status "Fixing specific library permissions..."
-    [ -f /usr/lib/aarch64-linux-gnu/libsqlite3.so.0.8.6 ] && chmod 755 /usr/lib/aarch64-linux-gnu/libsqlite3.so.0.8.6 2>/dev/null || true
-    [ -f /usr/lib/aarch64-linux-gnu/libgnutls.so.30.31.0 ] && chmod 755 /usr/lib/aarch64-linux-gnu/libgnutls.so.30.31.0 2>/dev/null || true
-    [ -f /usr/lib/aarch64-linux-gnu/libsqlite3.so.0 ] && chmod 755 /usr/lib/aarch64-linux-gnu/libsqlite3.so.0 2>/dev/null || true
-    [ -f /usr/lib/aarch64-linux-gnu/libgnutls.so.30 ] && chmod 755 /usr/lib/aarch64-linux-gnu/libgnutls.so.30 2>/dev/null || true
+    # Fix specific problematic libraries - SAFE VERSION
+    print_status "Checking library permissions..."
+    # Only check if libraries exist, don't change permissions
+    [ -f /usr/lib/aarch64-linux-gnu/libsqlite3.so.0.8.6 ] && print_status "libsqlite3.so.0.8.6 found" || print_warning "libsqlite3.so.0.8.6 not found"
+    [ -f /usr/lib/aarch64-linux-gnu/libgnutls.so.30.31.0 ] && print_status "libgnutls.so.30.31.0 found" || print_warning "libgnutls.so.30.31.0 not found"
+    [ -f /usr/lib/aarch64-linux-gnu/libsqlite3.so.0 ] && print_status "libsqlite3.so.0 found" || print_warning "libsqlite3.so.0 not found"
+    [ -f /usr/lib/aarch64-linux-gnu/libgnutls.so.30 ] && print_status "libgnutls.so.30 found" || print_warning "libgnutls.so.30 not found"
     
-    # Fix apt cache permissions
-    print_status "Fixing apt cache permissions..."
-    [ -d /var/cache/apt ] && chmod 755 /var/cache/apt 2>/dev/null || true
-    [ -d /var/cache/apt/archives ] && chmod 755 /var/cache/apt/archives 2>/dev/null || true
-    [ -d /var/cache/apt/archives/partial ] && chmod 755 /var/cache/apt/archives/partial 2>/dev/null || true
+    # Check apt cache permissions - SAFE VERSION
+    print_status "Checking apt cache permissions..."
+    [ -d /var/cache/apt ] && print_status "/var/cache/apt directory exists" || print_warning "/var/cache/apt directory not found"
+    [ -d /var/cache/apt/archives ] && print_status "/var/cache/apt/archives directory exists" || print_warning "/var/cache/apt/archives directory not found"
+    [ -d /var/cache/apt/archives/partial ] && print_status "/var/cache/apt/archives/partial directory exists" || print_warning "/var/cache/apt/archives/partial directory not found"
     
-    # Fix tmp directory permissions
-    print_status "Fixing tmp directory permissions..."
-    [ -d /tmp ] && chmod 1777 /tmp 2>/dev/null || true
-    [ -d /var/tmp ] && chmod 1777 /var/tmp 2>/dev/null || true
+    # Check tmp directory permissions - SAFE VERSION
+    print_status "Checking tmp directory permissions..."
+    [ -d /tmp ] && print_status "/tmp directory exists" || print_warning "/tmp directory not found"
+    [ -d /var/tmp ] && print_status "/var/tmp directory exists" || print_warning "/var/tmp directory not found"
     
     # Fix dpkg lock files
     print_status "Removing dpkg lock files..."
@@ -472,4 +532,5 @@ if [ ! -f /etc/resolv.conf ]; then
 fi
 
 # Run main function
+verify_setup_environment
 main "$@" 
