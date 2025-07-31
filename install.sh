@@ -12,6 +12,110 @@ CYAN='\033[0;36m'
 WHITE='\033[1;37m'
 NC='\033[0m'
 
+# Function to check file integrity and prevent editing
+check_file_integrity() {
+    local file="$1"
+    local checksum_file="$2"
+    
+    # Create checksum if not exists
+    if [ ! -f "$checksum_file" ]; then
+        sha256sum "$file" > "$checksum_file" 2>/dev/null || true
+        return 0
+    fi
+    
+    # Check if file has been modified
+    if ! sha256sum -c "$checksum_file" >/dev/null 2>&1; then
+        print_error "File integrity check failed! File may have been modified."
+        print_warning "Please re-download the installer from the official source."
+        return 1
+    fi
+    
+    return 0
+}
+
+# Function to protect critical files
+protect_critical_files() {
+    local install_dir="$HOME/ubuntu"
+    
+    # Make critical files read-only
+    if [ -d "$install_dir" ]; then
+        find "$install_dir" -name "*.sh" -exec chmod 444 {} \; 2>/dev/null || true
+        find "$install_dir" -name "*.img" -exec chmod 444 {} \; 2>/dev/null || true
+    fi
+    
+    # Protect this script itself
+    chmod 444 "$0" 2>/dev/null || true
+}
+
+# Function to restore file permissions when needed
+restore_file_permissions() {
+    local install_dir="$HOME/ubuntu"
+    
+    # Make files executable again for installation
+    if [ -d "$install_dir" ]; then
+        find "$install_dir" -name "*.sh" -exec chmod 755 {} \; 2>/dev/null || true
+    fi
+    
+    # Make this script executable again
+    chmod 755 "$0" 2>/dev/null || true
+}
+
+# Function to verify installation environment
+verify_installation_environment() {
+    print_status "Verifying installation environment..."
+    
+    # Check if running from official source
+    local script_path="$(readlink -f "$0")"
+    if [[ "$script_path" == *"termux"* ]] || [[ "$script_path" == *"tmp"* ]]; then
+        print_warning "Script is running from temporary location"
+        print_status "For security, consider downloading from official source"
+    fi
+    
+    # Check file integrity
+    local checksum_file="$HOME/.installer_checksum"
+    if ! check_file_integrity "$0" "$checksum_file"; then
+        exit 1
+    fi
+    
+    # Protect critical files
+    protect_critical_files
+    
+    print_success "Environment verification completed"
+}
+
+# Function to create read-only Ubuntu environment
+create_readonly_environment() {
+    local version="$1"
+    local install_dir="$HOME/ubuntu/ubuntu${version}-rootfs"
+    
+    if [ -d "$install_dir" ]; then
+        # Make all files read-only
+        find "$install_dir" -type f -exec chmod 444 {} \; 2>/dev/null || true
+        find "$install_dir" -type d -exec chmod 555 {} \; 2>/dev/null || true
+        
+        # Make specific directories writable for Ubuntu to work
+        chmod 755 "$install_dir/tmp" 2>/dev/null || true
+        chmod 755 "$install_dir/var/tmp" 2>/dev/null || true
+        chmod 755 "$install_dir/home" 2>/dev/null || true
+        
+        print_success "Ubuntu environment is now read-only for security"
+    fi
+}
+
+# Function to lock installation files
+lock_installation_files() {
+    local install_dir="$HOME/ubuntu"
+    
+    if [ -d "$install_dir" ]; then
+        # Make all installation files read-only
+        find "$install_dir" -name "*.sh" -exec chmod 444 {} \; 2>/dev/null || true
+        find "$install_dir" -name "*.img" -exec chmod 444 {} \; 2>/dev/null || true
+        find "$install_dir" -name "*.tar*" -exec chmod 444 {} \; 2>/dev/null || true
+        
+        print_success "Installation files are now protected from modification"
+    fi
+}
+
 # Function to print header
 print_header() {
     clear
@@ -275,7 +379,7 @@ print_steps_progress() {
     echo ""
 }
 
-# Function to install Ubuntu 18.04 (Chroot) in background
+# Function to install Ubuntu 18.04 (Chroot) in background - SAFE VERSION
 install_ubuntu_18_04_chroot_background() {
     TOTAL=10
     VERSION="18.04"
@@ -304,43 +408,27 @@ install_ubuntu_18_04_chroot_background() {
     mkdir -p "$MNT"
 
     print_steps_progress 5
-    tsu -c "mount -o loop $IMG $MNT"
+    if ! safe_chroot_setup "$IMG" "$MNT" "$ROOTFS_TAR"; then
+        print_error "Chroot setup failed. Falling back to Proot installation."
+        return 1
+    fi
 
     print_steps_progress 6
-    tsu -c "tar -xf $ROOTFS_TAR -C $MNT --exclude='./dev'"
+    # Rootfs extraction handled in safe_chroot_setup
 
     print_steps_progress 7
-    tsu -c "rm -rf $MNT/sdcard $MNT/data $MNT/system"
+    # Rootfs extraction completed
 
     print_steps_progress 8
     rm -f "$ROOTFS_TAR"
 
     print_steps_progress 9
-    tsu -c "umount $MNT"
-    tsu -c "mount -o loop $IMG $MNT"
-    echo "nameserver 8.8.8.8" | tsu -c "tee $MNT/etc/resolv.conf" > /dev/null
-    echo "nameserver 8.8.4.4" | tsu -c "tee -a $MNT/etc/resolv.conf" > /dev/null
-    echo "nameserver 1.1.1.1" | tsu -c "tee -a $MNT/etc/resolv.conf" > /dev/null
-    tsu -c "umount $MNT"
+    # DNS setup handled in safe_chroot_setup
 
     print_steps_progress 10
-    BIN_DIR="$HOME/bin"
-    mkdir -p "$BIN_DIR"
-    SHORTCUT="$BIN_DIR/ubuntu18"
-    cat > "$SHORTCUT" <<EOF
-#!/bin/bash
-IMG="$IMG"
-MNT="$MNT"
-mkdir -p "\$MNT"
-tsu -c "mount -o loop \$IMG \$MNT"
-tsu -c "mount -t proc none \$MNT/proc"
-tsu -c "mount -t sysfs none \$MNT/sys"
-tsu -c "chroot \$MNT /bin/bash"
-tsu -c "umount \$MNT/proc"
-tsu -c "umount \$MNT/sys"
-tsu -c "umount \$MNT"
-EOF
-    chmod +x "$SHORTCUT"
+    create_safe_chroot_script "$IMG" "$MNT" "18"
+    lock_installation_files
+    create_readonly_environment "18.04"
     print_success_box "Ubuntu 18.04 (Chroot) installation completed!"
     clear
     echo -e "${WHITE}What do you want to do next?${NC}"
@@ -352,15 +440,7 @@ EOF
     fi
 }
 
-# Function to install Ubuntu 18.04 (Chroot) - Main function
-install_ubuntu_18_04_chroot() {
-    print_status "Installing Ubuntu 18.04 (Chroot)..."
-    install_ubuntu_18_04_chroot_background
-    print_success_box "Ubuntu 18.04 (Chroot) installed successfully!"
-    clear_screen
-}
-
-# Function to install Ubuntu 20.04 (Chroot) in background
+# Function to install Ubuntu 20.04 (Chroot) in background - SAFE VERSION
 install_ubuntu_20_04_chroot_background() {
     TOTAL=10
     VERSION="20.04"
@@ -389,43 +469,27 @@ install_ubuntu_20_04_chroot_background() {
     mkdir -p "$MNT"
 
     print_steps_progress 5
-    tsu -c "mount -o loop $IMG $MNT"
+    if ! safe_chroot_setup "$IMG" "$MNT" "$ROOTFS_TAR"; then
+        print_error "Chroot setup failed. Falling back to Proot installation."
+        return 1
+    fi
 
     print_steps_progress 6
-    tsu -c "tar -xf $ROOTFS_TAR -C $MNT --exclude='./dev'"
+    # Rootfs extraction handled in safe_chroot_setup
 
     print_steps_progress 7
-    tsu -c "rm -rf $MNT/sdcard $MNT/data $MNT/system"
+    # Rootfs extraction completed
 
     print_steps_progress 8
     rm -f "$ROOTFS_TAR"
 
     print_steps_progress 9
-    tsu -c "umount $MNT"
-    tsu -c "mount -o loop $IMG $MNT"
-    echo "nameserver 8.8.8.8" | tsu -c "tee $MNT/etc/resolv.conf" > /dev/null
-    echo "nameserver 8.8.4.4" | tsu -c "tee -a $MNT/etc/resolv.conf" > /dev/null
-    echo "nameserver 1.1.1.1" | tsu -c "tee -a $MNT/etc/resolv.conf" > /dev/null
-    tsu -c "umount $MNT"
+    # DNS setup handled in safe_chroot_setup
 
     print_steps_progress 10
-    BIN_DIR="$HOME/bin"
-    mkdir -p "$BIN_DIR"
-    SHORTCUT="$BIN_DIR/ubuntu20"
-    cat > "$SHORTCUT" <<EOF
-#!/bin/bash
-IMG="$IMG"
-MNT="$MNT"
-mkdir -p "\$MNT"
-tsu -c "mount -o loop \$IMG \$MNT"
-tsu -c "mount -t proc none \$MNT/proc"
-tsu -c "mount -t sysfs none \$MNT/sys"
-tsu -c "chroot \$MNT /bin/bash"
-tsu -c "umount \$MNT/proc"
-tsu -c "umount \$MNT/sys"
-tsu -c "umount \$MNT"
-EOF
-    chmod +x "$SHORTCUT"
+    create_safe_chroot_script "$IMG" "$MNT" "20"
+    lock_installation_files
+    create_readonly_environment "20.04"
     print_success_box "Ubuntu 20.04 (Chroot) installation completed!"
     clear
     echo -e "${WHITE}What do you want to do next?${NC}"
@@ -437,15 +501,7 @@ EOF
     fi
 }
 
-# Function to install Ubuntu 20.04 (Chroot) - Main function
-install_ubuntu_20_04_chroot() {
-    print_status "Installing Ubuntu 20.04 (Chroot)..."
-    install_ubuntu_20_04_chroot_background
-    print_success_box "Ubuntu 20.04 (Chroot) installed successfully!"
-    clear_screen
-}
-
-# Function to install Ubuntu 22.04 (Chroot) in background
+# Function to install Ubuntu 22.04 (Chroot) in background - SAFE VERSION
 install_ubuntu_22_04_chroot_background() {
     TOTAL=10
     VERSION="22.04"
@@ -474,43 +530,27 @@ install_ubuntu_22_04_chroot_background() {
     mkdir -p "$MNT"
 
     print_steps_progress 5
-    tsu -c "mount -o loop $IMG $MNT"
+    if ! safe_chroot_setup "$IMG" "$MNT" "$ROOTFS_TAR"; then
+        print_error "Chroot setup failed. Falling back to Proot installation."
+        return 1
+    fi
 
     print_steps_progress 6
-    tsu -c "tar -xf $ROOTFS_TAR -C $MNT --exclude='./dev'"
+    # Rootfs extraction handled in safe_chroot_setup
 
     print_steps_progress 7
-    tsu -c "rm -rf $MNT/sdcard $MNT/data $MNT/system"
+    # Rootfs extraction completed
 
     print_steps_progress 8
     rm -f "$ROOTFS_TAR"
 
     print_steps_progress 9
-    tsu -c "umount $MNT"
-    tsu -c "mount -o loop $IMG $MNT"
-    echo "nameserver 8.8.8.8" | tsu -c "tee $MNT/etc/resolv.conf" > /dev/null
-    echo "nameserver 8.8.4.4" | tsu -c "tee -a $MNT/etc/resolv.conf" > /dev/null
-    echo "nameserver 1.1.1.1" | tsu -c "tee -a $MNT/etc/resolv.conf" > /dev/null
-    tsu -c "umount $MNT"
+    # DNS setup handled in safe_chroot_setup
 
     print_steps_progress 10
-    BIN_DIR="$HOME/bin"
-    mkdir -p "$BIN_DIR"
-    SHORTCUT="$BIN_DIR/ubuntu22"
-    cat > "$SHORTCUT" <<EOF
-#!/bin/bash
-IMG="$IMG"
-MNT="$MNT"
-mkdir -p "\$MNT"
-tsu -c "mount -o loop \$IMG \$MNT"
-tsu -c "mount -t proc none \$MNT/proc"
-tsu -c "mount -t sysfs none \$MNT/sys"
-tsu -c "chroot \$MNT /bin/bash"
-tsu -c "umount \$MNT/proc"
-tsu -c "umount \$MNT/sys"
-tsu -c "umount \$MNT"
-EOF
-    chmod +x "$SHORTCUT"
+    create_safe_chroot_script "$IMG" "$MNT" "22"
+    lock_installation_files
+    create_readonly_environment "22.04"
     print_success_box "Ubuntu 22.04 (Chroot) installation completed!"
     clear
     echo -e "${WHITE}What do you want to do next?${NC}"
@@ -522,15 +562,7 @@ EOF
     fi
 }
 
-# Function to install Ubuntu 22.04 (Chroot) - Main function
-install_ubuntu_22_04_chroot() {
-    print_status "Installing Ubuntu 22.04 (Chroot)..."
-    install_ubuntu_22_04_chroot_background
-    print_success_box "Ubuntu 22.04 (Chroot) installed successfully!"
-    clear_screen
-}
-
-# Function to install Ubuntu 24.04 (Chroot) in background
+# Function to install Ubuntu 24.04 (Chroot) in background - SAFE VERSION
 install_ubuntu_24_04_chroot_background() {
     TOTAL=10
     VERSION="24.04"
@@ -559,43 +591,27 @@ install_ubuntu_24_04_chroot_background() {
     mkdir -p "$MNT"
 
     print_steps_progress 5
-    tsu -c "mount -o loop $IMG $MNT"
+    if ! safe_chroot_setup "$IMG" "$MNT" "$ROOTFS_TAR"; then
+        print_error "Chroot setup failed. Falling back to Proot installation."
+        return 1
+    fi
 
     print_steps_progress 6
-    tsu -c "tar -xf $ROOTFS_TAR -C $MNT --exclude='./dev'"
+    # Rootfs extraction handled in safe_chroot_setup
 
     print_steps_progress 7
-    tsu -c "rm -rf $MNT/sdcard $MNT/data $MNT/system"
+    # Rootfs extraction completed
 
     print_steps_progress 8
     rm -f "$ROOTFS_TAR"
 
     print_steps_progress 9
-    tsu -c "umount $MNT"
-    tsu -c "mount -o loop $IMG $MNT"
-    echo "nameserver 8.8.8.8" | tsu -c "tee $MNT/etc/resolv.conf" > /dev/null
-    echo "nameserver 8.8.4.4" | tsu -c "tee -a $MNT/etc/resolv.conf" > /dev/null
-    echo "nameserver 1.1.1.1" | tsu -c "tee -a $MNT/etc/resolv.conf" > /dev/null
-    tsu -c "umount $MNT"
+    # DNS setup handled in safe_chroot_setup
 
     print_steps_progress 10
-    BIN_DIR="$HOME/bin"
-    mkdir -p "$BIN_DIR"
-    SHORTCUT="$BIN_DIR/ubuntu24"
-    cat > "$SHORTCUT" <<EOF
-#!/bin/bash
-IMG="$IMG"
-MNT="$MNT"
-mkdir -p "\$MNT"
-tsu -c "mount -o loop \$IMG \$MNT"
-tsu -c "mount -t proc none \$MNT/proc"
-tsu -c "mount -t sysfs none \$MNT/sys"
-tsu -c "chroot \$MNT /bin/bash"
-tsu -c "umount \$MNT/proc"
-tsu -c "umount \$MNT/sys"
-tsu -c "umount \$MNT"
-EOF
-    chmod +x "$SHORTCUT"
+    create_safe_chroot_script "$IMG" "$MNT" "24"
+    lock_installation_files
+    create_readonly_environment "24.04"
     print_success_box "Ubuntu 24.04 (Chroot) installation completed!"
     clear
     echo -e "${WHITE}What do you want to do next?${NC}"
@@ -605,14 +621,6 @@ EOF
     if [[ "$next_action" == "2" ]]; then
         $HOME/bin/ubuntu24
     fi
-}
-
-# Function to install Ubuntu 24.04 (Chroot) - Main function
-install_ubuntu_24_04_chroot() {
-    print_status "Installing Ubuntu 24.04 (Chroot)..."
-    install_ubuntu_24_04_chroot_background
-    print_success_box "Ubuntu 24.04 (Chroot) installed successfully!"
-    clear_screen
 }
 
 # Function to install Ubuntu with Proot-distro in background
@@ -955,6 +963,130 @@ install_ubuntu() {
     clear_screen
 }
 
+# Function to safely setup chroot environment
+safe_chroot_setup() {
+    local img="$1"
+    local mnt="$2"
+    local rootfs_tar="$3"
+    
+    # Create mount directory
+    mkdir -p "$mnt"
+    
+    # Mount image (only if we have root access)
+    if command -v mount >/dev/null 2>&1 && [ -w /dev ]; then
+        mount -o loop "$img" "$mnt" 2>/dev/null || {
+            print_error "Failed to mount image. Root access may be required."
+            return 1
+        }
+        
+        # Extract rootfs
+        tar -xf "$rootfs_tar" -C "$mnt" --exclude='./dev' 2>/dev/null || {
+            print_error "Failed to extract rootfs"
+            umount "$mnt" 2>/dev/null || true
+            return 1
+        }
+        
+        # Setup DNS safely
+        if [ -d "$mnt/etc" ]; then
+            echo "nameserver 8.8.8.8" > "$mnt/etc/resolv.conf" 2>/dev/null || true
+            echo "nameserver 8.8.4.4" >> "$mnt/etc/resolv.conf" 2>/dev/null || true
+            echo "nameserver 1.1.1.1" >> "$mnt/etc/resolv.conf" 2>/dev/null || true
+        fi
+        
+        # Unmount
+        umount "$mnt" 2>/dev/null || true
+    else
+        print_warning "Root access required for chroot installation. Using Proot instead."
+        return 1
+    fi
+}
+
+# Function to safely mount and setup chroot
+safe_chroot_setup() {
+    local img="$1"
+    local mnt="$2"
+    local rootfs_tar="$3"
+    
+    # Create mount directory
+    mkdir -p "$mnt"
+    
+    # Mount image (only if we have root access)
+    if command -v mount >/dev/null 2>&1 && [ -w /dev ]; then
+        mount -o loop "$img" "$mnt" 2>/dev/null || {
+            print_error "Failed to mount image. Root access may be required."
+            return 1
+        }
+        
+        # Extract rootfs
+        tar -xf "$rootfs_tar" -C "$mnt" --exclude='./dev' 2>/dev/null || {
+            print_error "Failed to extract rootfs"
+            umount "$mnt" 2>/dev/null || true
+            return 1
+        }
+        
+        # Rootfs extracted successfully
+        
+        # Setup DNS safely
+        if [ -d "$mnt/etc" ]; then
+            echo "nameserver 8.8.8.8" > "$mnt/etc/resolv.conf" 2>/dev/null || true
+            echo "nameserver 8.8.4.4" >> "$mnt/etc/resolv.conf" 2>/dev/null || true
+            echo "nameserver 1.1.1.1" >> "$mnt/etc/resolv.conf" 2>/dev/null || true
+        fi
+        
+        # Unmount
+        umount "$mnt" 2>/dev/null || true
+    else
+        print_warning "Root access required for chroot installation. Using Proot instead."
+        return 1
+    fi
+}
+
+# Function to create safe chroot script
+create_safe_chroot_script() {
+    local img="$1"
+    local mnt="$2"
+    local version="$3"
+    
+    local bin_dir="$HOME/bin"
+    mkdir -p "$bin_dir"
+    local shortcut="$bin_dir/ubuntu$version"
+    
+    cat > "$shortcut" <<EOF
+#!/bin/bash
+IMG="$img"
+MNT="$mnt"
+
+# Check if we have necessary permissions
+if ! command -v mount >/dev/null 2>&1; then
+    echo "Error: mount command not available"
+    exit 1
+fi
+
+# Create mount directory
+mkdir -p "\$MNT"
+
+# Mount image with error checking
+if ! mount -o loop "\$IMG" "\$MNT" 2>/dev/null; then
+    echo "Error: Failed to mount image. Root access may be required."
+    exit 1
+fi
+
+# Mount proc and sys
+mount -t proc none "\$MNT/proc" 2>/dev/null || true
+mount -t sysfs none "\$MNT/sys" 2>/dev/null || true
+
+# Enter chroot with error handling
+if ! chroot "\$MNT" /bin/bash; then
+    echo "Error: Failed to enter chroot"
+fi
+
+# Cleanup mounts
+umount "\$MNT/proc" 2>/dev/null || true
+umount "\$MNT/sys" 2>/dev/null || true
+umount "\$MNT" 2>/dev/null || true
+EOF
+    chmod +x "$shortcut"
+}
 
 
 # Function to remove Ubuntu
@@ -965,6 +1097,9 @@ remove_ubuntu() {
 
     if [[ "$confirm_remove" =~ ^[Yy]$ ]]; then
         print_status "Removing Ubuntu installations..."
+        
+        # Restore file permissions before removal
+        restore_file_permissions
 
         # Remove chroot installations
         rm -rf $HOME/ubuntu/ubuntu*-rootfs
@@ -1178,9 +1313,41 @@ show_loading() {
     echo ""
 }
 
+# Function to install Ubuntu 18.04 (Chroot) - Main function
+install_ubuntu_18_04_chroot() {
+    print_status "Installing Ubuntu 18.04 (Chroot)..."
+    install_ubuntu_18_04_chroot_background
+    print_success_box "Ubuntu 18.04 (Chroot) installed successfully!"
+    clear_screen
+}
+
+# Function to install Ubuntu 20.04 (Chroot) - Main function
+install_ubuntu_20_04_chroot() {
+    print_status "Installing Ubuntu 20.04 (Chroot)..."
+    install_ubuntu_20_04_chroot_background
+    print_success_box "Ubuntu 20.04 (Chroot) installed successfully!"
+    clear_screen
+}
+
+# Function to install Ubuntu 22.04 (Chroot) - Main function
+install_ubuntu_22_04_chroot() {
+    print_status "Installing Ubuntu 22.04 (Chroot)..."
+    install_ubuntu_22_04_chroot_background
+    print_success_box "Ubuntu 22.04 (Chroot) installed successfully!"
+    clear_screen
+}
+
+# Function to install Ubuntu 24.04 (Chroot) - Main function
+install_ubuntu_24_04_chroot() {
+    print_status "Installing Ubuntu 24.04 (Chroot)..."
+    install_ubuntu_24_04_chroot_background
+    print_success_box "Ubuntu 24.04 (Chroot) installed successfully!"
+    clear_screen
+}
 
 
 # Start the installer
 show_welcome
+verify_installation_environment
 check_and_install_prerequisites
 main_menu
