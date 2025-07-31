@@ -302,61 +302,68 @@ check_internet() {
     print_success "Internet connection is OK."
 }
 
+# General function to clone the GitHub repo
+clone_github_repo() {
+    REPO_URL="https://github.com/amirmsoud16/ubuntu-chroot-pk-"
+    CLONE_DIR="$HOME/ubuntu-chroot-pk-"
+    if [ -d "$CLONE_DIR" ]; then
+        rm -rf "$CLONE_DIR"
+    fi
+    git clone "$REPO_URL" "$CLONE_DIR"
+}
+
 # Function to install Ubuntu 18.04 (Chroot) in background
 install_ubuntu_18_04_chroot_background() {
-    INSTALL_DIR=$HOME/ubuntu/ubuntu18-rootfs
-    mkdir -p $INSTALL_DIR
-    cd $INSTALL_DIR
-
-    # Use reliable Ubuntu 18.04 rootfs URL for Android
+    VERSION="18.04"
+    IMG="$HOME/ubuntu18.04.img"
+    MNT="$HOME/ubuntu18.04-mnt"
+    SIZE_MB=4096
     ROOTFS_URL="https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-arm64-root.tar.xz"
+    ROOTFS_TAR="ubuntu-18.04-rootfs.tar.xz"
 
-    # Download Ubuntu 18.04 rootfs (silent with progress)
-    wget -q --show-progress -O ubuntu-18.04-rootfs.tar.xz $ROOTFS_URL > /dev/null 2>&1
+    # ساخت فایل ext4
+    dd if=/dev/zero of="$IMG" bs=1M count=$SIZE_MB
+    mkfs.ext4 "$IMG"
 
-    if [[ $? -ne 0 ]]; then
-        echo "chroot_failed" > $HOME/ubuntu_install_result
-        return
-    fi
+    # ساخت دایرکتوری mount
+    mkdir -p "$MNT"
 
-    # Extract xz file (silent)
-    tar -xf ubuntu-18.04-rootfs.tar.xz --exclude='./dev' > /dev/null 2>&1
+    # mount فایل
+    sudo mount -o loop "$IMG" "$MNT"
 
-    # Create necessary directories and files
-    mkdir -p $INSTALL_DIR/etc
-    mkdir -p $INSTALL_DIR/dev
-    mkdir -p $INSTALL_DIR/proc
-    mkdir -p $INSTALL_DIR/sys
-    mkdir -p $INSTALL_DIR/tmp
-    mkdir -p $INSTALL_DIR/var/tmp
+    # دانلود rootfs
+    wget -O "$ROOTFS_TAR" "$ROOTFS_URL"
 
-    # Fix groups file to prevent group ID errors
-    cat >> $INSTALL_DIR/etc/group <<'EOF'
-3003:3003:3003
-9997:9997:9997
-20238:20238:20238
-50238:50238:50238
-EOF
+    # استخراج rootfs
+    sudo tar -xf "$ROOTFS_TAR" -C "$MNT" --exclude='./dev'
 
-    # Set proper permissions for full root access
-    chmod -R 755 $INSTALL_DIR
-    chown -R root:root $INSTALL_DIR 2>/dev/null || true
+    # حذف مسیرهای حساس (در صورت وجود)
+    sudo rm -rf "$MNT/sdcard" "$MNT/data" "$MNT/system"
 
+    # پاکسازی فایل دانلودی
+    rm -f "$ROOTFS_TAR"
 
-    
-    # Create start script with limited root access
-    cat > start-ubuntu-18.04.sh <<'EOF'
+    # unmount
+    sudo umount "$MNT"
+
+    # ساخت شورتکات ورود
+    BIN_DIR="$HOME/bin"
+    mkdir -p "$BIN_DIR"
+    SHORTCUT="$BIN_DIR/ubuntu18"
+    cat > "$SHORTCUT" <<EOF
 #!/bin/bash
-unset LD_PRELOAD
-
-proot -0 -r $HOME/ubuntu/ubuntu18-rootfs \
-    -b /dev -b /proc -b /sys \
-    -b $HOME:/root \
-    -w /root /usr/bin/env -i HOME=/root TERM="$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/bash --login
+IMG="$IMG"
+MNT="$MNT"
+mkdir -p "\$MNT"
+sudo mount -o loop "\$IMG" "\$MNT"
+sudo mount -t proc none "\$MNT/proc"
+sudo mount -t sysfs none "\$MNT/sys"
+sudo chroot "\$MNT" /bin/bash
+sudo umount "\$MNT/proc"
+sudo umount "\$MNT/sys"
+sudo umount "\$MNT"
 EOF
-    chmod +x start-ubuntu-18.04.sh
-
-    echo "chroot_success" > $HOME/ubuntu_install_result
+    chmod +x "$SHORTCUT"
 }
 
 # Function to install Ubuntu 18.04 (Chroot) - Main function
@@ -380,12 +387,6 @@ install_ubuntu_18_04_chroot() {
 
         if [[ "$result" == "chroot_success" ]]; then
             print_success_box "Ubuntu 18.04 (Chroot) installed successfully!"
-            
-            # Get user credentials after successful installation
-            get_user_credentials
-            
-            # Setup user in Ubuntu
-            setup_ubuntu_user $HOME/ubuntu/ubuntu18-rootfs
             
             # Create start scripts with different access levels
             create_ubuntu_start_scripts "18" "$UBUNTU_USERNAME"
@@ -434,59 +435,56 @@ install_ubuntu_18_04_chroot() {
 
 # Function to install Ubuntu 20.04 (Chroot) in background
 install_ubuntu_20_04_chroot_background() {
-    INSTALL_DIR=$HOME/ubuntu/ubuntu20-rootfs
-    mkdir -p $INSTALL_DIR
-    cd $INSTALL_DIR
-
-    # Use reliable Ubuntu 20.04 rootfs URL for Android
+    VERSION="20.04"
+    IMG="$HOME/ubuntu20.04.img"
+    MNT="$HOME/ubuntu20.04-mnt"
+    SIZE_MB=4096
     ROOTFS_URL="https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-arm64-root.tar.xz"
+    ROOTFS_TAR="ubuntu-20.04-rootfs.tar.xz"
 
-    # Download Ubuntu 20.04 rootfs (silent with progress)
-    wget -q --show-progress -O ubuntu-20.04-rootfs.tar.xz $ROOTFS_URL > /dev/null 2>&1
+    # ساخت فایل ext4
+    dd if=/dev/zero of="$IMG" bs=1M count=$SIZE_MB
+    mkfs.ext4 "$IMG"
 
-    if [[ $? -ne 0 ]]; then
-        echo "chroot_failed" > $HOME/ubuntu_install_result
-        return
-    fi
+    # ساخت دایرکتوری mount
+    mkdir -p "$MNT"
 
-    # Extract xz file (silent)
-    tar -xf ubuntu-20.04-rootfs.tar.xz --exclude='./dev' > /dev/null 2>&1
+    # mount فایل
+    sudo mount -o loop "$IMG" "$MNT"
 
-    # Create necessary directories and files
-    mkdir -p $INSTALL_DIR/etc
-    mkdir -p $INSTALL_DIR/dev
-    mkdir -p $INSTALL_DIR/proc
-    mkdir -p $INSTALL_DIR/sys
-    mkdir -p $INSTALL_DIR/tmp
-    mkdir -p $INSTALL_DIR/var/tmp
+    # دانلود rootfs
+    wget -O "$ROOTFS_TAR" "$ROOTFS_URL"
 
-    # Fix groups file to prevent group ID errors
-    cat >> $INSTALL_DIR/etc/group <<'EOF'
-3003:3003:3003
-9997:9997:9997
-20238:20238:20238
-50238:50238:50238
-EOF
+    # استخراج rootfs
+    sudo tar -xf "$ROOTFS_TAR" -C "$MNT" --exclude='./dev'
 
-    # Set proper permissions for full root access
-    chmod -R 755 $INSTALL_DIR
-    chown -R root:root $INSTALL_DIR 2>/dev/null || true
+    # حذف مسیرهای حساس (در صورت وجود)
+    sudo rm -rf "$MNT/sdcard" "$MNT/data" "$MNT/system"
 
+    # پاکسازی فایل دانلودی
+    rm -f "$ROOTFS_TAR"
 
-    
-    # Create start script with limited root access
-    cat > start-ubuntu-20.04.sh <<'EOF'
+    # unmount
+    sudo umount "$MNT"
+
+    # ساخت شورتکات ورود
+    BIN_DIR="$HOME/bin"
+    mkdir -p "$BIN_DIR"
+    SHORTCUT="$BIN_DIR/ubuntu20"
+    cat > "$SHORTCUT" <<EOF
 #!/bin/bash
-unset LD_PRELOAD
-
-proot -0 -r $HOME/ubuntu/ubuntu20-rootfs \
-    -b /dev -b /proc -b /sys \
-    -b $HOME:/root \
-    -w /root /usr/bin/env -i HOME=/root TERM="$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/bash --login
+IMG="$IMG"
+MNT="$MNT"
+mkdir -p "\$MNT"
+sudo mount -o loop "\$IMG" "\$MNT"
+sudo mount -t proc none "\$MNT/proc"
+sudo mount -t sysfs none "\$MNT/sys"
+sudo chroot "\$MNT" /bin/bash
+sudo umount "\$MNT/proc"
+sudo umount "\$MNT/sys"
+sudo umount "\$MNT"
 EOF
-    chmod +x start-ubuntu-20.04.sh
-
-    echo "chroot_success" > $HOME/ubuntu_install_result
+    chmod +x "$SHORTCUT"
 }
 
 # Function to install Ubuntu 20.04 (Chroot) - Main function
@@ -510,12 +508,6 @@ install_ubuntu_20_04_chroot() {
 
         if [[ "$result" == "chroot_success" ]]; then
             print_success_box "Ubuntu 20.04 (Chroot) installed successfully!"
-            
-            # Get user credentials after successful installation
-            get_user_credentials
-            
-            # Setup user in Ubuntu
-            setup_ubuntu_user $HOME/ubuntu/ubuntu20-rootfs
             
             # Create start scripts with different access levels
             create_ubuntu_start_scripts "20" "$UBUNTU_USERNAME"
@@ -564,59 +556,56 @@ install_ubuntu_20_04_chroot() {
 
 # Function to install Ubuntu 22.04 (Chroot) in background
 install_ubuntu_22_04_chroot_background() {
-    INSTALL_DIR=$HOME/ubuntu/ubuntu22-rootfs
-    mkdir -p $INSTALL_DIR
-    cd $INSTALL_DIR
-
-    # Use reliable Ubuntu 22.04 rootfs URL for Android
+    VERSION="22.04"
+    IMG="$HOME/ubuntu22.04.img"
+    MNT="$HOME/ubuntu22.04-mnt"
+    SIZE_MB=4096
     ROOTFS_URL="https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-arm64-root.tar.xz"
+    ROOTFS_TAR="ubuntu-22.04-rootfs.tar.xz"
 
-    # Download Ubuntu 22.04 rootfs (silent with progress)
-    wget -q --show-progress -O ubuntu-22.04-rootfs.tar.xz $ROOTFS_URL > /dev/null 2>&1
+    # ساخت فایل ext4
+    dd if=/dev/zero of="$IMG" bs=1M count=$SIZE_MB
+    mkfs.ext4 "$IMG"
 
-    if [[ $? -ne 0 ]]; then
-        echo "chroot_failed" > $HOME/ubuntu_install_result
-        return
-    fi
+    # ساخت دایرکتوری mount
+    mkdir -p "$MNT"
 
-    # Extract xz file (silent)
-    tar -xf ubuntu-22.04-rootfs.tar.xz --exclude='./dev' > /dev/null 2>&1
+    # mount فایل
+    sudo mount -o loop "$IMG" "$MNT"
 
-    # Create necessary directories and files
-    mkdir -p $INSTALL_DIR/etc
-    mkdir -p $INSTALL_DIR/dev
-    mkdir -p $INSTALL_DIR/proc
-    mkdir -p $INSTALL_DIR/sys
-    mkdir -p $INSTALL_DIR/tmp
-    mkdir -p $INSTALL_DIR/var/tmp
+    # دانلود rootfs
+    wget -O "$ROOTFS_TAR" "$ROOTFS_URL"
 
-    # Fix groups file to prevent group ID errors
-    cat >> $INSTALL_DIR/etc/group <<'EOF'
-3003:3003:3003
-9997:9997:9997
-20238:20238:20238
-50238:50238:50238
-EOF
+    # استخراج rootfs
+    sudo tar -xf "$ROOTFS_TAR" -C "$MNT" --exclude='./dev'
 
-    # Set proper permissions for full root access
-    chmod -R 755 $INSTALL_DIR
-    chown -R root:root $INSTALL_DIR 2>/dev/null || true
+    # حذف مسیرهای حساس (در صورت وجود)
+    sudo rm -rf "$MNT/sdcard" "$MNT/data" "$MNT/system"
 
+    # پاکسازی فایل دانلودی
+    rm -f "$ROOTFS_TAR"
 
-    
-    # Create start script with limited root access
-    cat > start-ubuntu-22.04.sh <<'EOF'
+    # unmount
+    sudo umount "$MNT"
+
+    # ساخت شورتکات ورود
+    BIN_DIR="$HOME/bin"
+    mkdir -p "$BIN_DIR"
+    SHORTCUT="$BIN_DIR/ubuntu22"
+    cat > "$SHORTCUT" <<EOF
 #!/bin/bash
-unset LD_PRELOAD
-
-proot -0 -r $HOME/ubuntu/ubuntu22-rootfs \
-    -b /dev -b /proc -b /sys \
-    -b $HOME:/root \
-    -w /root /usr/bin/env -i HOME=/root TERM="$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/bash --login
+IMG="$IMG"
+MNT="$MNT"
+mkdir -p "\$MNT"
+sudo mount -o loop "\$IMG" "\$MNT"
+sudo mount -t proc none "\$MNT/proc"
+sudo mount -t sysfs none "\$MNT/sys"
+sudo chroot "\$MNT" /bin/bash
+sudo umount "\$MNT/proc"
+sudo umount "\$MNT/sys"
+sudo umount "\$MNT"
 EOF
-    chmod +x start-ubuntu-22.04.sh
-
-    echo "chroot_success" > $HOME/ubuntu_install_result
+    chmod +x "$SHORTCUT"
 }
 
 # Function to install Ubuntu 22.04 (Chroot) - Main function
@@ -640,12 +629,6 @@ install_ubuntu_22_04_chroot() {
 
         if [[ "$result" == "chroot_success" ]]; then
             print_success_box "Ubuntu 22.04 (Chroot) installed successfully!"
-            
-            # Get user credentials after successful installation
-            get_user_credentials
-            
-            # Setup user in Ubuntu
-            setup_ubuntu_user $HOME/ubuntu/ubuntu22-rootfs
             
             # Create start scripts with different access levels
             create_ubuntu_start_scripts "22" "$UBUNTU_USERNAME"
@@ -694,59 +677,56 @@ install_ubuntu_22_04_chroot() {
 
 # Function to install Ubuntu 24.04 (Chroot) in background
 install_ubuntu_24_04_chroot_background() {
-    INSTALL_DIR=$HOME/ubuntu/ubuntu24-rootfs
-    mkdir -p $INSTALL_DIR
-    cd $INSTALL_DIR
-
-    # Use reliable Ubuntu 24.04 rootfs URL for Android
+    VERSION="24.04"
+    IMG="$HOME/ubuntu24.04.img"
+    MNT="$HOME/ubuntu24.04-mnt"
+    SIZE_MB=4096
     ROOTFS_URL="https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-arm64-root.tar.xz"
+    ROOTFS_TAR="ubuntu-24.04-rootfs.tar.xz"
 
-    # Download Ubuntu 24.04 rootfs (silent with progress)
-    wget -q --show-progress -O ubuntu-24.04-rootfs.tar.xz $ROOTFS_URL > /dev/null 2>&1
+    # ساخت فایل ext4
+    dd if=/dev/zero of="$IMG" bs=1M count=$SIZE_MB
+    mkfs.ext4 "$IMG"
 
-    if [[ $? -ne 0 ]]; then
-        echo "chroot_failed" > $HOME/ubuntu_install_result
-        return
-    fi
+    # ساخت دایرکتوری mount
+    mkdir -p "$MNT"
 
-    # Extract xz file (silent)
-    tar -xf ubuntu-24.04-rootfs.tar.xz --exclude='./dev' > /dev/null 2>&1
+    # mount فایل
+    sudo mount -o loop "$IMG" "$MNT"
 
-    # Create necessary directories and files
-    mkdir -p $INSTALL_DIR/etc
-    mkdir -p $INSTALL_DIR/dev
-    mkdir -p $INSTALL_DIR/proc
-    mkdir -p $INSTALL_DIR/sys
-    mkdir -p $INSTALL_DIR/tmp
-    mkdir -p $INSTALL_DIR/var/tmp
+    # دانلود rootfs
+    wget -O "$ROOTFS_TAR" "$ROOTFS_URL"
 
-    # Fix groups file to prevent group ID errors
-    cat >> $INSTALL_DIR/etc/group <<'EOF'
-3003:3003:3003
-9997:9997:9997
-20238:20238:20238
-50238:50238:50238
-EOF
+    # استخراج rootfs
+    sudo tar -xf "$ROOTFS_TAR" -C "$MNT" --exclude='./dev'
 
-    # Set proper permissions for full root access
-    chmod -R 755 $INSTALL_DIR
-    chown -R root:root $INSTALL_DIR 2>/dev/null || true
+    # حذف مسیرهای حساس (در صورت وجود)
+    sudo rm -rf "$MNT/sdcard" "$MNT/data" "$MNT/system"
 
+    # پاکسازی فایل دانلودی
+    rm -f "$ROOTFS_TAR"
 
-    
-    # Create start script with limited root access
-    cat > start-ubuntu-24.04.sh <<'EOF'
+    # unmount
+    sudo umount "$MNT"
+
+    # ساخت شورتکات ورود
+    BIN_DIR="$HOME/bin"
+    mkdir -p "$BIN_DIR"
+    SHORTCUT="$BIN_DIR/ubuntu24"
+    cat > "$SHORTCUT" <<EOF
 #!/bin/bash
-unset LD_PRELOAD
-
-proot -0 -r $HOME/ubuntu/ubuntu24-rootfs \
-    -b /dev -b /proc -b /sys \
-    -b $HOME:/root \
-    -w /root /usr/bin/env -i HOME=/root TERM="$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/bash --login
+IMG="$IMG"
+MNT="$MNT"
+mkdir -p "\$MNT"
+sudo mount -o loop "\$IMG" "\$MNT"
+sudo mount -t proc none "\$MNT/proc"
+sudo mount -t sysfs none "\$MNT/sys"
+sudo chroot "\$MNT" /bin/bash
+sudo umount "\$MNT/proc"
+sudo umount "\$MNT/sys"
+sudo umount "\$MNT"
 EOF
-    chmod +x start-ubuntu-24.04.sh
-
-    echo "chroot_success" > $HOME/ubuntu_install_result
+    chmod +x "$SHORTCUT"
 }
 
 # Function to install Ubuntu 24.04 (Chroot) - Main function
@@ -770,12 +750,6 @@ install_ubuntu_24_04_chroot() {
 
         if [[ "$result" == "chroot_success" ]]; then
             print_success_box "Ubuntu 24.04 (Chroot) installed successfully!"
-            
-            # Get user credentials after successful installation
-            get_user_credentials
-            
-            # Setup user in Ubuntu
-            setup_ubuntu_user $HOME/ubuntu/ubuntu24-rootfs
             
             # Create start scripts with different access levels
             create_ubuntu_start_scripts "24" "$UBUNTU_USERNAME"
