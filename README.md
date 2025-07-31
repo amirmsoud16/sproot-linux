@@ -50,6 +50,9 @@ chmod +x install.sh
 
 After installation, you can use these aliases:
 ```
+./install.sh
+```
+```
 ubuntu18
 ubuntu18-username
 fix-internet-18
