@@ -356,7 +356,6 @@ STEPS=(
     "Create mount directory"
     "Mount image"
     "Extract rootfs into image"
-    "Remove Android-sensitive paths (if any)"
     "Clean up rootfs archive"
     "Set up DNS (resolv.conf)"
     "Create chroot shortcut and finish installation"
@@ -381,7 +380,7 @@ print_steps_progress() {
 
 # Function to install Ubuntu 18.04 (Chroot) in background - SAFE VERSION
 install_ubuntu_18_04_chroot_background() {
-    TOTAL=10
+    TOTAL=9
     VERSION="18.04"
     IMG="$HOME/ubuntu18.04.img"
     MNT="$HOME/ubuntu18.04-mnt"
@@ -419,24 +418,33 @@ install_ubuntu_18_04_chroot_background() {
     # Rootfs extraction handled in safe_chroot_setup
 
     print_steps_progress 7
-    # Rootfs extraction completed
-
-    print_steps_progress 8
     rm -f "$ROOTFS_TAR"
 
-    print_steps_progress 9
+    print_steps_progress 8
     # DNS setup handled in safe_chroot_setup
 
-    print_steps_progress 10
-    create_safe_chroot_script "$IMG" "$MNT" "18"
-    lock_installation_files
-    create_readonly_environment "18.04"
+    print_steps_progress 9
+    if ! create_safe_chroot_script "$IMG" "$MNT" "18"; then
+        print_error "Failed to create chroot script!"
+        return 1
+    fi
+    
+    if ! lock_installation_files; then
+        print_error "Failed to lock installation files!"
+        return 1
+    fi
+    
+    if ! create_readonly_environment "18.04"; then
+        print_error "Failed to create readonly environment!"
+        return 1
+    fi
+    
     return 0
 }
 
 # Function to install Ubuntu 20.04 (Chroot) in background - SAFE VERSION
 install_ubuntu_20_04_chroot_background() {
-    TOTAL=10
+    TOTAL=9
     VERSION="20.04"
     IMG="$HOME/ubuntu20.04.img"
     MNT="$HOME/ubuntu20.04-mnt"
@@ -474,24 +482,33 @@ install_ubuntu_20_04_chroot_background() {
     # Rootfs extraction handled in safe_chroot_setup
 
     print_steps_progress 7
-    # Rootfs extraction completed
-
-    print_steps_progress 8
     rm -f "$ROOTFS_TAR"
 
-    print_steps_progress 9
+    print_steps_progress 8
     # DNS setup handled in safe_chroot_setup
 
-    print_steps_progress 10
-    create_safe_chroot_script "$IMG" "$MNT" "20"
-    lock_installation_files
-    create_readonly_environment "20.04"
+    print_steps_progress 9
+    if ! create_safe_chroot_script "$IMG" "$MNT" "20"; then
+        print_error "Failed to create chroot script!"
+        return 1
+    fi
+    
+    if ! lock_installation_files; then
+        print_error "Failed to lock installation files!"
+        return 1
+    fi
+    
+    if ! create_readonly_environment "20.04"; then
+        print_error "Failed to create readonly environment!"
+        return 1
+    fi
+    
     return 0
 }
 
 # Function to install Ubuntu 22.04 (Chroot) in background - SAFE VERSION
 install_ubuntu_22_04_chroot_background() {
-    TOTAL=10
+    TOTAL=9
     VERSION="22.04"
     IMG="$HOME/ubuntu22.04.img"
     MNT="$HOME/ubuntu22.04-mnt"
@@ -529,24 +546,33 @@ install_ubuntu_22_04_chroot_background() {
     # Rootfs extraction handled in safe_chroot_setup
 
     print_steps_progress 7
-    # Rootfs extraction completed
-
-    print_steps_progress 8
     rm -f "$ROOTFS_TAR"
 
-    print_steps_progress 9
+    print_steps_progress 8
     # DNS setup handled in safe_chroot_setup
 
-    print_steps_progress 10
-    create_safe_chroot_script "$IMG" "$MNT" "22"
-    lock_installation_files
-    create_readonly_environment "22.04"
+    print_steps_progress 9
+    if ! create_safe_chroot_script "$IMG" "$MNT" "22"; then
+        print_error "Failed to create chroot script!"
+        return 1
+    fi
+    
+    if ! lock_installation_files; then
+        print_error "Failed to lock installation files!"
+        return 1
+    fi
+    
+    if ! create_readonly_environment "22.04"; then
+        print_error "Failed to create readonly environment!"
+        return 1
+    fi
+    
     return 0
 }
 
 # Function to install Ubuntu 24.04 (Chroot) in background - SAFE VERSION
 install_ubuntu_24_04_chroot_background() {
-    TOTAL=10
+    TOTAL=9
     VERSION="24.04"
     IMG="$HOME/ubuntu24.04.img"
     MNT="$HOME/ubuntu24.04-mnt"
@@ -584,18 +610,27 @@ install_ubuntu_24_04_chroot_background() {
     # Rootfs extraction handled in safe_chroot_setup
 
     print_steps_progress 7
-    # Rootfs extraction completed
-
-    print_steps_progress 8
     rm -f "$ROOTFS_TAR"
 
-    print_steps_progress 9
+    print_steps_progress 8
     # DNS setup handled in safe_chroot_setup
 
-    print_steps_progress 10
-    create_safe_chroot_script "$IMG" "$MNT" "24"
-    lock_installation_files
-    create_readonly_environment "24.04"
+    print_steps_progress 9
+    if ! create_safe_chroot_script "$IMG" "$MNT" "24"; then
+        print_error "Failed to create chroot script!"
+        return 1
+    fi
+    
+    if ! lock_installation_files; then
+        print_error "Failed to lock installation files!"
+        return 1
+    fi
+    
+    if ! create_readonly_environment "24.04"; then
+        print_error "Failed to create readonly environment!"
+        return 1
+    fi
+    
     return 0
 }
 
