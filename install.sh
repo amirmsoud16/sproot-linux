@@ -247,7 +247,7 @@ clone_github_repo() {
 
 # Function to install Ubuntu 18.04 (Chroot) in background
 install_ubuntu_18_04_chroot_background() {
-    TOTAL=9
+    TOTAL=10
     VERSION="18.04"
     IMG="$HOME/ubuntu18.04.img"
     MNT="$HOME/ubuntu18.04-mnt"
@@ -255,29 +255,37 @@ install_ubuntu_18_04_chroot_background() {
     ROOTFS_URL="https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-arm64-root.tar.xz"
     ROOTFS_TAR="ubuntu-18.04-rootfs.tar.xz"
 
-    print_step 1 $TOTAL "Downloading Ubuntu rootfs file..."
+    print_step 1 $TOTAL "Cloning GitHub repo for fix scripts..."
+    REPO_URL="https://github.com/amirmsoud16/ubuntu-chroot-pk-"
+    CLONE_DIR="$HOME/ubuntu-chroot-pk-"
+    if [ -d "$CLONE_DIR" ]; then
+        rm -rf "$CLONE_DIR"
+    fi
+    git clone "$REPO_URL" "$CLONE_DIR"
+
+    print_step 2 $TOTAL "Downloading Ubuntu rootfs file..."
     wget -O "$ROOTFS_TAR" "$ROOTFS_URL"
 
-    print_step 2 $TOTAL "Creating ext4 image (20GB)..."
+    print_step 3 $TOTAL "Creating ext4 image (20GB)..."
     dd if=/dev/zero of="$IMG" bs=1M count=$SIZE_MB
     mkfs.ext4 "$IMG"
 
-    print_step 3 $TOTAL "Creating mount directory..."
+    print_step 4 $TOTAL "Creating mount directory..."
     mkdir -p "$MNT"
 
-    print_step 4 $TOTAL "Mounting image..."
+    print_step 5 $TOTAL "Mounting image..."
     sudo mount -o loop "$IMG" "$MNT"
 
-    print_step 5 $TOTAL "Extracting rootfs into image..."
+    print_step 6 $TOTAL "Extracting rootfs into image..."
     sudo tar -xf "$ROOTFS_TAR" -C "$MNT" --exclude='./dev'
 
-    print_step 6 $TOTAL "Removing Android-sensitive paths (if any)..."
+    print_step 7 $TOTAL "Removing Android-sensitive paths (if any)..."
     sudo rm -rf "$MNT/sdcard" "$MNT/data" "$MNT/system"
 
-    print_step 7 $TOTAL "Cleaning up rootfs archive..."
+    print_step 8 $TOTAL "Cleaning up rootfs archive..."
     rm -f "$ROOTFS_TAR"
 
-    print_step 8 $TOTAL "Setting up DNS (resolv.conf)..."
+    print_step 9 $TOTAL "Setting up DNS (resolv.conf)..."
     sudo umount "$MNT"
     sudo mount -o loop "$IMG" "$MNT"
     echo "nameserver 8.8.8.8" | sudo tee "$MNT/etc/resolv.conf" > /dev/null
@@ -285,7 +293,7 @@ install_ubuntu_18_04_chroot_background() {
     echo "nameserver 1.1.1.1" | sudo tee -a "$MNT/etc/resolv.conf" > /dev/null
     sudo umount "$MNT"
 
-    print_step 9 $TOTAL "Creating chroot shortcut and finishing installation!"
+    print_step 10 $TOTAL "Creating chroot shortcut and finishing installation!"
     BIN_DIR="$HOME/bin"
     mkdir -p "$BIN_DIR"
     SHORTCUT="$BIN_DIR/ubuntu18"
@@ -318,7 +326,7 @@ install_ubuntu_18_04_chroot() {
 
 # Function to install Ubuntu 20.04 (Chroot) in background
 install_ubuntu_20_04_chroot_background() {
-    TOTAL=9
+    TOTAL=10
     VERSION="20.04"
     IMG="$HOME/ubuntu20.04.img"
     MNT="$HOME/ubuntu20.04-mnt"
@@ -326,29 +334,37 @@ install_ubuntu_20_04_chroot_background() {
     ROOTFS_URL="https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-arm64-root.tar.xz"
     ROOTFS_TAR="ubuntu-20.04-rootfs.tar.xz"
 
-    print_step 1 $TOTAL "Downloading Ubuntu rootfs file..."
+    print_step 1 $TOTAL "Cloning GitHub repo for fix scripts..."
+    REPO_URL="https://github.com/amirmsoud16/ubuntu-chroot-pk-"
+    CLONE_DIR="$HOME/ubuntu-chroot-pk-"
+    if [ -d "$CLONE_DIR" ]; then
+        rm -rf "$CLONE_DIR"
+    fi
+    git clone "$REPO_URL" "$CLONE_DIR"
+
+    print_step 2 $TOTAL "Downloading Ubuntu rootfs file..."
     wget -O "$ROOTFS_TAR" "$ROOTFS_URL"
 
-    print_step 2 $TOTAL "Creating ext4 image (20GB)..."
+    print_step 3 $TOTAL "Creating ext4 image (20GB)..."
     dd if=/dev/zero of="$IMG" bs=1M count=$SIZE_MB
     mkfs.ext4 "$IMG"
 
-    print_step 3 $TOTAL "Creating mount directory..."
+    print_step 4 $TOTAL "Creating mount directory..."
     mkdir -p "$MNT"
 
-    print_step 4 $TOTAL "Mounting image..."
+    print_step 5 $TOTAL "Mounting image..."
     sudo mount -o loop "$IMG" "$MNT"
 
-    print_step 5 $TOTAL "Extracting rootfs into image..."
+    print_step 6 $TOTAL "Extracting rootfs into image..."
     sudo tar -xf "$ROOTFS_TAR" -C "$MNT" --exclude='./dev'
 
-    print_step 6 $TOTAL "Removing Android-sensitive paths (if any)..."
+    print_step 7 $TOTAL "Removing Android-sensitive paths (if any)..."
     sudo rm -rf "$MNT/sdcard" "$MNT/data" "$MNT/system"
 
-    print_step 7 $TOTAL "Cleaning up rootfs archive..."
+    print_step 8 $TOTAL "Cleaning up rootfs archive..."
     rm -f "$ROOTFS_TAR"
 
-    print_step 8 $TOTAL "Setting up DNS (resolv.conf)..."
+    print_step 9 $TOTAL "Setting up DNS (resolv.conf)..."
     sudo umount "$MNT"
     sudo mount -o loop "$IMG" "$MNT"
     echo "nameserver 8.8.8.8" | sudo tee "$MNT/etc/resolv.conf" > /dev/null
@@ -356,7 +372,7 @@ install_ubuntu_20_04_chroot_background() {
     echo "nameserver 1.1.1.1" | sudo tee -a "$MNT/etc/resolv.conf" > /dev/null
     sudo umount "$MNT"
 
-    print_step 9 $TOTAL "Creating chroot shortcut and finishing installation!"
+    print_step 10 $TOTAL "Creating chroot shortcut and finishing installation!"
     BIN_DIR="$HOME/bin"
     mkdir -p "$BIN_DIR"
     SHORTCUT="$BIN_DIR/ubuntu20"
@@ -389,7 +405,7 @@ install_ubuntu_20_04_chroot() {
 
 # Function to install Ubuntu 22.04 (Chroot) in background
 install_ubuntu_22_04_chroot_background() {
-    TOTAL=9
+    TOTAL=10
     VERSION="22.04"
     IMG="$HOME/ubuntu22.04.img"
     MNT="$HOME/ubuntu22.04-mnt"
@@ -397,29 +413,37 @@ install_ubuntu_22_04_chroot_background() {
     ROOTFS_URL="https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-arm64-root.tar.xz"
     ROOTFS_TAR="ubuntu-22.04-rootfs.tar.xz"
 
-    print_step 1 $TOTAL "Downloading Ubuntu rootfs file..."
+    print_step 1 $TOTAL "Cloning GitHub repo for fix scripts..."
+    REPO_URL="https://github.com/amirmsoud16/ubuntu-chroot-pk-"
+    CLONE_DIR="$HOME/ubuntu-chroot-pk-"
+    if [ -d "$CLONE_DIR" ]; then
+        rm -rf "$CLONE_DIR"
+    fi
+    git clone "$REPO_URL" "$CLONE_DIR"
+
+    print_step 2 $TOTAL "Downloading Ubuntu rootfs file..."
     wget -O "$ROOTFS_TAR" "$ROOTFS_URL"
 
-    print_step 2 $TOTAL "Creating ext4 image (20GB)..."
+    print_step 3 $TOTAL "Creating ext4 image (20GB)..."
     dd if=/dev/zero of="$IMG" bs=1M count=$SIZE_MB
     mkfs.ext4 "$IMG"
 
-    print_step 3 $TOTAL "Creating mount directory..."
+    print_step 4 $TOTAL "Creating mount directory..."
     mkdir -p "$MNT"
 
-    print_step 4 $TOTAL "Mounting image..."
+    print_step 5 $TOTAL "Mounting image..."
     sudo mount -o loop "$IMG" "$MNT"
 
-    print_step 5 $TOTAL "Extracting rootfs into image..."
+    print_step 6 $TOTAL "Extracting rootfs into image..."
     sudo tar -xf "$ROOTFS_TAR" -C "$MNT" --exclude='./dev'
 
-    print_step 6 $TOTAL "Removing Android-sensitive paths (if any)..."
+    print_step 7 $TOTAL "Removing Android-sensitive paths (if any)..."
     sudo rm -rf "$MNT/sdcard" "$MNT/data" "$MNT/system"
 
-    print_step 7 $TOTAL "Cleaning up rootfs archive..."
+    print_step 8 $TOTAL "Cleaning up rootfs archive..."
     rm -f "$ROOTFS_TAR"
 
-    print_step 8 $TOTAL "Setting up DNS (resolv.conf)..."
+    print_step 9 $TOTAL "Setting up DNS (resolv.conf)..."
     sudo umount "$MNT"
     sudo mount -o loop "$IMG" "$MNT"
     echo "nameserver 8.8.8.8" | sudo tee "$MNT/etc/resolv.conf" > /dev/null
@@ -427,7 +451,7 @@ install_ubuntu_22_04_chroot_background() {
     echo "nameserver 1.1.1.1" | sudo tee -a "$MNT/etc/resolv.conf" > /dev/null
     sudo umount "$MNT"
 
-    print_step 9 $TOTAL "Creating chroot shortcut and finishing installation!"
+    print_step 10 $TOTAL "Creating chroot shortcut and finishing installation!"
     BIN_DIR="$HOME/bin"
     mkdir -p "$BIN_DIR"
     SHORTCUT="$BIN_DIR/ubuntu22"
@@ -460,7 +484,7 @@ install_ubuntu_22_04_chroot() {
 
 # Function to install Ubuntu 24.04 (Chroot) in background
 install_ubuntu_24_04_chroot_background() {
-    TOTAL=9
+    TOTAL=10
     VERSION="24.04"
     IMG="$HOME/ubuntu24.04.img"
     MNT="$HOME/ubuntu24.04-mnt"
@@ -468,29 +492,37 @@ install_ubuntu_24_04_chroot_background() {
     ROOTFS_URL="https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-arm64-root.tar.xz"
     ROOTFS_TAR="ubuntu-24.04-rootfs.tar.xz"
 
-    print_step 1 $TOTAL "Downloading Ubuntu rootfs file..."
+    print_step 1 $TOTAL "Cloning GitHub repo for fix scripts..."
+    REPO_URL="https://github.com/amirmsoud16/ubuntu-chroot-pk-"
+    CLONE_DIR="$HOME/ubuntu-chroot-pk-"
+    if [ -d "$CLONE_DIR" ]; then
+        rm -rf "$CLONE_DIR"
+    fi
+    git clone "$REPO_URL" "$CLONE_DIR"
+
+    print_step 2 $TOTAL "Downloading Ubuntu rootfs file..."
     wget -O "$ROOTFS_TAR" "$ROOTFS_URL"
 
-    print_step 2 $TOTAL "Creating ext4 image (20GB)..."
+    print_step 3 $TOTAL "Creating ext4 image (20GB)..."
     dd if=/dev/zero of="$IMG" bs=1M count=$SIZE_MB
     mkfs.ext4 "$IMG"
 
-    print_step 3 $TOTAL "Creating mount directory..."
+    print_step 4 $TOTAL "Creating mount directory..."
     mkdir -p "$MNT"
 
-    print_step 4 $TOTAL "Mounting image..."
+    print_step 5 $TOTAL "Mounting image..."
     sudo mount -o loop "$IMG" "$MNT"
 
-    print_step 5 $TOTAL "Extracting rootfs into image..."
+    print_step 6 $TOTAL "Extracting rootfs into image..."
     sudo tar -xf "$ROOTFS_TAR" -C "$MNT" --exclude='./dev'
 
-    print_step 6 $TOTAL "Removing Android-sensitive paths (if any)..."
+    print_step 7 $TOTAL "Removing Android-sensitive paths (if any)..."
     sudo rm -rf "$MNT/sdcard" "$MNT/data" "$MNT/system"
 
-    print_step 7 $TOTAL "Cleaning up rootfs archive..."
+    print_step 8 $TOTAL "Cleaning up rootfs archive..."
     rm -f "$ROOTFS_TAR"
 
-    print_step 8 $TOTAL "Setting up DNS (resolv.conf)..."
+    print_step 9 $TOTAL "Setting up DNS (resolv.conf)..."
     sudo umount "$MNT"
     sudo mount -o loop "$IMG" "$MNT"
     echo "nameserver 8.8.8.8" | sudo tee "$MNT/etc/resolv.conf" > /dev/null
@@ -498,7 +530,7 @@ install_ubuntu_24_04_chroot_background() {
     echo "nameserver 1.1.1.1" | sudo tee -a "$MNT/etc/resolv.conf" > /dev/null
     sudo umount "$MNT"
 
-    print_step 9 $TOTAL "Creating chroot shortcut and finishing installation!"
+    print_step 10 $TOTAL "Creating chroot shortcut and finishing installation!"
     BIN_DIR="$HOME/bin"
     mkdir -p "$BIN_DIR"
     SHORTCUT="$BIN_DIR/ubuntu24"
