@@ -348,8 +348,7 @@ EOF
     echo "  2) Enter installed Ubuntu chroot"
     read -p "Enter your choice (1 or 2): " next_action
     if [[ "$next_action" == "2" ]]; then
-        cd $HOME/ubuntu/ubuntu18-rootfs
-        ./start-ubuntu-18.04.sh
+        $HOME/bin/ubuntu18
     fi
 }
 
@@ -434,8 +433,7 @@ EOF
     echo "  2) Enter installed Ubuntu chroot"
     read -p "Enter your choice (1 or 2): " next_action
     if [[ "$next_action" == "2" ]]; then
-        cd $HOME/ubuntu/ubuntu20-rootfs
-        ./start-ubuntu-20.04.sh
+        $HOME/bin/ubuntu20
     fi
 }
 
@@ -520,8 +518,7 @@ EOF
     echo "  2) Enter installed Ubuntu chroot"
     read -p "Enter your choice (1 or 2): " next_action
     if [[ "$next_action" == "2" ]]; then
-        cd $HOME/ubuntu/ubuntu22-rootfs
-        ./start-ubuntu-22.04.sh
+        $HOME/bin/ubuntu22
     fi
 }
 
@@ -606,8 +603,7 @@ EOF
     echo "  2) Enter installed Ubuntu chroot"
     read -p "Enter your choice (1 or 2): " next_action
     if [[ "$next_action" == "2" ]]; then
-        cd $HOME/ubuntu/ubuntu24-rootfs
-        ./start-ubuntu-24.04.sh
+        $HOME/bin/ubuntu24
     fi
 }
 
