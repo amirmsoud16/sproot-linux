@@ -42,6 +42,23 @@ print_error() {
     echo -e "${RED}✗ [ERROR] $1${NC}"
 }
 
+# Function to print step
+print_step() {
+    local step="$1"
+    local total="$2"
+    local msg="$3"
+    local spin='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+    local i=0
+    echo -ne "[${step}/${total}] ${msg} "
+    for _ in {1..10}; do
+        local temp=${spin:$i:1}
+        echo -ne "$temp\r"
+        i=$(( (i+1) % ${#spin} ))
+        sleep 0.08
+    done
+    echo -ne "\r"
+}
+
 # Function to check and download Ubuntu rootfs
 download_ubuntu_rootfs() {
     local version=$1
@@ -230,6 +247,7 @@ clone_github_repo() {
 
 # Function to install Ubuntu 18.04 (Chroot) in background
 install_ubuntu_18_04_chroot_background() {
+    TOTAL=9
     VERSION="18.04"
     IMG="$HOME/ubuntu18.04.img"
     MNT="$HOME/ubuntu18.04-mnt"
@@ -237,39 +255,37 @@ install_ubuntu_18_04_chroot_background() {
     ROOTFS_URL="https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-arm64-root.tar.xz"
     ROOTFS_TAR="ubuntu-18.04-rootfs.tar.xz"
 
-    # ساخت فایل ext4
+    print_step 1 $TOTAL "Downloading Ubuntu rootfs file..."
+    wget -O "$ROOTFS_TAR" "$ROOTFS_URL"
+
+    print_step 2 $TOTAL "Creating ext4 image (20GB)..."
     dd if=/dev/zero of="$IMG" bs=1M count=$SIZE_MB
     mkfs.ext4 "$IMG"
 
-    # ساخت دایرکتوری mount
+    print_step 3 $TOTAL "Creating mount directory..."
     mkdir -p "$MNT"
 
-    # mount فایل
+    print_step 4 $TOTAL "Mounting image..."
     sudo mount -o loop "$IMG" "$MNT"
 
-    # دانلود rootfs
-    wget -O "$ROOTFS_TAR" "$ROOTFS_URL"
-
-    # استخراج rootfs
+    print_step 5 $TOTAL "Extracting rootfs into image..."
     sudo tar -xf "$ROOTFS_TAR" -C "$MNT" --exclude='./dev'
 
-    # حذف مسیرهای حساس (در صورت وجود)
+    print_step 6 $TOTAL "Removing Android-sensitive paths (if any)..."
     sudo rm -rf "$MNT/sdcard" "$MNT/data" "$MNT/system"
 
-    # پاکسازی فایل دانلودی
+    print_step 7 $TOTAL "Cleaning up rootfs archive..."
     rm -f "$ROOTFS_TAR"
 
-    # unmount
+    print_step 8 $TOTAL "Setting up DNS (resolv.conf)..."
     sudo umount "$MNT"
-
-    # Mount the image again, set up DNS, then unmount.
     sudo mount -o loop "$IMG" "$MNT"
     echo "nameserver 8.8.8.8" | sudo tee "$MNT/etc/resolv.conf" > /dev/null
     echo "nameserver 8.8.4.4" | sudo tee -a "$MNT/etc/resolv.conf" > /dev/null
     echo "nameserver 1.1.1.1" | sudo tee -a "$MNT/etc/resolv.conf" > /dev/null
     sudo umount "$MNT"
 
-    # ساخت شورتکات ورود
+    print_step 9 $TOTAL "Creating chroot shortcut and finishing installation!"
     BIN_DIR="$HOME/bin"
     mkdir -p "$BIN_DIR"
     SHORTCUT="$BIN_DIR/ubuntu18"
@@ -302,6 +318,7 @@ install_ubuntu_18_04_chroot() {
 
 # Function to install Ubuntu 20.04 (Chroot) in background
 install_ubuntu_20_04_chroot_background() {
+    TOTAL=9
     VERSION="20.04"
     IMG="$HOME/ubuntu20.04.img"
     MNT="$HOME/ubuntu20.04-mnt"
@@ -309,39 +326,37 @@ install_ubuntu_20_04_chroot_background() {
     ROOTFS_URL="https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-arm64-root.tar.xz"
     ROOTFS_TAR="ubuntu-20.04-rootfs.tar.xz"
 
-    # ساخت فایل ext4
+    print_step 1 $TOTAL "Downloading Ubuntu rootfs file..."
+    wget -O "$ROOTFS_TAR" "$ROOTFS_URL"
+
+    print_step 2 $TOTAL "Creating ext4 image (20GB)..."
     dd if=/dev/zero of="$IMG" bs=1M count=$SIZE_MB
     mkfs.ext4 "$IMG"
 
-    # ساخت دایرکتوری mount
+    print_step 3 $TOTAL "Creating mount directory..."
     mkdir -p "$MNT"
 
-    # mount فایل
+    print_step 4 $TOTAL "Mounting image..."
     sudo mount -o loop "$IMG" "$MNT"
 
-    # دانلود rootfs
-    wget -O "$ROOTFS_TAR" "$ROOTFS_URL"
-
-    # استخراج rootfs
+    print_step 5 $TOTAL "Extracting rootfs into image..."
     sudo tar -xf "$ROOTFS_TAR" -C "$MNT" --exclude='./dev'
 
-    # حذف مسیرهای حساس (در صورت وجود)
+    print_step 6 $TOTAL "Removing Android-sensitive paths (if any)..."
     sudo rm -rf "$MNT/sdcard" "$MNT/data" "$MNT/system"
 
-    # پاکسازی فایل دانلودی
+    print_step 7 $TOTAL "Cleaning up rootfs archive..."
     rm -f "$ROOTFS_TAR"
 
-    # unmount
+    print_step 8 $TOTAL "Setting up DNS (resolv.conf)..."
     sudo umount "$MNT"
-
-    # Mount the image again, set up DNS, then unmount.
     sudo mount -o loop "$IMG" "$MNT"
     echo "nameserver 8.8.8.8" | sudo tee "$MNT/etc/resolv.conf" > /dev/null
     echo "nameserver 8.8.4.4" | sudo tee -a "$MNT/etc/resolv.conf" > /dev/null
     echo "nameserver 1.1.1.1" | sudo tee -a "$MNT/etc/resolv.conf" > /dev/null
     sudo umount "$MNT"
 
-    # ساخت شورتکات ورود
+    print_step 9 $TOTAL "Creating chroot shortcut and finishing installation!"
     BIN_DIR="$HOME/bin"
     mkdir -p "$BIN_DIR"
     SHORTCUT="$BIN_DIR/ubuntu20"
@@ -374,6 +389,7 @@ install_ubuntu_20_04_chroot() {
 
 # Function to install Ubuntu 22.04 (Chroot) in background
 install_ubuntu_22_04_chroot_background() {
+    TOTAL=9
     VERSION="22.04"
     IMG="$HOME/ubuntu22.04.img"
     MNT="$HOME/ubuntu22.04-mnt"
@@ -381,39 +397,37 @@ install_ubuntu_22_04_chroot_background() {
     ROOTFS_URL="https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-arm64-root.tar.xz"
     ROOTFS_TAR="ubuntu-22.04-rootfs.tar.xz"
 
-    # ساخت فایل ext4
+    print_step 1 $TOTAL "Downloading Ubuntu rootfs file..."
+    wget -O "$ROOTFS_TAR" "$ROOTFS_URL"
+
+    print_step 2 $TOTAL "Creating ext4 image (20GB)..."
     dd if=/dev/zero of="$IMG" bs=1M count=$SIZE_MB
     mkfs.ext4 "$IMG"
 
-    # ساخت دایرکتوری mount
+    print_step 3 $TOTAL "Creating mount directory..."
     mkdir -p "$MNT"
 
-    # mount فایل
+    print_step 4 $TOTAL "Mounting image..."
     sudo mount -o loop "$IMG" "$MNT"
 
-    # دانلود rootfs
-    wget -O "$ROOTFS_TAR" "$ROOTFS_URL"
-
-    # استخراج rootfs
+    print_step 5 $TOTAL "Extracting rootfs into image..."
     sudo tar -xf "$ROOTFS_TAR" -C "$MNT" --exclude='./dev'
 
-    # حذف مسیرهای حساس (در صورت وجود)
+    print_step 6 $TOTAL "Removing Android-sensitive paths (if any)..."
     sudo rm -rf "$MNT/sdcard" "$MNT/data" "$MNT/system"
 
-    # پاکسازی فایل دانلودی
+    print_step 7 $TOTAL "Cleaning up rootfs archive..."
     rm -f "$ROOTFS_TAR"
 
-    # unmount
+    print_step 8 $TOTAL "Setting up DNS (resolv.conf)..."
     sudo umount "$MNT"
-
-    # Mount the image again, set up DNS, then unmount.
     sudo mount -o loop "$IMG" "$MNT"
     echo "nameserver 8.8.8.8" | sudo tee "$MNT/etc/resolv.conf" > /dev/null
     echo "nameserver 8.8.4.4" | sudo tee -a "$MNT/etc/resolv.conf" > /dev/null
     echo "nameserver 1.1.1.1" | sudo tee -a "$MNT/etc/resolv.conf" > /dev/null
     sudo umount "$MNT"
 
-    # ساخت شورتکات ورود
+    print_step 9 $TOTAL "Creating chroot shortcut and finishing installation!"
     BIN_DIR="$HOME/bin"
     mkdir -p "$BIN_DIR"
     SHORTCUT="$BIN_DIR/ubuntu22"
@@ -446,6 +460,7 @@ install_ubuntu_22_04_chroot() {
 
 # Function to install Ubuntu 24.04 (Chroot) in background
 install_ubuntu_24_04_chroot_background() {
+    TOTAL=9
     VERSION="24.04"
     IMG="$HOME/ubuntu24.04.img"
     MNT="$HOME/ubuntu24.04-mnt"
@@ -453,39 +468,37 @@ install_ubuntu_24_04_chroot_background() {
     ROOTFS_URL="https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-arm64-root.tar.xz"
     ROOTFS_TAR="ubuntu-24.04-rootfs.tar.xz"
 
-    # ساخت فایل ext4
+    print_step 1 $TOTAL "Downloading Ubuntu rootfs file..."
+    wget -O "$ROOTFS_TAR" "$ROOTFS_URL"
+
+    print_step 2 $TOTAL "Creating ext4 image (20GB)..."
     dd if=/dev/zero of="$IMG" bs=1M count=$SIZE_MB
     mkfs.ext4 "$IMG"
 
-    # ساخت دایرکتوری mount
+    print_step 3 $TOTAL "Creating mount directory..."
     mkdir -p "$MNT"
 
-    # mount فایل
+    print_step 4 $TOTAL "Mounting image..."
     sudo mount -o loop "$IMG" "$MNT"
 
-    # دانلود rootfs
-    wget -O "$ROOTFS_TAR" "$ROOTFS_URL"
-
-    # استخراج rootfs
+    print_step 5 $TOTAL "Extracting rootfs into image..."
     sudo tar -xf "$ROOTFS_TAR" -C "$MNT" --exclude='./dev'
 
-    # حذف مسیرهای حساس (در صورت وجود)
+    print_step 6 $TOTAL "Removing Android-sensitive paths (if any)..."
     sudo rm -rf "$MNT/sdcard" "$MNT/data" "$MNT/system"
 
-    # پاکسازی فایل دانلودی
+    print_step 7 $TOTAL "Cleaning up rootfs archive..."
     rm -f "$ROOTFS_TAR"
 
-    # unmount
+    print_step 8 $TOTAL "Setting up DNS (resolv.conf)..."
     sudo umount "$MNT"
-
-    # Mount the image again, set up DNS, then unmount.
     sudo mount -o loop "$IMG" "$MNT"
     echo "nameserver 8.8.8.8" | sudo tee "$MNT/etc/resolv.conf" > /dev/null
     echo "nameserver 8.8.4.4" | sudo tee -a "$MNT/etc/resolv.conf" > /dev/null
     echo "nameserver 1.1.1.1" | sudo tee -a "$MNT/etc/resolv.conf" > /dev/null
     sudo umount "$MNT"
 
-    # ساخت شورتکات ورود
+    print_step 9 $TOTAL "Creating chroot shortcut and finishing installation!"
     BIN_DIR="$HOME/bin"
     mkdir -p "$BIN_DIR"
     SHORTCUT="$BIN_DIR/ubuntu24"
