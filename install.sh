@@ -623,81 +623,17 @@ install_ubuntu_24_04_chroot_background() {
     fi
 }
 
-# Function to install Ubuntu with Proot-distro in background
-install_ubuntu_proot_background() {
-    local version="$1"
 
-    # Install proot-distro
-    pkg install proot-distro -y
 
-    # Use specific proot URLs for better compatibility
-    case $version in
-        "18.04")
-            # Use Andronix-style URL for Ubuntu 18.04
-            PROOT_URL="https://github.com/AndronixApp/AndronixOrigin/raw/master/Ubuntu/Ubuntu-18.04/arm64/ubuntu-18.04-arm64.tar.gz"
-            ;;
-        "20.04")
-            # Use Andronix-style URL for Ubuntu 20.04
-            PROOT_URL="https://github.com/AndronixApp/AndronixOrigin/raw/master/Ubuntu/Ubuntu-20.04/arm64/ubuntu-20.04-arm64.tar.gz"
-            ;;
-        "22.04")
-            # Use Andronix-style URL for Ubuntu 22.04
-            PROOT_URL="https://github.com/AndronixApp/AndronixOrigin/raw/master/Ubuntu/Ubuntu-22.04/arm64/ubuntu-22.04-arm64.tar.gz"
-            ;;
-        "24.04")
-            # Use Andronix-style URL for Ubuntu 24.04
-            PROOT_URL="https://github.com/AndronixApp/AndronixOrigin/raw/master/Ubuntu/Ubuntu-24.04/arm64/ubuntu-24.04-arm64.tar.gz"
-            ;;
-        *)
-            # Fallback to proot-distro
-            proot-distro install ubuntu-${version}
-            if [[ $? -eq 0 ]]; then
-                echo "proot_success" > $HOME/ubuntu_install_result
-            else
-                echo "proot_failed" > $HOME/ubuntu_install_result
-            fi
-            return
-            ;;
-    esac
-
-    # Create proot directory
-    mkdir -p $HOME/ubuntu/proot-${version}
-    cd $HOME/ubuntu/proot-${version}
-
-    # Download proot rootfs (silent with progress)
-    wget -q --show-progress -O ubuntu-${version}-proot.tar.gz $PROOT_URL > /dev/null 2>&1
-
-    if [[ $? -eq 0 ]]; then
-        # Extract proot rootfs (silent)
-        tar -xzf ubuntu-${version}-proot.tar.gz --exclude='./dev' > /dev/null 2>&1
-
-        # Create start script for proot
-        cat > start-ubuntu-${version}-proot.sh <<'EOF'
-#!/bin/bash
-unset LD_PRELOAD
-proot -r $HOME/ubuntu/proot-${version} -b /dev -b /proc -b /sys -b /data/data/com.termux/files/home:/root -w /root /usr/bin/env -i HOME=/root TERM="$TERM" LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/bash --login
-EOF
-        chmod +x start-ubuntu-${version}-proot.sh
-
-        echo "proot_success" > $HOME/ubuntu_install_result
-    else
-        # Fallback to proot-distro if download fails
-        cd $HOME
-        proot-distro install ubuntu-${version}
-        if [[ $? -eq 0 ]]; then
-            echo "proot_success" > $HOME/ubuntu_install_result
-        else
-            echo "proot_failed" > $HOME/ubuntu_install_result
-        fi
-    fi
-}
-
-# Function to install Ubuntu with Proot-distro - Main function
+# Function to install Ubuntu with Proot - Main function
 install_ubuntu_proot() {
-    print_status "Installing Ubuntu with proot-distro..."
+    print_status "Installing Ubuntu with Proot (no root required)..."
 
-    # Install proot-distro
-    pkg install proot-distro -y
+    # Install proot-distro if not available
+    if ! command -v proot-distro >/dev/null 2>&1; then
+        print_status "Installing proot-distro..."
+        pkg install proot-distro -y
+    fi
 
     print_header
     echo -e "${WHITE}Select Ubuntu Version for Proot:${NC}"
@@ -711,116 +647,44 @@ install_ubuntu_proot() {
 
     case $proot_version in
         1)
-            # Start installation in background
-            install_ubuntu_proot_background "18.04" &
-            local pid=$!
-
-            # Show loading animation
-            show_loading "Installing Ubuntu 18.04 (Proot)..." $pid
-
-            # Wait for installation to complete
-            wait $pid
-
-            # Check result
-            if [[ -f $HOME/ubuntu_install_result ]]; then
-                local result=$(cat $HOME/ubuntu_install_result)
-                rm -f $HOME/ubuntu_install_result
-
-                if [[ "$result" == "proot_success" ]]; then
-                    print_success_box "Ubuntu 18.04 (Proot) installed successfully!"
-                    print_status "To enter Ubuntu: cd $HOME/ubuntu/proot-18.04 && ./start-ubuntu-18.04-proot.sh"
-                    print_status "Or use: proot-distro login ubuntu-18.04"
-                else
-                    print_error_box "Failed to install Ubuntu 18.04"
-                fi
+            print_status "Installing Ubuntu 18.04 with proot-distro..."
+            proot-distro install ubuntu-18.04
+            if [[ $? -eq 0 ]]; then
+                print_success_box "Ubuntu 18.04 (Proot) installed successfully!"
+                print_status "To enter Ubuntu: proot-distro login ubuntu-18.04"
             else
-                print_error_box "Installation failed"
+                print_error_box "Failed to install Ubuntu 18.04"
             fi
-            clear_screen
             ;;
         2)
-            # Start installation in background
-            install_ubuntu_proot_background "20.04" &
-            local pid=$!
-
-            # Show loading animation
-            show_loading "Installing Ubuntu 20.04 (Proot)..." $pid
-
-            # Wait for installation to complete
-            wait $pid
-
-            # Check result
-            if [[ -f $HOME/ubuntu_install_result ]]; then
-                local result=$(cat $HOME/ubuntu_install_result)
-                rm -f $HOME/ubuntu_install_result
-
-                if [[ "$result" == "proot_success" ]]; then
-                    print_success_box "Ubuntu 20.04 (Proot) installed successfully!"
-                    print_status "To enter Ubuntu: cd $HOME/ubuntu/proot-20.04 && ./start-ubuntu-20.04-proot.sh"
-                    print_status "Or use: proot-distro login ubuntu-20.04"
-                else
-                    print_error_box "Failed to install Ubuntu 20.04"
-                fi
+            print_status "Installing Ubuntu 20.04 with proot-distro..."
+            proot-distro install ubuntu-20.04
+            if [[ $? -eq 0 ]]; then
+                print_success_box "Ubuntu 20.04 (Proot) installed successfully!"
+                print_status "To enter Ubuntu: proot-distro login ubuntu-20.04"
             else
-                print_error_box "Installation failed"
+                print_error_box "Failed to install Ubuntu 20.04"
             fi
-            clear_screen
             ;;
         3)
-            # Start installation in background
-            install_ubuntu_proot_background "22.04" &
-            local pid=$!
-
-            # Show loading animation
-            show_loading "Installing Ubuntu 22.04 (Proot)..." $pid
-
-            # Wait for installation to complete
-            wait $pid
-
-            # Check result
-            if [[ -f $HOME/ubuntu_install_result ]]; then
-                local result=$(cat $HOME/ubuntu_install_result)
-                rm -f $HOME/ubuntu_install_result
-
-                if [[ "$result" == "proot_success" ]]; then
-                    print_success_box "Ubuntu 22.04 (Proot) installed successfully!"
-                    print_status "To enter Ubuntu: cd $HOME/ubuntu/proot-22.04 && ./start-ubuntu-22.04-proot.sh"
-                    print_status "Or use: proot-distro login ubuntu-22.04"
-                else
-                    print_error_box "Failed to install Ubuntu 22.04"
-                fi
+            print_status "Installing Ubuntu 22.04 with proot-distro..."
+            proot-distro install ubuntu-22.04
+            if [[ $? -eq 0 ]]; then
+                print_success_box "Ubuntu 22.04 (Proot) installed successfully!"
+                print_status "To enter Ubuntu: proot-distro login ubuntu-22.04"
             else
-                print_error_box "Installation failed"
+                print_error_box "Failed to install Ubuntu 22.04"
             fi
-            clear_screen
             ;;
         4)
-            # Start installation in background
-            install_ubuntu_proot_background "24.04" &
-            local pid=$!
-
-            # Show loading animation
-            show_loading "Installing Ubuntu 24.04 (Proot)..." $pid
-
-            # Wait for installation to complete
-            wait $pid
-
-            # Check result
-            if [[ -f $HOME/ubuntu_install_result ]]; then
-                local result=$(cat $HOME/ubuntu_install_result)
-                rm -f $HOME/ubuntu_install_result
-
-                if [[ "$result" == "proot_success" ]]; then
-                    print_success_box "Ubuntu 24.04 (Proot) installed successfully!"
-                    print_status "To enter Ubuntu: cd $HOME/ubuntu/proot-24.04 && ./start-ubuntu-24.04-proot.sh"
-                    print_status "Or use: proot-distro login ubuntu-24.04"
-                else
-                    print_error_box "Failed to install Ubuntu 24.04"
-                fi
+            print_status "Installing Ubuntu 24.04 with proot-distro..."
+            proot-distro install ubuntu-24.04
+            if [[ $? -eq 0 ]]; then
+                print_success_box "Ubuntu 24.04 (Proot) installed successfully!"
+                print_status "To enter Ubuntu: proot-distro login ubuntu-24.04"
             else
-                print_error_box "Installation failed"
+                print_error_box "Failed to install Ubuntu 24.04"
             fi
-            clear_screen
             ;;
         *)
             print_error "Invalid choice"
