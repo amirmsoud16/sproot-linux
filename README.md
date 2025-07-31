@@ -28,7 +28,7 @@ apt upgrade -y
 ### 3️⃣ Install Required Packages
 ```bash
 # Install required tools
-apt install wget curl proot tar git nano vim -y
+apt install wget curl proot tar git nano vim -y tsu
 ```
 
 ---
