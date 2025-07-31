@@ -304,24 +304,24 @@ install_ubuntu_18_04_chroot_background() {
     mkdir -p "$MNT"
 
     print_steps_progress 5
-    sudo mount -o loop "$IMG" "$MNT"
+    tsu -c "mount -o loop $IMG $MNT"
 
     print_steps_progress 6
-    sudo tar -xf "$ROOTFS_TAR" -C "$MNT" --exclude='./dev'
+    tsu -c "tar -xf $ROOTFS_TAR -C $MNT --exclude='./dev'"
 
     print_steps_progress 7
-    sudo rm -rf "$MNT/sdcard" "$MNT/data" "$MNT/system"
+    tsu -c "rm -rf $MNT/sdcard $MNT/data $MNT/system"
 
     print_steps_progress 8
     rm -f "$ROOTFS_TAR"
 
     print_steps_progress 9
-    sudo umount "$MNT"
-    sudo mount -o loop "$IMG" "$MNT"
-    echo "nameserver 8.8.8.8" | sudo tee "$MNT/etc/resolv.conf" > /dev/null
-    echo "nameserver 8.8.4.4" | sudo tee -a "$MNT/etc/resolv.conf" > /dev/null
-    echo "nameserver 1.1.1.1" | sudo tee -a "$MNT/etc/resolv.conf" > /dev/null
-    sudo umount "$MNT"
+    tsu -c "umount $MNT"
+    tsu -c "mount -o loop $IMG $MNT"
+    echo "nameserver 8.8.8.8" | tsu -c "tee $MNT/etc/resolv.conf" > /dev/null
+    echo "nameserver 8.8.4.4" | tsu -c "tee -a $MNT/etc/resolv.conf" > /dev/null
+    echo "nameserver 1.1.1.1" | tsu -c "tee -a $MNT/etc/resolv.conf" > /dev/null
+    tsu -c "umount $MNT"
 
     print_steps_progress 10
     BIN_DIR="$HOME/bin"
@@ -332,13 +332,13 @@ install_ubuntu_18_04_chroot_background() {
 IMG="$IMG"
 MNT="$MNT"
 mkdir -p "\$MNT"
-sudo mount -o loop "\$IMG" "\$MNT"
-sudo mount -t proc none "\$MNT/proc"
-sudo mount -t sysfs none "\$MNT/sys"
-sudo chroot "\$MNT" /bin/bash
-sudo umount "\$MNT/proc"
-sudo umount "\$MNT/sys"
-sudo umount "\$MNT"
+tsu -c "mount -o loop \$IMG \$MNT"
+tsu -c "mount -t proc none \$MNT/proc"
+tsu -c "mount -t sysfs none \$MNT/sys"
+tsu -c "chroot \$MNT /bin/bash"
+tsu -c "umount \$MNT/proc"
+tsu -c "umount \$MNT/sys"
+tsu -c "umount \$MNT"
 EOF
     chmod +x "$SHORTCUT"
     print_success_box "Ubuntu 18.04 (Chroot) installation completed!"
@@ -389,24 +389,24 @@ install_ubuntu_20_04_chroot_background() {
     mkdir -p "$MNT"
 
     print_steps_progress 5
-    sudo mount -o loop "$IMG" "$MNT"
+    tsu -c "mount -o loop $IMG $MNT"
 
     print_steps_progress 6
-    sudo tar -xf "$ROOTFS_TAR" -C "$MNT" --exclude='./dev'
+    tsu -c "tar -xf $ROOTFS_TAR -C $MNT --exclude='./dev'"
 
     print_steps_progress 7
-    sudo rm -rf "$MNT/sdcard" "$MNT/data" "$MNT/system"
+    tsu -c "rm -rf $MNT/sdcard $MNT/data $MNT/system"
 
     print_steps_progress 8
     rm -f "$ROOTFS_TAR"
 
     print_steps_progress 9
-    sudo umount "$MNT"
-    sudo mount -o loop "$IMG" "$MNT"
-    echo "nameserver 8.8.8.8" | sudo tee "$MNT/etc/resolv.conf" > /dev/null
-    echo "nameserver 8.8.4.4" | sudo tee -a "$MNT/etc/resolv.conf" > /dev/null
-    echo "nameserver 1.1.1.1" | sudo tee -a "$MNT/etc/resolv.conf" > /dev/null
-    sudo umount "$MNT"
+    tsu -c "umount $MNT"
+    tsu -c "mount -o loop $IMG $MNT"
+    echo "nameserver 8.8.8.8" | tsu -c "tee $MNT/etc/resolv.conf" > /dev/null
+    echo "nameserver 8.8.4.4" | tsu -c "tee -a $MNT/etc/resolv.conf" > /dev/null
+    echo "nameserver 1.1.1.1" | tsu -c "tee -a $MNT/etc/resolv.conf" > /dev/null
+    tsu -c "umount $MNT"
 
     print_steps_progress 10
     BIN_DIR="$HOME/bin"
@@ -417,13 +417,13 @@ install_ubuntu_20_04_chroot_background() {
 IMG="$IMG"
 MNT="$MNT"
 mkdir -p "\$MNT"
-sudo mount -o loop "\$IMG" "\$MNT"
-sudo mount -t proc none "\$MNT/proc"
-sudo mount -t sysfs none "\$MNT/sys"
-sudo chroot "\$MNT" /bin/bash
-sudo umount "\$MNT/proc"
-sudo umount "\$MNT/sys"
-sudo umount "\$MNT"
+tsu -c "mount -o loop \$IMG \$MNT"
+tsu -c "mount -t proc none \$MNT/proc"
+tsu -c "mount -t sysfs none \$MNT/sys"
+tsu -c "chroot \$MNT /bin/bash"
+tsu -c "umount \$MNT/proc"
+tsu -c "umount \$MNT/sys"
+tsu -c "umount \$MNT"
 EOF
     chmod +x "$SHORTCUT"
     print_success_box "Ubuntu 20.04 (Chroot) installation completed!"
@@ -474,24 +474,24 @@ install_ubuntu_22_04_chroot_background() {
     mkdir -p "$MNT"
 
     print_steps_progress 5
-    sudo mount -o loop "$IMG" "$MNT"
+    tsu -c "mount -o loop $IMG $MNT"
 
     print_steps_progress 6
-    sudo tar -xf "$ROOTFS_TAR" -C "$MNT" --exclude='./dev'
+    tsu -c "tar -xf $ROOTFS_TAR -C $MNT --exclude='./dev'"
 
     print_steps_progress 7
-    sudo rm -rf "$MNT/sdcard" "$MNT/data" "$MNT/system"
+    tsu -c "rm -rf $MNT/sdcard $MNT/data $MNT/system"
 
     print_steps_progress 8
     rm -f "$ROOTFS_TAR"
 
     print_steps_progress 9
-    sudo umount "$MNT"
-    sudo mount -o loop "$IMG" "$MNT"
-    echo "nameserver 8.8.8.8" | sudo tee "$MNT/etc/resolv.conf" > /dev/null
-    echo "nameserver 8.8.4.4" | sudo tee -a "$MNT/etc/resolv.conf" > /dev/null
-    echo "nameserver 1.1.1.1" | sudo tee -a "$MNT/etc/resolv.conf" > /dev/null
-    sudo umount "$MNT"
+    tsu -c "umount $MNT"
+    tsu -c "mount -o loop $IMG $MNT"
+    echo "nameserver 8.8.8.8" | tsu -c "tee $MNT/etc/resolv.conf" > /dev/null
+    echo "nameserver 8.8.4.4" | tsu -c "tee -a $MNT/etc/resolv.conf" > /dev/null
+    echo "nameserver 1.1.1.1" | tsu -c "tee -a $MNT/etc/resolv.conf" > /dev/null
+    tsu -c "umount $MNT"
 
     print_steps_progress 10
     BIN_DIR="$HOME/bin"
@@ -502,13 +502,13 @@ install_ubuntu_22_04_chroot_background() {
 IMG="$IMG"
 MNT="$MNT"
 mkdir -p "\$MNT"
-sudo mount -o loop "\$IMG" "\$MNT"
-sudo mount -t proc none "\$MNT/proc"
-sudo mount -t sysfs none "\$MNT/sys"
-sudo chroot "\$MNT" /bin/bash
-sudo umount "\$MNT/proc"
-sudo umount "\$MNT/sys"
-sudo umount "\$MNT"
+tsu -c "mount -o loop \$IMG \$MNT"
+tsu -c "mount -t proc none \$MNT/proc"
+tsu -c "mount -t sysfs none \$MNT/sys"
+tsu -c "chroot \$MNT /bin/bash"
+tsu -c "umount \$MNT/proc"
+tsu -c "umount \$MNT/sys"
+tsu -c "umount \$MNT"
 EOF
     chmod +x "$SHORTCUT"
     print_success_box "Ubuntu 22.04 (Chroot) installation completed!"
@@ -559,24 +559,24 @@ install_ubuntu_24_04_chroot_background() {
     mkdir -p "$MNT"
 
     print_steps_progress 5
-    sudo mount -o loop "$IMG" "$MNT"
+    tsu -c "mount -o loop $IMG $MNT"
 
     print_steps_progress 6
-    sudo tar -xf "$ROOTFS_TAR" -C "$MNT" --exclude='./dev'
+    tsu -c "tar -xf $ROOTFS_TAR -C $MNT --exclude='./dev'"
 
     print_steps_progress 7
-    sudo rm -rf "$MNT/sdcard" "$MNT/data" "$MNT/system"
+    tsu -c "rm -rf $MNT/sdcard $MNT/data $MNT/system"
 
     print_steps_progress 8
     rm -f "$ROOTFS_TAR"
 
     print_steps_progress 9
-    sudo umount "$MNT"
-    sudo mount -o loop "$IMG" "$MNT"
-    echo "nameserver 8.8.8.8" | sudo tee "$MNT/etc/resolv.conf" > /dev/null
-    echo "nameserver 8.8.4.4" | sudo tee -a "$MNT/etc/resolv.conf" > /dev/null
-    echo "nameserver 1.1.1.1" | sudo tee -a "$MNT/etc/resolv.conf" > /dev/null
-    sudo umount "$MNT"
+    tsu -c "umount $MNT"
+    tsu -c "mount -o loop $IMG $MNT"
+    echo "nameserver 8.8.8.8" | tsu -c "tee $MNT/etc/resolv.conf" > /dev/null
+    echo "nameserver 8.8.4.4" | tsu -c "tee -a $MNT/etc/resolv.conf" > /dev/null
+    echo "nameserver 1.1.1.1" | tsu -c "tee -a $MNT/etc/resolv.conf" > /dev/null
+    tsu -c "umount $MNT"
 
     print_steps_progress 10
     BIN_DIR="$HOME/bin"
@@ -587,13 +587,13 @@ install_ubuntu_24_04_chroot_background() {
 IMG="$IMG"
 MNT="$MNT"
 mkdir -p "\$MNT"
-sudo mount -o loop "\$IMG" "\$MNT"
-sudo mount -t proc none "\$MNT/proc"
-sudo mount -t sysfs none "\$MNT/sys"
-sudo chroot "\$MNT" /bin/bash
-sudo umount "\$MNT/proc"
-sudo umount "\$MNT/sys"
-sudo umount "\$MNT"
+tsu -c "mount -o loop \$IMG \$MNT"
+tsu -c "mount -t proc none \$MNT/proc"
+tsu -c "mount -t sysfs none \$MNT/sys"
+tsu -c "chroot \$MNT /bin/bash"
+tsu -c "umount \$MNT/proc"
+tsu -c "umount \$MNT/sys"
+tsu -c "umount \$MNT"
 EOF
     chmod +x "$SHORTCUT"
     print_success_box "Ubuntu 24.04 (Chroot) installation completed!"
