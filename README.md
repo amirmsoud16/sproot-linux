@@ -21,85 +21,25 @@ apt install wget curl proot tar git nano vim -y tsu
 git clone https://github.com/amirmsoud16/ubuntu-chroot-pk-.git
 cd ubuntu-chroot-pk-
 ```
-```
-ls -la
-```
 ### مرحله 2: تایید فایل‌ها
-```bash
-chmod +x setup_ubuntu_android.sh
-chmod +x ubuntu_manager.sh
-```
 
-### مرحله 3: آماده‌سازی
-```bash
-./setup_ubuntu_android.sh
+# مرحله 1
 ```
-
-### مرحله 4: نصب
-```bash
+chmod +x stage1_install_prerequisites.sh
+./stage1_install_prerequisites.sh
+```
+# مرحله 2 (دستورات در README)
+```
 su
-./install_ubuntu.sh
+mount -t proc proc /data/local/chroot/ubuntu/proc
+mount -t sysfs sysfs /data/local/chroot/ubuntu/sys
+mount -o bind /dev /data/local/chroot/ubuntu/dev
+mount -t devpts devpts /data/local/chroot/ubuntu/dev/pts
+mount -t tmpfs tmpfs /data/local/chroot/ubuntu/tmp
+chroot /data/local/chroot/ubuntu /bin/bash
 ```
-
-### مرحله 5: استفاده
-```bash
-su
-./ubuntu_manager.sh
+# مرحله در chroot 3
 ```
-
-## 📋 منوی مدیریت
-
+chmod +x stage3_mount_and_setup.sh
+./stage3_mount_and_setup.sh
 ```
-1. ورود به Ubuntu
-2. نصب پکیج
-3. به‌روزرسانی سیستم
-4. نمایش وضعیت
-5. پاکسازی
-6. حذف کامل
-7. راهنما
-0. خروج
-```
-
-## ⚠️ پیش‌نیازها
-
-- اندروید با دسترسی Root
-- حداقل 2GB فضای آزاد
-- اتصال اینترنت
-
-## 🔧 دستورات مفید
-
-### داخل Ubuntu:
-```bash
-sudo apt-get install nginx    # نصب وب سرور
-sudo apt-get update           # به‌روزرسانی
-exit                         # خروج
-```
-
-### خارج از Ubuntu:
-```bash
-./ubuntu_manager.sh           # منوی مدیریت
-/data/local/ubuntu/enter.sh  # ورود مستقیم
-```
-
-## 🐛 عیب‌یابی
-
-### خطای دسترسی:
-```bash
-su
-chmod +x *.sh
-```
-
-### خطای فضای دیسک:
-```bash
-df -h
-# حداقل 2GB نیاز است
-```
-
-### حذف کامل:
-```bash
-rm -rf /data/local/ubuntu
-```
-
----
-
-**نکته:** این محیط برای توسعه و تست طراحی شده است. 🎉 
