@@ -16,8 +16,9 @@ apt upgrade -y
 apt install wget curl proot tar git nano vim -y tsu unzip e2fsprogs
 ```
 ```bash
+mkdir -p /data/local/chroot
+cd /data/local/chroot
 git clone https://github.com/amirmsoud16/ubuntu-chroot-pk-.git
-cd ubuntu-chroot-pk-
 ```
 ### Stage 1: Install prerequisites and download Ubuntu
 
@@ -169,3 +170,4 @@ For reporting issues or requesting new features, please create an issue.
 ---
 
 **Note**: These scripts are designed for educational and development use. Use in production environments requires additional security reviews. 
+
