@@ -7,7 +7,6 @@ This project includes 3 stages for installing and setting up chroot on Android.
 ### Stage 1: Install prerequisites and download Ubuntu
 
 ```bash
-# Run stage 1 (no su required)
 chmod +x stage1_install_prerequisites.sh
 ./stage1_install_prerequisites.sh
 ```
