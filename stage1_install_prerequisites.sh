@@ -6,7 +6,6 @@ echo "=== Stage 1: Installing prerequisites and downloading Ubuntu ==="
 
 # Create required directories
 echo "Creating required directories..."
-mkdir -p /data/local/chroot
 mkdir -p /data/local/chroot/ubuntu
 mkdir -p /data/local/chroot/scripts
 mkdir -p /data/local/chroot/home
