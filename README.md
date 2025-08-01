@@ -12,10 +12,6 @@ cd ubuntu-chroot-pk-
 
 # بررسی فایل‌ها
 ls -la
-# باید این فایل‌ها را ببینید:
-# setup_ubuntu_android.sh
-# install_ubuntu.sh
-# ubuntu_manager.sh
 ```
 
 ### مرحله 2: تایید فایل‌ها
@@ -24,9 +20,6 @@ ls -la
 chmod +x setup_ubuntu_android.sh
 chmod +x install_ubuntu.sh
 chmod +x ubuntu_manager.sh
-
-# بررسی مجوزهای اجرا
-ls -la *.sh
 ```
 
 ### مرحله 3: آماده‌سازی
