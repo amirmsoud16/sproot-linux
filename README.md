@@ -27,7 +27,6 @@ ls -la
 ### مرحله 2: تایید فایل‌ها
 ```bash
 chmod +x setup_ubuntu_android.sh
-chmod +x install_ubuntu.sh
 chmod +x ubuntu_manager.sh
 ```
 
