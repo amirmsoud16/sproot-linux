@@ -9,7 +9,8 @@
 # Clone کردن از GitHub
 git clone https://github.com/amirmsoud16/ubuntu-chroot-pk-.git
 cd ubuntu-chroot-pk-
-
+```
+```
 # بررسی فایل‌ها
 ls -la
 ```
