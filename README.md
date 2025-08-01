@@ -6,10 +6,17 @@
 
 ### مرحله 1: Clone کردن repository
 
-apt update -y 
-apt upgrade -y
+### 2️⃣ Update Termux
 
-apt install git wget carl 
+```bash
+apt update -y
+apt upgrade -y
+```
+
+### 3️⃣ Install Required Packages
+```bash
+apt install wget curl proot tar git nano vim -y tsu
+```
 ```bash
 git clone https://github.com/amirmsoud16/ubuntu-chroot-pk-.git
 cd ubuntu-chroot-pk-
@@ -17,7 +24,6 @@ cd ubuntu-chroot-pk-
 ```
 ls -la
 ```
-
 ### مرحله 2: تایید فایل‌ها
 ```bash
 chmod +x setup_ubuntu_android.sh
