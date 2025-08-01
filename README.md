@@ -5,6 +5,11 @@
 ## 🚀 نصب سریع
 
 ### مرحله 1: Clone کردن repository
+
+apt update -y 
+apt upgrade -y
+
+apt install git wget carl 
 ```bash
 git clone https://github.com/amirmsoud16/ubuntu-chroot-pk-.git
 cd ubuntu-chroot-pk-
