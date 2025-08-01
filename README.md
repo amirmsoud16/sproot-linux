@@ -22,26 +22,14 @@ This stage includes:
 After completing stage 1, run these commands manually:
 
 ```bash
-# Check if Ubuntu directory exists
-if [ ! -d "/data/local/chroot/ubuntu" ]; then
-    echo "Error: Ubuntu directory not found. Please run stage 1 first"
-    exit 1
-fi
-
-# Check root access
-if [ "$(id -u)" != "0" ]; then
-   echo "This stage requires root access"
-   exit 1
-fi
-
 # Mount required file systems
 mount -t proc proc /data/local/chroot/ubuntu/proc
 mount -t sysfs sysfs /data/local/chroot/ubuntu/sys
 mount -o bind /dev /data/local/chroot/ubuntu/dev
 mount -t devpts devpts /data/local/chroot/ubuntu/dev/pts
 mount -t tmpfs tmpfs /data/local/chroot/ubuntu/tmp
-
-# Execute chroot
+```
+```
 chroot /data/local/chroot/ubuntu /bin/bash
 ```
 
@@ -52,7 +40,6 @@ This stage includes:
 ### Stage 3: Mounting scripts and access setup
 
 ```bash
-# Run stage 3 (no su required)
 chmod +x stage3_mount_and_setup.sh
 ./stage3_mount_and_setup.sh
 ```
