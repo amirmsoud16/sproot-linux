@@ -70,11 +70,6 @@ echo "Device: $(getprop ro.product.model 2>/dev/null || echo 'Unknown')"
 echo "Architecture: $(uname -m)"
 
 echo ""
-echo "📁 Creating installation script in current directory..."
-
-echo "✅ Installation script created: install_ubuntu.sh"
-
-echo ""
 echo "🎯 Step 1 completed!"
 echo ""
 echo "📋 Next steps:"
