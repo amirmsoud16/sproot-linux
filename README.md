@@ -6,18 +6,15 @@
 
 ### مرحله 1: Clone کردن repository
 ```bash
-# Clone کردن از GitHub
 git clone https://github.com/amirmsoud16/ubuntu-chroot-pk-.git
 cd ubuntu-chroot-pk-
 ```
 ```
-# بررسی فایل‌ها
 ls -la
 ```
 
 ### مرحله 2: تایید فایل‌ها
 ```bash
-# دادن مجوز اجرا
 chmod +x setup_ubuntu_android.sh
 chmod +x install_ubuntu.sh
 chmod +x ubuntu_manager.sh
