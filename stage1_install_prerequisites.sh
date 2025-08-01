@@ -44,7 +44,7 @@ echo "Downloading Ubuntu..."
 cd $HOME/chroot
 
 # Download Ubuntu Cloud .xz for ARM64
-wget -O ubuntu-rootfs.tar.xz https://cloud-images.ubuntu.com/releases/20.04/release/ubuntu-20.04-server-cloudimg-arm64.tar.xz
+wget -O ubuntu-rootfs.tar.xz https://cloud-images.ubuntu.com/releases/noble/release-20250725/ubuntu-24.04-server-cloudimg-arm64-root.tar.xz
 
 # Check download success
 if [ ! -f ubuntu-rootfs.tar.xz ]; then
@@ -54,6 +54,16 @@ fi
 
 echo "Extracting Ubuntu..."
 tar -xf ubuntu-rootfs.tar.xz -C ubuntu/
+
+# مقاوم‌سازی اکسترکت برای ساختارهای مختلف آرشیو
+if [ ! -d "$HOME/chroot/ubuntu/bin" ] && [ -d "$HOME/chroot/ubuntu" ]; then
+    SUBDIR=$(find "$HOME/chroot/ubuntu" -mindepth 1 -maxdepth 1 -type d | head -n 1)
+    if [ -n "$SUBDIR" ]; then
+        echo "Moving extracted files from $SUBDIR to $HOME/chroot/ubuntu"
+        mv "$SUBDIR"/* "$HOME/chroot/ubuntu/"
+        rmdir "$SUBDIR"
+    fi
+fi
 
 # Clean up downloaded file
 echo "Cleaning up downloaded file..."
