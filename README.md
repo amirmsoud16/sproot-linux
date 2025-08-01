@@ -4,27 +4,33 @@
 
 ## 🚀 نصب سریع
 
-### مرحله 1: دانلود فایل‌ها
+### مرحله 1: Clone کردن repository
 ```bash
-# دانلود از GitHub
-wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/setup_ubuntu_android.sh
-wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/install_ubuntu.sh
-wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-chroot-pk-/main/ubuntu_manager.sh
+# Clone کردن از GitHub
+git clone https://github.com/amirmsoud16/ubuntu-chroot-pk-.git
+cd ubuntu-chroot-pk-
+
+# بررسی فایل‌ها
+ls -la
+# باید این فایل‌ها را ببینید:
+# setup_ubuntu_android.sh
+# install_ubuntu.sh
+# ubuntu_manager.sh
 ```
 
-### مرحله 2: انتقال به اندروید
+### مرحله 2: تایید فایل‌ها
 ```bash
-# انتقال فایل‌ها
-adb push setup_ubuntu_android.sh /sdcard/
-adb push install_ubuntu.sh /sdcard/
-adb push ubuntu_manager.sh /sdcard/
+# دادن مجوز اجرا
+chmod +x setup_ubuntu_android.sh
+chmod +x install_ubuntu.sh
+chmod +x ubuntu_manager.sh
+
+# بررسی مجوزهای اجرا
+ls -la *.sh
 ```
 
 ### مرحله 3: آماده‌سازی
 ```bash
-adb shell
-cd /sdcard
-chmod +x *.sh
 ./setup_ubuntu_android.sh
 ```
 
