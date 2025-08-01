@@ -44,7 +44,7 @@ echo "Downloading Ubuntu..."
 cd /data/local/chroot
 
 # Download Ubuntu Cloud .xz for ARM64
-wget -O ubuntu-rootfs.tar.xz https://cloud-images.ubuntu.com/releases/20.04/release/ubuntu-20.04-server-cloudimg-arm64.tar.xz
+wget -O ubuntu-rootfs.tar.xz https://cloud-images.ubuntu.com/releases/jammy/release-20250725/ubuntu-22.04-server-cloudimg-arm64-root.tar.xz
 
 # Check download success
 if [ ! -f ubuntu-rootfs.tar.xz ]; then
