@@ -13,7 +13,7 @@ apt upgrade -y
 
 ### 3️⃣ Install Required Packages
 ```bash
-apt install wget curl proot tar git nano vim -y tsu
+apt install wget curl proot tar git nano vim -y tsu unzip e2fsprogs
 ```
 ```bash
 git clone https://github.com/amirmsoud16/ubuntu-chroot-pk-.git
