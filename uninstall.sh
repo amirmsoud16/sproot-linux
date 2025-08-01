@@ -27,49 +27,49 @@ echo "Starting uninstall..."
 echo "Unmounting file systems..."
 
 # Check and unmount mount points
-if mountpoint -q /data/local/chroot/home/user_data 2>/dev/null; then
-    umount /data/local/chroot/home/user_data
+if mountpoint -q $HOME/chroot/home/user_data 2>/dev/null; then
+    umount $HOME/chroot/home/user_data
 fi
 
-if mountpoint -q /data/local/chroot/ubuntu/tmp 2>/dev/null; then
-    umount /data/local/chroot/ubuntu/tmp
+if mountpoint -q $HOME/chroot/ubuntu/tmp 2>/dev/null; then
+    umount $HOME/chroot/ubuntu/tmp
 fi
 
-if mountpoint -q /data/local/chroot/ubuntu/dev/pts 2>/dev/null; then
-    umount /data/local/chroot/ubuntu/dev/pts
+if mountpoint -q $HOME/chroot/ubuntu/dev/pts 2>/dev/null; then
+    umount $HOME/chroot/ubuntu/dev/pts
 fi
 
-if mountpoint -q /data/local/chroot/ubuntu/dev 2>/dev/null; then
-    umount /data/local/chroot/ubuntu/dev
+if mountpoint -q $HOME/chroot/ubuntu/dev 2>/dev/null; then
+    umount $HOME/chroot/ubuntu/dev
 fi
 
-if mountpoint -q /data/local/chroot/ubuntu/sys 2>/dev/null; then
-    umount /data/local/chroot/ubuntu/sys
+if mountpoint -q $HOME/chroot/ubuntu/sys 2>/dev/null; then
+    umount $HOME/chroot/ubuntu/sys
 fi
 
-if mountpoint -q /data/local/chroot/ubuntu/proc 2>/dev/null; then
-    umount /data/local/chroot/ubuntu/proc
+if mountpoint -q $HOME/chroot/ubuntu/proc 2>/dev/null; then
+    umount $HOME/chroot/ubuntu/proc
 fi
 
 # Remove all chroot directories and files
 echo "Removing all chroot files and directories..."
 
-if [ -d "/data/local/chroot" ]; then
-    rm -rf /data/local/chroot
+if [ -d "$HOME/chroot" ]; then
+    rm -rf $HOME/chroot
     echo "Chroot directory and all contents removed"
 else
     echo "Chroot directory not found"
 fi
 
 # Remove ubuntu shortcut
-if [ -f "/data/local/bin/ubuntu" ]; then
-    rm -f /data/local/bin/ubuntu
+if [ -f "$PREFIX/bin/ubuntu" ]; then
+    rm -f $PREFIX/bin/ubuntu
     echo "Ubuntu shortcut removed"
 fi
 
 # Check and remove remaining files
-if [ -f "/data/local/chroot" ]; then
-    rm -f /data/local/chroot
+if [ -f "$HOME/chroot" ]; then
+    rm -f $HOME/chroot
 fi
 
 echo ""
