@@ -6,10 +6,11 @@ echo "=== Stage 1: Installing prerequisites and downloading Ubuntu ==="
 
 # Create required directories
 echo "Creating required directories..."
-mkdir -p /data/local/chroot/ubuntu
-mkdir -p /data/local/chroot/scripts
-mkdir -p /data/local/chroot/home
-mkdir -p /data/local/chroot/home/user_data
+mkdir -p $HOME/chroot
+mkdir -p $HOME/chroot/ubuntu
+mkdir -p $HOME/chroot/scripts
+mkdir -p $HOME/chroot/home
+mkdir -p $HOME/chroot/home/user_data
 
 # Install prerequisites
 echo "Installing prerequisites..."
@@ -40,10 +41,10 @@ fi
 
 # Download Ubuntu
 echo "Downloading Ubuntu..."
-cd /data/local/chroot
+cd $HOME/chroot
 
 # Download Ubuntu Cloud .xz for ARM64
-wget -O ubuntu-rootfs.tar.xz https://cloud-images.ubuntu.com/releases/jammy/release-20250725/ubuntu-22.04-server-cloudimg-arm64-root.tar.xz
+wget -O ubuntu-rootfs.tar.xz https://cloud-images.ubuntu.com/releases/20.04/release/ubuntu-20.04-server-cloudimg-arm64.tar.xz
 
 # Check download success
 if [ ! -f ubuntu-rootfs.tar.xz ]; then
@@ -62,88 +63,88 @@ rm ubuntu-rootfs.tar.xz
 echo "Setting comprehensive permissions..."
 
 # Set directory permissions
-chmod 755 /data/local/chroot
-chmod 755 /data/local/chroot/ubuntu
-chmod 755 /data/local/chroot/scripts
-chmod 755 /data/local/chroot/home
-chmod 755 /data/local/chroot/home/user_data
+chmod 755 $HOME/chroot
+chmod 755 $HOME/chroot/ubuntu
+chmod 755 $HOME/chroot/scripts
+chmod 755 $HOME/chroot/home
+chmod 755 $HOME/chroot/home/user_data
 
 # Set ownership (if possible)
 if command -v chown &> /dev/null; then
     echo "Setting ownership..."
-    chown -R root:root /data/local/chroot/ubuntu 2>/dev/null || true
-    chown -R root:root /data/local/chroot/scripts 2>/dev/null || true
-    chown -R root:root /data/local/chroot/home 2>/dev/null || true
+    chown -R root:root $HOME/chroot/ubuntu 2>/dev/null || true
+    chown -R root:root $HOME/chroot/scripts 2>/dev/null || true
+    chown -R root:root $HOME/chroot/home 2>/dev/null || true
 fi
 
 # Set specific permissions for Ubuntu system files
 echo "Setting Ubuntu system permissions..."
-find /data/local/chroot/ubuntu -type d -exec chmod 755 {} \; 2>/dev/null || true
-find /data/local/chroot/ubuntu -type f -exec chmod 644 {} \; 2>/dev/null || true
+find $HOME/chroot/ubuntu -type d -exec chmod 755 {} \; 2>/dev/null || true
+find $HOME/chroot/ubuntu -type f -exec chmod 644 {} \; 2>/dev/null || true
 
 # Set executable permissions for important files
 echo "Setting executable permissions..."
-find /data/local/chroot/ubuntu -name "*.sh" -exec chmod 755 {} \; 2>/dev/null || true
-find /data/local/chroot/ubuntu -name "*.py" -exec chmod 755 {} \; 2>/dev/null || true
-find /data/local/chroot/ubuntu -name "*.pl" -exec chmod 755 {} \; 2>/dev/null || true
+find $HOME/chroot/ubuntu -name "*.sh" -exec chmod 755 {} \; 2>/dev/null || true
+find $HOME/chroot/ubuntu -name "*.py" -exec chmod 755 {} \; 2>/dev/null || true
+find $HOME/chroot/ubuntu -name "*.pl" -exec chmod 755 {} \; 2>/dev/null || true
 
 # Set permissions for system directories
-if [ -d "/data/local/chroot/ubuntu/bin" ]; then
-    chmod 755 /data/local/chroot/ubuntu/bin
-    find /data/local/chroot/ubuntu/bin -type f -exec chmod 755 {} \; 2>/dev/null || true
+if [ -d "$HOME/chroot/ubuntu/bin" ]; then
+    chmod 755 $HOME/chroot/ubuntu/bin
+    find $HOME/chroot/ubuntu/bin -type f -exec chmod 755 {} \; 2>/dev/null || true
 fi
 
-if [ -d "/data/local/chroot/ubuntu/sbin" ]; then
-    chmod 755 /data/local/chroot/ubuntu/sbin
-    find /data/local/chroot/ubuntu/sbin -type f -exec chmod 755 {} \; 2>/dev/null || true
+if [ -d "$HOME/chroot/ubuntu/sbin" ]; then
+    chmod 755 $HOME/chroot/ubuntu/sbin
+    find $HOME/chroot/ubuntu/sbin -type f -exec chmod 755 {} \; 2>/dev/null || true
 fi
 
-if [ -d "/data/local/chroot/ubuntu/usr/bin" ]; then
-    chmod 755 /data/local/chroot/ubuntu/usr/bin
-    find /data/local/chroot/ubuntu/usr/bin -type f -exec chmod 755 {} \; 2>/dev/null || true
+if [ -d "$HOME/chroot/ubuntu/usr/bin" ]; then
+    chmod 755 $HOME/chroot/ubuntu/usr/bin
+    find $HOME/chroot/ubuntu/usr/bin -type f -exec chmod 755 {} \; 2>/dev/null || true
 fi
 
-if [ -d "/data/local/chroot/ubuntu/usr/sbin" ]; then
-    chmod 755 /data/local/chroot/ubuntu/usr/sbin
-    find /data/local/chroot/ubuntu/usr/sbin -type f -exec chmod 755 {} \; 2>/dev/null || true
+if [ -d "$HOME/chroot/ubuntu/usr/sbin" ]; then
+    chmod 755 $HOME/chroot/ubuntu/usr/sbin
+    find $HOME/chroot/ubuntu/usr/sbin -type f -exec chmod 755 {} \; 2>/dev/null || true
 fi
 
 # Set permissions for library directories
-if [ -d "/data/local/chroot/ubuntu/lib" ]; then
-    chmod 755 /data/local/chroot/ubuntu/lib
-    find /data/local/chroot/ubuntu/lib -type f -exec chmod 644 {} \; 2>/dev/null || true
+if [ -d "$HOME/chroot/ubuntu/lib" ]; then
+    chmod 755 $HOME/chroot/ubuntu/lib
+    find $HOME/chroot/ubuntu/lib -type f -exec chmod 644 {} \; 2>/dev/null || true
 fi
 
-if [ -d "/data/local/chroot/ubuntu/usr/lib" ]; then
-    chmod 755 /data/local/chroot/ubuntu/usr/lib
-    find /data/local/chroot/ubuntu/usr/lib -type f -exec chmod 644 {} \; 2>/dev/null || true
+if [ -d "$HOME/chroot/ubuntu/usr/lib" ]; then
+    chmod 755 $HOME/chroot/ubuntu/usr/lib
+    find $HOME/chroot/ubuntu/usr/lib -type f -exec chmod 644 {} \; 2>/dev/null || true
 fi
 
 # Set permissions for configuration files
-if [ -d "/data/local/chroot/ubuntu/etc" ]; then
-    chmod 755 /data/local/chroot/ubuntu/etc
-    find /data/local/chroot/ubuntu/etc -type f -exec chmod 644 {} \; 2>/dev/null || true
+if [ -d "$HOME/chroot/ubuntu/etc" ]; then
+    chmod 755 $HOME/chroot/ubuntu/etc
+    find $HOME/chroot/ubuntu/etc -type f -exec chmod 644 {} \; 2>/dev/null || true
 fi
 
 # Set permissions for home directory
-if [ -d "/data/local/chroot/ubuntu/home" ]; then
-    chmod 755 /data/local/chroot/ubuntu/home
-    find /data/local/chroot/ubuntu/home -type d -exec chmod 755 {} \; 2>/dev/null || true
-    find /data/local/chroot/ubuntu/home -type f -exec chmod 644 {} \; 2>/dev/null || true
+if [ -d "$HOME/chroot/ubuntu/home" ]; then
+    chmod 755 $HOME/chroot/ubuntu/home
+    find $HOME/chroot/ubuntu/home -type d -exec chmod 755 {} \; 2>/dev/null || true
+    find $HOME/chroot/ubuntu/home -type f -exec chmod 644 {} \; 2>/dev/null || true
 fi
 
 # Set permissions for temporary directories
-if [ -d "/data/local/chroot/ubuntu/tmp" ]; then
-    chmod 1777 /data/local/chroot/ubuntu/tmp
+if [ -d "$HOME/chroot/ubuntu/tmp" ]; then
+    chmod 1777 $HOME/chroot/ubuntu/tmp
 fi
 
-if [ -d "/data/local/chroot/ubuntu/var/tmp" ]; then
-    chmod 1777 /data/local/chroot/ubuntu/var/tmp
+if [ -d "$HOME/chroot/ubuntu/var/tmp" ]; then
+    chmod 1777 $HOME/chroot/ubuntu/var/tmp
 fi
 
 # Set permissions for log directories
-if [ -d "/data/local/chroot/ubuntu/var/log" ]; then
-    chmod 755 /data/local/chroot/ubuntu/var/log
+if [ -d "$HOME/chroot/ubuntu/var/log" ]; then
+    chmod 755 $HOME/chroot/ubuntu/var/log
 fi
 
 echo "Permissions set successfully"
