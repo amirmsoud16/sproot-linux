@@ -4,6 +4,21 @@ This project includes 3 stages for installing and setting up chroot on Android.
 
 ## Installation Stages
 
+### 2️⃣ Update Termux
+
+```bash
+apt update -y
+apt upgrade -y
+```
+
+### 3️⃣ Install Required Packages
+```bash
+apt install wget curl proot tar git nano vim -y tsu
+```
+```bash
+git clone https://github.com/amirmsoud16/ubuntu-chroot-pk-.git
+cd ubuntu-chroot-pk-
+```
 ### Stage 1: Install prerequisites and download Ubuntu
 
 ```bash
