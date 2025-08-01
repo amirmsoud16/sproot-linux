@@ -5,18 +5,18 @@
 echo "=== Stage 3: Mounting script and access setup ==="
 
 # Check if Ubuntu directory exists
-if [ ! -d "/data/local/chroot/ubuntu" ]; then
+if [ ! -d "$HOME/chroot/ubuntu" ]; then
     echo "Error: Ubuntu directory not found. Please run stage 1 first"
     exit 1
 fi
 
 # Create bin directory if it doesn't exist
-mkdir -p /data/local/bin
+mkdir -p $PREFIX/bin
 
 # Create ubuntu shortcut
 echo "Creating ubuntu shortcut..."
 
-cat > /data/local/bin/ubuntu << 'EOF'
+cat > $PREFIX/bin/ubuntu << 'EOF'
 #!/bin/bash
 
 # Shortcut for entering chroot
@@ -29,7 +29,7 @@ if [ "$(id -u)" != "0" ]; then
 fi
 
 # Check if Ubuntu directory exists
-if [ ! -d "/data/local/chroot/ubuntu" ]; then
+if [ ! -d "$HOME/chroot/ubuntu" ]; then
     echo "Error: Ubuntu directory not found"
     exit 1
 fi
@@ -38,73 +38,93 @@ fi
 echo "Mounting file systems..."
 
 # Mount /proc
-mount -t proc proc /data/local/chroot/ubuntu/proc 2>/dev/null
+mount -t proc proc $HOME/chroot/ubuntu/proc 2>/dev/null
 
 # Mount /sys
-mount -t sysfs sysfs /data/local/chroot/ubuntu/sys 2>/dev/null
+mount -t sysfs sysfs $HOME/chroot/ubuntu/sys 2>/dev/null
 
 # Mount /dev
-mount -o bind /dev /data/local/chroot/ubuntu/dev 2>/dev/null
+mount -o bind /dev $HOME/chroot/ubuntu/dev 2>/dev/null
 
 # Mount /dev/pts
-mount -t devpts devpts /data/local/chroot/ubuntu/dev/pts 2>/dev/null
+mount -t devpts devpts $HOME/chroot/ubuntu/dev/pts 2>/dev/null
 
 # Mount /tmp
-mount -t tmpfs tmpfs /data/local/chroot/ubuntu/tmp 2>/dev/null
+mount -t tmpfs tmpfs $HOME/chroot/ubuntu/tmp 2>/dev/null
 
 # Mount internal user storage to home
 if [ -d "/data/data" ]; then
-    mount -o bind /data/data /data/local/chroot/home/user_data 2>/dev/null
+    mount -o bind /data/data $HOME/chroot/home/user_data 2>/dev/null
 fi
 
 echo "Entering chroot environment..."
 
 # Execute chroot
-chroot /data/local/chroot/ubuntu /bin/bash
+chroot $HOME/chroot/ubuntu /bin/bash
 
 # After exit, automatically unmount
 echo "Exiting chroot..."
 
 # Unmount internal user storage
-if mountpoint -q /data/local/chroot/home/user_data 2>/dev/null; then
-    umount /data/local/chroot/home/user_data
+if mountpoint -q $HOME/chroot/home/user_data 2>/dev/null; then
+    umount $HOME/chroot/home/user_data
 fi
 
 # Unmount /tmp
-if mountpoint -q /data/local/chroot/ubuntu/tmp 2>/dev/null; then
-    umount /data/local/chroot/ubuntu/tmp
+if mountpoint -q $HOME/chroot/ubuntu/tmp 2>/dev/null; then
+    umount $HOME/chroot/ubuntu/tmp
 fi
 
 # Unmount /dev/pts
-if mountpoint -q /data/local/chroot/ubuntu/dev/pts 2>/dev/null; then
-    umount /data/local/chroot/ubuntu/dev/pts
+if mountpoint -q $HOME/chroot/ubuntu/dev/pts 2>/dev/null; then
+    umount $HOME/chroot/ubuntu/dev/pts
 fi
 
 # Unmount /dev
-if mountpoint -q /data/local/chroot/ubuntu/dev 2>/dev/null; then
-    umount /data/local/chroot/ubuntu/dev
+if mountpoint -q $HOME/chroot/ubuntu/dev 2>/dev/null; then
+    umount $HOME/chroot/ubuntu/dev
 fi
 
 # Unmount /sys
-if mountpoint -q /data/local/chroot/ubuntu/sys 2>/dev/null; then
-    umount /data/local/chroot/ubuntu/sys
+if mountpoint -q $HOME/chroot/ubuntu/sys 2>/dev/null; then
+    umount $HOME/chroot/ubuntu/sys
 fi
 
 # Unmount /proc
-if mountpoint -q /data/local/chroot/ubuntu/proc 2>/dev/null; then
-    umount /data/local/chroot/ubuntu/proc
+if mountpoint -q $HOME/chroot/ubuntu/proc 2>/dev/null; then
+    umount $HOME/chroot/ubuntu/proc
 fi
 
 echo "File systems unmounted"
 EOF
 
 # Set execute permission for shortcut
-chmod +x /data/local/bin/ubuntu
+chmod +x $PREFIX/bin/ubuntu
 
 # Create script for installing prerequisites in chroot
 echo "Creating script for installing prerequisites in chroot..."
 
-cat > /data/local/chroot/scripts/install_chroot_prerequisites.sh << 'EOF'
+cat > $HOME/chroot/scripts/install_chroot_prerequisites.sh << 'EOF'
+
+# مقاوم‌سازی اکسترکت برای ساختارهای مختلف آرشیو (در صورت نیاز به اکسترکت مجدد)
+if [ ! -d "$HOME/chroot/ubuntu/bin" ] && [ -d "$HOME/chroot/ubuntu" ]; then
+    SUBDIR=$(find "$HOME/chroot/ubuntu" -mindepth 1 -maxdepth 1 -type d | head -n 1)
+    if [ -n "$SUBDIR" ]; then
+        echo "Moving extracted files from $SUBDIR to $HOME/chroot/ubuntu"
+        mv "$SUBDIR"/* "$HOME/chroot/ubuntu/"
+        rmdir "$SUBDIR"
+    fi
+fi
+
+# مقاوم‌سازی اکسترکت برای ساختارهای مختلف آرشیو (در صورت نیاز به اکسترکت مجدد)
+if [ ! -d "$HOME/chroot/ubuntu/bin" ] && [ -d "$HOME/chroot/ubuntu" ]; then
+    SUBDIR=$(find "$HOME/chroot/ubuntu" -mindepth 1 -maxdepth 1 -type d | head -n 1)
+    if [ -n "$SUBDIR" ]; then
+        echo "Moving extracted files from $SUBDIR to $HOME/chroot/ubuntu"
+        mv "$SUBDIR"/* "$HOME/chroot/ubuntu/"
+        rmdir "$SUBDIR"
+    fi
+fi
 #!/bin/bash
 
 # Script for installing prerequisites in chroot
@@ -145,19 +165,19 @@ echo "Prerequisites installed"
 EOF
 
 # Set execute permission for prerequisites script
-chmod +x /data/local/chroot/scripts/install_chroot_prerequisites.sh
+chmod +x $HOME/chroot/scripts/install_chroot_prerequisites.sh
 
 echo ""
 echo "=== Stage 3 completed ==="
 echo ""
 echo "Created shortcut:"
-echo "1. /data/local/bin/ubuntu - Quick command for entering chroot"
+echo "1. $PREFIX/bin/ubuntu - Quick command for entering chroot"
 echo ""
 echo "Prerequisites installation script:"
-echo "2. /data/local/chroot/scripts/install_chroot_prerequisites.sh - Install prerequisites in chroot"
+echo "2. $HOME/chroot/scripts/install_chroot_prerequisites.sh - Install prerequisites in chroot"
 echo ""
 echo "Usage:"
 echo "1. Quick entry to chroot: ubuntu"
-echo "2. Install prerequisites in chroot: /data/local/chroot/scripts/install_chroot_prerequisites.sh"
+echo "2. Install prerequisites in chroot: $HOME/chroot/scripts/install_chroot_prerequisites.sh"
 echo ""
-echo "Note: Internal user storage is mounted at /data/local/chroot/home/user_data" 
+echo "Note: Internal user storage is mounted at $HOME/chroot/home/user_data" 
