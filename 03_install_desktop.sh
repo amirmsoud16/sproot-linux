@@ -19,20 +19,13 @@ sudo apt --fix-broken install -y
 echo "=== Updating package lists... ==="
 sudo apt update -y
 sudo apt install -y --no-install-recommends apt-utils
-sudo apt install dbus-x11 -y
 
-# Install GNOME Desktop and essential components
-echo "=== Installing GNOME Desktop with Windows 11 theme... ==="
+# Install KDE Plasma and essential components
+echo "=== Installing KDE Plasma Desktop... ==="
 sudo apt install -y --no-install-recommends \
-    ubuntu-desktop-minimal \
-    gnome-shell-extension-prefs \
-    gnome-tweaks \
-    gnome-software \
-    gnome-software-common \
-    gnome-software-plugin-flatpak \
-    gnome-shell-extensions \
-    gnome-shell-extension-ubuntu-dock \
-    gnome-shell-extension-appindicator \
+    kde-plasma-desktop \
+    kde-standard \
+    sddm \
     tigervnc-standalone-server \
     tigervnc-common \
     xfonts-base \
@@ -47,47 +40,30 @@ sudo apt install -y --no-install-recommends \
     vlc \
     samba \
     samba-common \
-    gvfs-backends
-
-# Install Windows 11 theme components
-echo "=== Installing Windows 11 theme... ==="
-# Install available extensions from repository
-sudo apt install -y --no-install-recommends \
-    gnome-shell-extensions \
-    gnome-shell-extension-ubuntu-dock \
-    gnome-shell-extension-appindicator \
-    gnome-tweaks
-
-# Install Dash to Dock from source (as it's not in the default repos)
-echo "=== Installing Dash to Dock extension... ==="
-DASH_TO_DOCK_URL="https://extensions.gnome.org/review/download/20310.shell-extension.zip"
-EXTENSIONS_DIR="$HOME/.local/share/gnome-shell/extensions"
-DASH_TO_DOCK_UUID="dash-to-dock@micxgx.gmail.com"
-
-# Create extensions directory if it doesn't exist
-mkdir -p "$EXTENSIONS_DIR/$DASH_TO_DOCK_UUID"
-
-# Download and extract the extension
-wget -O /tmp/dash-to-dock.zip "$DASH_TO_DOCK_URL"
-unzip -q /tmp/dash-to-dock.zip -d "$EXTENSIONS_DIR/$DASH_TO_DOCK_UUID"
-rm /tmp/dash-to-dock.zip
+    gvfs-backends \
+    kde-l10n-fa \
+    kde-config-gtk-style \
+    kde-config-gtk-style-preview \
+    kde-config-screenlocker \
+    kde-config-sddm \
+    kde-style-oxygen-qt5
 
 # Create VNC configuration
 echo "=== Configuring VNC server... ==="
 mkdir -p ~/.vnc
 
-# Create xstartup file for GNOME
+# Create xstartup file for KDE
 cat > ~/.vnc/xstartup << 'EOL'
 #!/bin/sh
 unset SESSION_MANAGER
 unset DBUS_SESSION_BUS_ADDRESS
 export XDG_SESSION_TYPE=x11
-export GNOME_SHELL_SESSION_MODE=ubuntu
-export XDG_CURRENT_DESKTOP=ubuntu:GNOME
-export XDG_CONFIG_DIRS=/etc/xdg/xdg-ubuntu:/etc/xdg
-export XDG_DATA_DIRS=/usr/share/ubuntu:/usr/local/share:/usr/share:/var/lib/snapd/desktop
+export XDG_CURRENT_DESKTOP=KDE
+export XDG_SESSION_DESKTOP=KDE
+export XDG_CONFIG_DIRS=/etc/xdg/xdg-kde-plasma:/etc/xdg
+export XDG_DATA_DIRS=/usr/share/kde-plasma:/usr/local/share:/usr/share
 
-exec /usr/bin/gnome-session --session=ubuntu
+exec startplasma-x11
 EOL
 
 chmod +x ~/.vnc/xstartup
@@ -112,29 +88,24 @@ EOL
 
 chmod +x ~/start-vnc.sh ~/stop-vnc.sh
 
-# Configure GNOME settings
-echo "=== Configuring GNOME desktop... ==="
-# Set Windows 11 like layout
-gsettings set org.gnome.desktop.interface gtk-theme 'Yaru-dark'
-gsettings set org.gnome.desktop.wm.preferences theme 'Yaru-dark'
-gsettings set org.gnome.desktop.interface icon-theme 'Yaru'
-gsettings set org.gnome.desktop.interface cursor-theme 'Yaru'
-gsettings set org.gnome.desktop.interface font-name 'Ubuntu 11'
-gsettings set org.gnome.desktop.wm.preferences titlebar-font 'Ubuntu Bold 11'
+# Configure KDE settings
+echo "=== Configuring KDE Plasma desktop... ==="
+# Set Persian keyboard layout
+cat > ~/.config/kcminputrc << 'EOL'
+[Keyboard]
+Layout=us,ir
+LayoutList=us,ir
+Options=grp:alt_shift_toggle
+ResetOldOptions=true
+EOL
 
-# Configure dock
-gsettings set org.gnome.shell.extensions.dash-to-dock dock-position 'BOTTOM'
-gsettings set org.gnome.shell.extensions.dash-to-dock extend-height false
-gsettings set org.gnome.shell.extensions.dash-to-dock dock-fixed true
-gsettings set org.gnome.shell.extensions.dash-to-dock dash-max-icon-size 32
-gsettings set org.gnome.shell.extensions.dash-to-dock show-apps-at-top true
-
-# Configure window controls
-gsettings set org.gnome.desktop.wm.preferences button-layout 'appmenu:minimize,maximize,close'
-
-# Configure keyboard layout for Persian/English
-gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'us'), ('xkb', 'ir')]"
-gsettings set org.gnome.desktop.input-sources xkb-options "['grp:alt_shift_toggle']"
+# Set KDE theme to Breeze Dark
+cat > ~/.config/kdeglobals << 'EOL'
+[KDE]
+ColorScheme=BreezeDark
+LookAndFeelPackage=org.kde.breezedark.desktop
+widgetStyle=Breeze
+EOL
 
 # Enable file sharing
 echo "=== Configuring file sharing... ==="
@@ -148,7 +119,7 @@ sudo apt clean
 sudo rm -rf /var/lib/apt/lists/*
 
 echo ""
-echo "=== GNOME Desktop with Windows 11 Theme Installation Complete! ==="
+echo "=== KDE Plasma Desktop Installation Complete! ==="
 echo ""
 echo "To start VNC server: ~/start-vnc.sh"
 echo "To stop VNC server:  ~/stop-vnc.sh"
