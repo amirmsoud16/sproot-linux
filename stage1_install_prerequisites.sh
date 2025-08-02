@@ -52,18 +52,6 @@ if [ ! -f ubuntu-rootfs.tar.xz ]; then
     exit 1
 fi
 
-echo "Extracting Ubuntu..."
-tar -xf ubuntu-rootfs.tar.xz -C ubuntu/
-
-# مقاوم‌سازی اکسترکت برای ساختارهای مختلف آرشیو
-if [ ! -d "$HOME/chroot/ubuntu/bin" ] && [ -d "$HOME/chroot/ubuntu" ]; then
-    SUBDIR=$(find "$HOME/chroot/ubuntu" -mindepth 1 -maxdepth 1 -type d | head -n 1)
-    if [ -n "$SUBDIR" ]; then
-        echo "Moving extracted files from $SUBDIR to $HOME/chroot/ubuntu"
-        mv "$SUBDIR"/* "$HOME/chroot/ubuntu/"
-        rmdir "$SUBDIR"
-    fi
-fi
 
 # Clean up downloaded file
 echo "Cleaning up downloaded file..."
