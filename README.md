@@ -31,7 +31,19 @@ Complete Ubuntu 24.04 desktop environment installation on Termux with XFCE4, VNC
 ## Installation / نصب
 
 ### Step 1: Termux Setup / مرحله ۱: راه‌اندازی ترماکس
+```bash
+apt update -y
+apt upgrade -y
+```
 
+### 3️⃣ Install Required Packages
+```bash
+apt install wget curl proot tar git nano vim -y tsu unzip e2fsprogs
+```
+```bash
+git clone https://github.com/amirmsoud16/ubuntu-chroot-pk-.git
+cd ubuntu-chroot-pk-
+```
 ```bash
 chmod +x 01_setup_termux.sh
 ./01_setup_termux.sh
