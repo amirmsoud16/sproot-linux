@@ -1,24 +1,37 @@
 #!/bin/bash
 
-# Script 2: User Setup and System Configuration using proot-distro
+# Script 2: User Setup and System Configuration inside Ubuntu (proot)
+# This script is meant to be run inside the Ubuntu proot environment
 
 set -e
 
 echo "=== User Setup and System Configuration ==="
 echo ""
 
-# Check if Ubuntu is installed
-if ! ubuntu | grep -q "ubuntu.*installed"; then
-    echo "Error: Ubuntu not installed. Please run 01_setup_termux.sh first"
-    exit 1
-fi
+# Prompt for username
+read -p "Enter your desired username: " username
 
-echo "Configuring Ubuntu system..."
+# Prompt for password (hidden input)
+while true; do
+    read -s -p "Enter password for $username: " password
+    echo
+    read -s -p "Confirm password: " password_confirm
+    echo
+    
+    if [ "$password" = "$password_confirm" ]; then
+        echo "Passwords match. Continuing with setup..."
+        break
+    else
+        echo "Passwords do not match. Please try again."
+    fi
+done
+
 echo "=== Configuring Ubuntu System ==="
 
 # Update package lists
 echo "Updating package lists..."
 apt update
+apt upgrade -y
 
 # Install essential packages
 echo "Installing essential packages..."
@@ -51,25 +64,25 @@ dpkg-reconfigure -f noninteractive tzdata
 
 # Create user account
 echo "Creating user account..."
-useradd -m -s /bin/bash -G sudo user
-echo "user:user123" | chpasswd
+useradd -m -s /bin/bash -G sudo "$username"
+echo "$username:$password" | chpasswd
 
 # Configure sudo with password for user
 echo "Configuring sudo access..."
-echo "user ALL=(ALL) ALL" >> /etc/sudoers
+echo "$username ALL=(ALL) ALL" >> /etc/sudoers
 
 # Create user directories
 echo "Setting up user directories..."
-mkdir -p /home/user/{Desktop,Documents,Downloads,Pictures,Videos,Music}
-mkdir -p /home/user/.config
-mkdir -p /home/user/.local/share
+mkdir -p "/home/$username/"{Desktop,Documents,Downloads,Pictures,Videos,Music}
+mkdir -p "/home/$username/.config"
+mkdir -p "/home/$username/.local/share"
 
 # Set proper ownership
-chown -R user:user /home/user
+chown -R "$username:$username" "/home/$username"
 
 # Configure bash for user
 echo "Configuring bash environment..."
-cat >> /home/user/.bashrc << 'BASHRC_EOF'
+cat >> "/home/$username/.bashrc" << 'BASHRC_EOF'
 
 # Custom aliases
 alias ll='ls -alF'
