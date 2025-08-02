@@ -41,10 +41,7 @@ apt upgrade -y
 apt install wget curl proot tar git nano vim -y tsu unzip e2fsprogs
 ```
 ```bash
-git clone https://github.com/amirmsoud16/ubuntu-proot.git
-cd ubuntu-proot
-```
-```bash
+wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-proot/main/01_setup_termux.sh
 chmod +x 01_setup_termux.sh
 ./01_setup_termux.sh
 ```
@@ -66,6 +63,7 @@ This script will:
 ### Step 2: User Configuration / مرحله ۲: پیکربندی کاربر
 
 ```bash
+wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-proot/main/02_setup_user.sh
 chmod +x 02_setup_user.sh
 ./02_setup_user.sh
 ```
@@ -87,6 +85,7 @@ This script will:
 ### Step 3: Desktop Installation / مرحله ۳: نصب دسکتاپ
 
 ```bash
+wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-proot/main/03_install_desktop.sh
 chmod +x 03_install_desktop.sh
 ./03_install_desktop.sh
 ```
