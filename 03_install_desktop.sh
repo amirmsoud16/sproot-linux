@@ -51,10 +51,26 @@ sudo apt install -y --no-install-recommends \
 
 # Install Windows 11 theme components
 echo "=== Installing Windows 11 theme... ==="
+# Install available extensions from repository
 sudo apt install -y --no-install-recommends \
-    gnome-shell-extension-dashtodock \
-    gnome-shell-extension-desktop-icons-ng \
-    gnome-shell-extension-appindicator
+    gnome-shell-extensions \
+    gnome-shell-extension-ubuntu-dock \
+    gnome-shell-extension-appindicator \
+    gnome-tweaks
+
+# Install Dash to Dock from source (as it's not in the default repos)
+echo "=== Installing Dash to Dock extension... ==="
+DASH_TO_DOCK_URL="https://extensions.gnome.org/review/download/20310.shell-extension.zip"
+EXTENSIONS_DIR="$HOME/.local/share/gnome-shell/extensions"
+DASH_TO_DOCK_UUID="dash-to-dock@micxgx.gmail.com"
+
+# Create extensions directory if it doesn't exist
+mkdir -p "$EXTENSIONS_DIR/$DASH_TO_DOCK_UUID"
+
+# Download and extract the extension
+wget -O /tmp/dash-to-dock.zip "$DASH_TO_DOCK_URL"
+unzip -q /tmp/dash-to-dock.zip -d "$EXTENSIONS_DIR/$DASH_TO_DOCK_UUID"
+rm /tmp/dash-to-dock.zip
 
 # Create VNC configuration
 echo "=== Configuring VNC server... ==="
