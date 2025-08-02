@@ -29,7 +29,7 @@ sudo apt install -y --no-install-recommends \
     tightvncserver xfonts-base xfonts-75dpi xfonts-100dpi \
     fonts-liberation fonts-dejavu fonts-noto fonts-noto-color-emoji \
     fonts-farsiweb fonts-kacst \
-    arc-theme papirus-icon-theme \
+    arc-theme \
     ubuntu-restricted-extras vlc
 
 # Clean up to save space
