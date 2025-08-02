@@ -17,14 +17,25 @@ sudo apt update -y
 sudo apt install -y --no-install-recommends apt-utils
 sudo apt install dbus-x11
 
-# Install KDE Plasma and essential components
-echo "=== Installing KDE Plasma Desktop... ==="
+# Install essential packages first
+echo "=== Installing essential packages... ==="
+sudo apt install -y --no-install-recommends \
+    dbus-x11 \
+    x11-xserver-utils \
+    x11-utils \
+    x11-xkb-utils \
+    xorg
+
+# Install KDE Plasma and VNC components
+echo "=== Installing KDE Plasma Desktop and VNC... ==="
 sudo apt install -y --no-install-recommends \
     kde-plasma-desktop \
     kde-standard \
     sddm \
     tigervnc-standalone-server \
     tigervnc-common \
+    tigervnc-xorg-extension \
+    tigervnc-viewer \
     xfonts-base \
     xfonts-100dpi \
     xfonts-75dpi \
@@ -42,7 +53,10 @@ sudo apt install -y --no-install-recommends \
     language-pack-kde-fa \
     kde-config-gtk-style \
     kde-config-screenlocker \
-    kde-config-sddm
+    kde-config-sddm \
+    xserver-xorg-core \
+    xserver-xorg-video-dummy \
+    xserver-xorg-input-libinput
 
 # Set system language to Persian
 export LANGUAGE=fa_IR.UTF-8
@@ -58,23 +72,38 @@ echo "=== Configuring VNC server... ==="
 mkdir -p ~/.vnc
 
 # Create xstartup file for KDE
+mkdir -p ~/.vnc
 cat > ~/.vnc/xstartup << 'EOL'
-#!/bin/sh
+#!/bin/bash
 unset SESSION_MANAGER
 unset DBUS_SESSION_BUS_ADDRESS
+
+# Set environment variables
 export XDG_SESSION_TYPE=x11
 export XDG_CURRENT_DESKTOP=KDE
 export XDG_SESSION_DESKTOP=KDE
 export XDG_CONFIG_DIRS=/etc/xdg/xdg-kde-plasma:/etc/xdg
 export XDG_DATA_DIRS=/usr/share/kde-plasma:/usr/local/share:/usr/share
 
-exec startplasma-x11
+# Start KDE Plasma
+exec /usr/bin/startplasma-x11 > ~/.vnc/plasma-startup.log 2>&1
 EOL
 
 chmod +x ~/.vnc/xstartup
 
 # Set VNC password (default: password)
 echo -e "password\npassword\nn" | vncpasswd >/dev/null 2>&1
+
+# Create VNC server config
+mkdir -p ~/.vnc
+cat > ~/.vnc/config << 'EOL'
+# VNC Server Configuration
+desktop=KDE Plasma
+geometry=1920x1080
+depth=24
+localhost=no
+securitytypes=vncauth,tlsvnc
+EOL
 
 # Create VNC start/stop scripts
 cat > ~/start-vnc.sh << 'EOL'
