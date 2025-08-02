@@ -8,7 +8,7 @@ echo "=== User Setup and System Configuration ==="
 echo ""
 
 # Check if Ubuntu is installed
-if ! proot-distro list --installed | grep -q ubuntu; then
+if ! proot-distro list | grep -q "ubuntu.*installed"; then
     echo "Error: Ubuntu not installed. Please run 01_setup_termux.sh first"
     exit 1
 fi
