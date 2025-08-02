@@ -1,176 +1,177 @@
 #!/bin/bash
 
-# Script 2: User Setup and System Configuration inside Ubuntu (proot)
-# This script is meant to be run inside the Ubuntu proot environment
+# Script 3: KDE Plasma Desktop Environment Installation
+# This script installs and configures KDE Plasma desktop
 
 set -e
 
-echo "=== User Setup and System Configuration ==="
-echo ""
-
-# Prompt for username
-read -p "Enter your desired username: " username
-
-# Prompt for password (hidden input)
-while true; do
-    read -s -p "Enter password for $username: " password
-    echo
-    read -s -p "Confirm password: " password_confirm
-    echo
-    
-    if [ "$password" = "$password_confirm" ]; then
-        echo "Passwords match. Continuing with setup..."
-        break
-    else
-        echo "Passwords do not match. Please try again."
-    fi
-done
-
-echo "=== Configuring Ubuntu System ==="
+# Clean up any existing locks and fix broken states
+echo "=== Fixing any existing dpkg/apt issues... ==="
+sudo rm -f /var/lib/dpkg/lock /var/lib/apt/lists/lock /var/cache/apt/archives/lock
+sudo dpkg --configure -a
+sudo apt --fix-broken install -y
 
 # Update package lists
-echo "Updating package lists..."
-apt update
-apt upgrade -y
+echo "=== Updating package lists... ==="
+sudo apt update -y
+sudo apt install -y --no-install-recommends apt-utils
+sudo apt install dbus-x11
 
-# Install essential packages
-echo "Installing essential packages..."
-apt install -y \
-    sudo \
-    wget \
-    curl \
-    git 
+# Install KDE Plasma and essential components
+echo "=== Installing KDE Plasma Desktop... ==="
+sudo apt install -y --no-install-recommends \
+    kde-plasma-desktop \
+    kde-standard \
+    sddm \
+    tigervnc-standalone-server \
+    tigervnc-common \
+    xfonts-base \
+    xfonts-100dpi \
+    xfonts-75dpi \
+    xfonts-scalable \
+    fonts-noto \
+    fonts-farsiweb \
+    fonts-liberation \
+    fonts-dejavu \
+    ubuntu-restricted-extras \
+    vlc \
+    samba \
+    samba-common \
+    gvfs-backends \
+    language-pack-fa \
+    language-pack-kde-fa \
+    kde-config-gtk-style \
+    kde-config-screenlocker \
+    kde-config-sddm
 
-# Configure locales
-echo "Configuring locales..."
-locale-gen en_US.UTF-8
-update-locale LANG=en_US.UTF-8
+# Set system language to Persian
+export LANGUAGE=fa_IR.UTF-8
+export LANG=fa_IR.UTF-8
+export LC_ALL=fa_IR.UTF-8
 
-# Set timezone
-echo "Setting timezone..."
-ln -sf /usr/share/zoneinfo/Asia/Tehran /etc/localtime
-dpkg-reconfigure -f noninteractive tzdata
+# Generate Persian locale
+sudo locale-gen fa_IR.UTF-8
+sudo update-locale LANG=fa_IR.UTF-8
 
-# Create user account
-echo "Creating user account..."
-useradd -m -s /bin/bash -G sudo "$username"
-echo "$username:$password" | chpasswd
+# Create VNC configuration
+echo "=== Configuring VNC server... ==="
+mkdir -p ~/.vnc
 
-# Configure sudo with password for user
-echo "Configuring sudo access..."
-echo "$username ALL=(ALL) ALL" >> /etc/sudoers
+# Create xstartup file for KDE
+cat > ~/.vnc/xstartup << 'EOL'
+#!/bin/sh
+unset SESSION_MANAGER
+unset DBUS_SESSION_BUS_ADDRESS
+export XDG_SESSION_TYPE=x11
+export XDG_CURRENT_DESKTOP=KDE
+export XDG_SESSION_DESKTOP=KDE
+export XDG_CONFIG_DIRS=/etc/xdg/xdg-kde-plasma:/etc/xdg
+export XDG_DATA_DIRS=/usr/share/kde-plasma:/usr/local/share:/usr/share
 
-# Create user directories
-echo "Setting up user directories..."
-mkdir -p "/home/$username/"{Desktop,Documents,Downloads,Pictures,Videos,Music}
-mkdir -p "/home/$username/.config"
-mkdir -p "/home/$username/.local/share"
+exec startplasma-x11
+EOL
 
-# Set proper ownership
-chown -R "$username:$username" "/home/$username"
+chmod +x ~/.vnc/xstartup
 
-# Configure bash for user
-echo "Configuring bash environment..."
-cat >> "/home/$username/.bashrc" << 'BASHRC_EOF'
+# Set VNC password (default: password)
+echo -e "password\npassword\nn" | vncpasswd >/dev/null 2>&1
 
-# Custom aliases
-alias ll='ls -alF'
-alias la='ls -A'
-alias l='ls -CF'
-alias ..='cd ..'
-alias ...='cd ../..'
-alias grep='grep --color=auto'
-alias fgrep='fgrep --color=auto'
-alias egrep='egrep --color=auto'
+# Create VNC start/stop scripts
+cat > ~/start-vnc.sh << 'EOL'
+#!/bin/bash
+vncserver -geometry 1920x1080 -depth 24 -localhost no :1
+echo "VNC server started at 1920x1080 resolution"
+echo "Connect with VNC viewer to: $(hostname -I | awk '{print $1}'):5901"
+EOL
 
-# Custom prompt
-PS1='\[\033[01;32m\]\u@ubuntu\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+cat > ~/stop-vnc.sh << 'EOL'
+#!/bin/bash
+vncserver -kill :1 2>/dev/null
+rm -f /tmp/.X1-lock /tmp/.X11-unix/X1
+echo "VNC server stopped"
+EOL
 
-# Welcome message
-echo "Welcome to Ubuntu on Termux!"
-neofetch
-BASHRC_EOF
+chmod +x ~/start-vnc.sh ~/stop-vnc.sh
 
-# Configure root bash
-cat >> /root/.bashrc << 'ROOT_BASHRC_EOF'
+# Configure KDE settings
+echo "=== Configuring KDE Plasma desktop... ==="
+# Set Persian keyboard layout
+cat > ~/.config/kcminputrc << 'EOL'
+[Keyboard]
+Layout=us,ir
+LayoutList=us,ir
+Options=grp:alt_shift_toggle
+ResetOldOptions=true
+EOL
 
-# Root aliases
-alias ll='ls -alF'
-alias la='ls -A'
-alias l='ls -CF'
-alias ..='cd ..'
-alias ...='cd ../..'
+# Set KDE theme to Breeze Dark
+cat > ~/.config/kdeglobals << 'EOL'
+[KDE]
+ColorScheme=BreezeDark
+LookAndFeelPackage=org.kde.breezedark.desktop
+widgetStyle=Breeze
+EOL
 
-# Root prompt
-PS1='\[\033[01;31m\]\u@ubuntu\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\# '
-ROOT_BASHRC_EOF
+# Enable file sharing
+echo "=== Configuring file sharing... ==="
+sudo systemctl enable --now smbd
+sudo systemctl enable --now nmbd
 
-# Install Python and development tools
-echo "Installing Python and development tools..."
-apt install -y \
-    python3 \
-    python3-pip \
-    python3-venv \
-    build-essential \
-    gcc \
-    g++ \
-    make \
-    cmake \
-    git
-
-# Install Node.js
-echo "Installing Node.js..."
-curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
-apt install -y nodejs
-
-# Clean package cache
-echo "Cleaning package cache..."
-apt autoremove -y
-apt autoclean
+# Clean up
+echo "=== Cleaning up... ==="
+sudo apt autoremove -y
+sudo apt clean
+sudo rm -rf /var/lib/apt/lists/*
 
 echo ""
-echo "=== System Configuration Complete! ==="
+echo "=== KDE Plasma Desktop Installation Complete! ==="
 echo ""
-echo "User 'user' created with password 'user123'"
-echo "User has sudo access (password required)"
-'
-
-
+echo "To start VNC server: ~/start-vnc.sh"
+echo "To stop VNC server:  ~/stop-vnc.sh"
+echo ""
+echo "Connect with VNC viewer to: $(hostname -I | awk '{print $1}'):5901"
+echo "Default VNC password: password"
+echo ""
+echo "You can change the VNC password by running: vncpasswd"
+echo ""
+echo "File sharing is enabled. You can access shared folders from other devices."
+echo ""
+echo "The system will automatically start VNC on login."
+echo "To disable auto-start, remove: ~/.config/autostart/vnc.desktop"
+echo ""
+# Clean up
+echo "=== Cleaning up... ==="
+sudo apt autoremove -y
+sudo apt clean
+sudo rm -rf /var/lib/apt/lists/*
 
 echo ""
-echo "=== User Setup Complete! ==="
+echo "=== KDE Plasma Desktop Installation Complete! ==="
+echo ""
+echo "To start VNC server: ~/start-vnc.sh"
+echo "To stop VNC server:  ~/stop-vnc.sh"
+echo ""
+echo "Connect with VNC viewer to: $(hostname -I | awk '{print $1}'):5901"
+echo "Default VNC password: password"
+echo ""
+echo "You can change the VNC password by running: vncpasswd"
+echo ""
+echo "File sharing is enabled. You can access shared folders from other devices."
+echo ""
+echo "The system will automatically start VNC on login."
+
+echo ""
+echo "=== Desktop Environment Setup Complete! ==="
 echo ""
 echo "Available commands:"
 echo "  proot-distro login ubuntu           - Login as root"
 echo "  proot-distro login ubuntu --user user - Login as user"
+echo "  start-vnc   - Start VNC server"
+echo "  stop-vnc    - Stop VNC server"
 echo ""
-echo "User credentials:"
-echo "  Username: user"
-echo "  Password: user123"
-
-# Create/Update shortcuts after user setup
-echo "Creating Ubuntu shortcuts..."
-
-# Create ubuntu shortcut (root login)
-cat > $PREFIX/bin/ubuntu << 'EOF'
-#!/bin/bash
-proot-distro login ubuntu
-EOF
-
-chmod +x $PREFIX/bin/ubuntu
-
-# Create ubuntu-user shortcut (user login)
-cat > $PREFIX/bin/ubuntu-user << 'EOF'
-#!/bin/bash
-proot-distro login ubuntu --user user
-EOF
-
-chmod +x $PREFIX/bin/ubuntu-user
-
-echo "Shortcuts created successfully!"
+echo "VNC Connection Details:"
+echo "  Address: localhost:5901"
+echo "  Password: vnc123"
 echo ""
-echo "You can now enter Ubuntu with these commands:"
-echo "  ubuntu       # Login as root"
-echo "  ubuntu-user  # Login as user (recommended)"
-echo ""
-echo "Next step: Run 03_install_desktop.sh to install desktop environment"
+echo "Desktop Environment: XFCE4 with Arc-Dark theme"
+echo "Keyboard Layout: US/Persian (Alt+Shift to switch)"
