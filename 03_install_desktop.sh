@@ -1,206 +1,176 @@
 #!/bin/bash
 
-# Script 3: Optimized Desktop Environment Installation
-# This script installs a minimal but complete XFCE desktop environment
+# Script 2: User Setup and System Configuration inside Ubuntu (proot)
+# This script is meant to be run inside the Ubuntu proot environment
 
 set -e
 
-# Set faster APT settings
-echo 'APT::Acquire::Retries "3";' | sudo tee /etc/apt/apt.conf.d/80-retries
-echo 'APT::Install-Recommends "false";' | sudo tee -a /etc/apt/apt.conf.d/80-retries
+echo "=== User Setup and System Configuration ==="
+echo ""
 
-# Clean up any existing locks and fix broken states
-echo "=== Fixing any existing dpkg/apt issues... ==="
-sudo rm -f /var/lib/dpkg/lock /var/lib/apt/lists/lock /var/cache/apt/archives/lock
-sudo dpkg --configure -a
-sudo apt --fix-broken install -y
+# Prompt for username
+read -p "Enter your desired username: " username
+
+# Prompt for password (hidden input)
+while true; do
+    read -s -p "Enter password for $username: " password
+    echo
+    read -s -p "Confirm password: " password_confirm
+    echo
+    
+    if [ "$password" = "$password_confirm" ]; then
+        echo "Passwords match. Continuing with setup..."
+        break
+    else
+        echo "Passwords do not match. Please try again."
+    fi
+done
+
+echo "=== Configuring Ubuntu System ==="
 
 # Update package lists
-echo "=== Updating package lists... ==="
-sudo apt update -y
-sudo apt install -y --no-install-recommends apt-utils
+echo "Updating package lists..."
+apt update
+apt upgrade -y
 
-# Install KDE Plasma and essential components
-echo "=== Installing KDE Plasma Desktop... ==="
-sudo apt install -y --no-install-recommends \
-    kde-plasma-desktop \
-    kde-standard \
-    sddm \
-    tigervnc-standalone-server \
-    tigervnc-common \
-    xfonts-base \
-    xfonts-100dpi \
-    xfonts-75dpi \
-    xfonts-scalable \
-    fonts-noto \
-    fonts-farsiweb \
-    fonts-liberation \
-    fonts-dejavu \
-    ubuntu-restricted-extras \
-    vlc \
-    samba \
-    samba-common \
-    gvfs-backends \
-    kde-l10n-fa \
-    kde-config-gtk-style \
-    kde-config-gtk-style-preview \
-    kde-config-screenlocker \
-    kde-config-sddm \
-    kde-style-oxygen-qt5
+# Install essential packages
+echo "Installing essential packages..."
+apt install -y \
+    sudo \
+    wget \
+    curl \
+    git 
 
-# Create VNC configuration
-echo "=== Configuring VNC server... ==="
-mkdir -p ~/.vnc
+# Configure locales
+echo "Configuring locales..."
+locale-gen en_US.UTF-8
+update-locale LANG=en_US.UTF-8
 
-# Create xstartup file for KDE
-cat > ~/.vnc/xstartup << 'EOL'
-#!/bin/sh
-unset SESSION_MANAGER
-unset DBUS_SESSION_BUS_ADDRESS
-export XDG_SESSION_TYPE=x11
-export XDG_CURRENT_DESKTOP=KDE
-export XDG_SESSION_DESKTOP=KDE
-export XDG_CONFIG_DIRS=/etc/xdg/xdg-kde-plasma:/etc/xdg
-export XDG_DATA_DIRS=/usr/share/kde-plasma:/usr/local/share:/usr/share
+# Set timezone
+echo "Setting timezone..."
+ln -sf /usr/share/zoneinfo/Asia/Tehran /etc/localtime
+dpkg-reconfigure -f noninteractive tzdata
 
-exec startplasma-x11
-EOL
+# Create user account
+echo "Creating user account..."
+useradd -m -s /bin/bash -G sudo "$username"
+echo "$username:$password" | chpasswd
 
-chmod +x ~/.vnc/xstartup
+# Configure sudo with password for user
+echo "Configuring sudo access..."
+echo "$username ALL=(ALL) ALL" >> /etc/sudoers
 
-# Set VNC password (default: password)
-echo -e "password\npassword\nn" | vncpasswd >/dev/null 2>&1
+# Create user directories
+echo "Setting up user directories..."
+mkdir -p "/home/$username/"{Desktop,Documents,Downloads,Pictures,Videos,Music}
+mkdir -p "/home/$username/.config"
+mkdir -p "/home/$username/.local/share"
 
-# Create VNC start/stop scripts
-cat > ~/start-vnc.sh << 'EOL'
-#!/bin/bash
-vncserver -geometry 1920x1080 -depth 24 -localhost no :1
-echo "VNC server started at 1920x1080 resolution"
-echo "Connect with VNC viewer to: $(hostname -I | awk '{print $1}'):5901"
-EOL
+# Set proper ownership
+chown -R "$username:$username" "/home/$username"
 
-cat > ~/stop-vnc.sh << 'EOL'
-#!/bin/bash
-vncserver -kill :1 2>/dev/null
-rm -f /tmp/.X1-lock /tmp/.X11-unix/X1
-echo "VNC server stopped"
-EOL
+# Configure bash for user
+echo "Configuring bash environment..."
+cat >> "/home/$username/.bashrc" << 'BASHRC_EOF'
 
-chmod +x ~/start-vnc.sh ~/stop-vnc.sh
+# Custom aliases
+alias ll='ls -alF'
+alias la='ls -A'
+alias l='ls -CF'
+alias ..='cd ..'
+alias ...='cd ../..'
+alias grep='grep --color=auto'
+alias fgrep='fgrep --color=auto'
+alias egrep='egrep --color=auto'
 
-# Configure KDE settings
-echo "=== Configuring KDE Plasma desktop... ==="
-# Set Persian keyboard layout
-cat > ~/.config/kcminputrc << 'EOL'
-[Keyboard]
-Layout=us,ir
-LayoutList=us,ir
-Options=grp:alt_shift_toggle
-ResetOldOptions=true
-EOL
+# Custom prompt
+PS1='\[\033[01;32m\]\u@ubuntu\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
 
-# Set KDE theme to Breeze Dark
-cat > ~/.config/kdeglobals << 'EOL'
-[KDE]
-ColorScheme=BreezeDark
-LookAndFeelPackage=org.kde.breezedark.desktop
-widgetStyle=Breeze
-EOL
+# Welcome message
+echo "Welcome to Ubuntu on Termux!"
+neofetch
+BASHRC_EOF
 
-# Enable file sharing
-echo "=== Configuring file sharing... ==="
-sudo systemctl enable --now smbd
-sudo systemctl enable --now nmbd
+# Configure root bash
+cat >> /root/.bashrc << 'ROOT_BASHRC_EOF'
 
-# Clean up
-echo "=== Cleaning up... ==="
-sudo apt autoremove -y
-sudo apt clean
-sudo rm -rf /var/lib/apt/lists/*
+# Root aliases
+alias ll='ls -alF'
+alias la='ls -A'
+alias l='ls -CF'
+alias ..='cd ..'
+alias ...='cd ../..'
 
-echo ""
-echo "=== KDE Plasma Desktop Installation Complete! ==="
-echo ""
-echo "To start VNC server: ~/start-vnc.sh"
-echo "To stop VNC server:  ~/stop-vnc.sh"
-echo ""
-echo "Connect with VNC viewer to: $(hostname -I | awk '{print $1}'):5901"
-echo "Default VNC password: password"
-echo ""
-echo "You can change the VNC password by running: vncpasswd"
-echo ""
-echo "File sharing is enabled. You can access shared folders from other devices."
-echo ""
-echo "The system will automatically start VNC on login."
-echo "To disable auto-start, remove: ~/.config/autostart/vnc.desktop"
-echo ""
-    <property name="DndDragThreshold" type="int" value="8"/>
-    <property name="CursorBlink" type="bool" value="true"/>
-    <property name="CursorBlinkTime" type="int" value="1200"/>
-    <property name="SoundThemeName" type="string" value="default"/>
-    <property name="EnableEventSounds" type="bool" value="false"/>
-    <property name="EnableInputFeedbackSounds" type="bool" value="false"/>
-  </property>
-  <property name="Xft" type="empty">
-    <property name="DPI" type="int" value="96"/>
-    <property name="Antialias" type="int" value="1"/>
-    <property name="Hinting" type="int" value="1"/>
-    <property name="HintStyle" type="string" value="hintslight"/>
-    <property name="RGBA" type="string" value="rgb"/>
-  </property>
-  <property name="Gtk" type="empty">
-    <property name="CanChangeAccels" type="bool" value="false"/>
-    <property name="ColorPalette" type="string" value="black:white:gray50:red:purple:blue:light blue:green:yellow:orange:lavender:brown:goldenrod4:dodger blue:pink:light green:gray10:gray30:gray75:gray90"/>
-    <property name="FontName" type="string" value="Ubuntu 10"/>
-    <property name="MonospaceFontName" type="string" value="Ubuntu Mono 11"/>
-    <property name="IconSizes" type="string" value=""/>
-    <property name="KeyThemeName" type="string" value=""/>
-    <property name="ToolbarStyle" type="string" value="icons"/>
-    <property name="ToolbarIconSize" type="int" value="3"/>
-    <property name="MenuImages" type="bool" value="true"/>
-    <property name="ButtonImages" type="bool" value="true"/>
-    <property name="MenuBarAccel" type="string" value="F10"/>
-    <property name="CursorThemeName" type="string" value=""/>
-    <property name="CursorThemeSize" type="int" value="0"/>
-    <property name="DecorationLayout" type="string" value="menu:minimize,maximize,close"/>
-  </property>
-</channel>
-THEME_XML
+# Root prompt
+PS1='\[\033[01;31m\]\u@ubuntu\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\# '
+ROOT_BASHRC_EOF
 
-USER_SETUP
+# Install Python and development tools
+echo "Installing Python and development tools..."
+apt install -y \
+    python3 \
+    python3-pip \
+    python3-venv \
+    build-essential \
+    gcc \
+    g++ \
+    make \
+    cmake \
+    git
 
-# Clean package cache with sudo
+# Install Node.js
+echo "Installing Node.js..."
+curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
+apt install -y nodejs
+
+# Clean package cache
 echo "Cleaning package cache..."
-echo "پاکسازی کش پکیج‌ها..."
-sudo apt autoremove -y
-sudo apt autoclean
+apt autoremove -y
+apt autoclean
 
 echo ""
-echo "=== Desktop Installation Complete! ==="
+echo "=== System Configuration Complete! ==="
 echo ""
-echo "To start VNC server, run:"
-echo "vncserver :1 -geometry 1024x768 -depth 24"
-echo ""
-echo "To stop VNC server, run:"
-echo "vncserver -kill :1"
+echo "User 'user' created with password 'user123'"
+echo "User has sudo access (password required)"
+'
 
-echo "VNC server stopped"
-EOF
 
-chmod +x $PREFIX/bin/stop-vnc
 
 echo ""
-echo "=== Desktop Environment Setup Complete! ==="
+echo "=== User Setup Complete! ==="
 echo ""
 echo "Available commands:"
 echo "  proot-distro login ubuntu           - Login as root"
 echo "  proot-distro login ubuntu --user user - Login as user"
-echo "  start-vnc   - Start VNC server"
-echo "  stop-vnc    - Stop VNC server"
 echo ""
-echo "VNC Connection Details:"
-echo "  Address: localhost:5901"
-echo "  Password: vnc123"
+echo "User credentials:"
+echo "  Username: user"
+echo "  Password: user123"
+
+# Create/Update shortcuts after user setup
+echo "Creating Ubuntu shortcuts..."
+
+# Create ubuntu shortcut (root login)
+cat > $PREFIX/bin/ubuntu << 'EOF'
+#!/bin/bash
+proot-distro login ubuntu
+EOF
+
+chmod +x $PREFIX/bin/ubuntu
+
+# Create ubuntu-user shortcut (user login)
+cat > $PREFIX/bin/ubuntu-user << 'EOF'
+#!/bin/bash
+proot-distro login ubuntu --user user
+EOF
+
+chmod +x $PREFIX/bin/ubuntu-user
+
+echo "Shortcuts created successfully!"
 echo ""
-echo "Desktop Environment: XFCE4 with Arc-Dark theme"
-echo "Keyboard Layout: US/Persian (Alt+Shift to switch)"
+echo "You can now enter Ubuntu with these commands:"
+echo "  ubuntu       # Login as root"
+echo "  ubuntu-user  # Login as user (recommended)"
+echo ""
+echo "Next step: Run 03_install_desktop.sh to install desktop environment"
