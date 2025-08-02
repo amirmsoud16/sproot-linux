@@ -10,13 +10,21 @@ echo ""
 
 echo "=== Installing Desktop Environment ==="
 
-# Update package lists
-echo "Updating package lists..."
-apt update
+# Clean up any existing locks and fix broken states
+echo "Fixing any existing dpkg/apt issues..."
+sudo rm -f /var/lib/dpkg/lock /var/lib/apt/lists/lock /var/cache/apt/archives/lock
+sudo dpkg --configure -a
+sudo apt --fix-broken install -y
 
-# Install XFCE desktop environment
+# Update package lists with sudo
+echo "Updating package lists..."
+sudo apt update
+sudo apt install -y apt-utils
+sudo apt upgrade -y
+
+# Install XFCE desktop environment with sudo
 echo "Installing XFCE desktop environment..."
-apt install -y \
+sudo apt install -y \
     xfce4 \
     xfce4-goodies \
     xfce4-terminal \
@@ -27,17 +35,17 @@ apt install -y \
     firefox \
     libreoffice
 
-# Install VNC server
+# Install VNC server with sudo
 echo "Installing VNC server..."
-apt install -y \
+sudo apt install -y \
     tightvncserver \
     xfonts-base \
     xfonts-75dpi \
     xfonts-100dpi
 
-# Install additional fonts
+# Install additional fonts with sudo
 echo "Installing fonts..."
-apt install -y \
+sudo apt install -y \
     fonts-liberation \
     fonts-dejavu \
     fonts-noto \
@@ -47,9 +55,9 @@ apt install -y \
     fonts-opensymbol \
     ttf-mscorefonts-installer
 
-# Install Persian/Arabic fonts
+# Install Persian/Arabic fonts with sudo
 echo "Installing Persian/Arabic fonts..."
-apt install -y \
+sudo apt install -y \
     fonts-farsiweb \
     fonts-kacst \
     fonts-khmeros \
@@ -57,9 +65,9 @@ apt install -y \
     fonts-liberation \
     fonts-thai-tlwg
 
-# Install themes and icons
+# Install themes and icons with sudo
 echo "Installing themes and icons..."
-apt install -y \
+sudo apt install -y \
     arc-theme \
     numix-gtk-theme \
     numix-icon-theme \
@@ -67,25 +75,26 @@ apt install -y \
     breeze-gtk-theme \
     breeze-icon-theme
 
-# Install multimedia codecs
+# Install multimedia codecs with sudo
 echo "Installing multimedia codecs..."
-apt install -y \
+sudo apt install -y \
     ubuntu-restricted-extras \
     vlc \
     audacity \
     gimp \
     inkscape
 
-# Install development tools
+# Install development tools with sudo
 echo "Installing development tools..."
-apt install -y \
+sudo apt install -y \
     code \
     gedit \
     git \
     curl \
     wget \
     htop \
-    neofetch \
+    net-tools \
+    fetch \
     tree \
     zip \
     unzip
@@ -192,11 +201,11 @@ THEME_XML
 
 USER_SETUP
 
-# Clean package cache
+# Clean package cache with sudo
 echo "Cleaning package cache..."
 echo "پاکسازی کش پکیج‌ها..."
-apt autoremove -y
-apt autoclean
+sudo apt autoremove -y
+sudo apt autoclean
 
 echo ""
 echo "=== Desktop Installation Complete! ==="
