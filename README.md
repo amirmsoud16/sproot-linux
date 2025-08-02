@@ -104,6 +104,13 @@ This script will:
 - تم‌ها و آیکون‌ها را راه‌اندازی می‌کند
 - برنامه‌ها را نصب می‌کند (فایرفاکس، لیبره‌آفیس و غیره)
 
+
+مرحله 4: نصب wine86&64
+```bash
+wget https://raw.githubusercontent.com/amirmsoud16/ubuntu-proot/main/wine.sh
+chmod +x wine.sh
+./wine.sh
+```
 ## Usage / استفاده
 
 ### Starting Ubuntu / راه‌اندازی اوبونتو
