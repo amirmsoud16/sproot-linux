@@ -18,7 +18,7 @@ echo "Configuring Ubuntu system..."
 # Configure Ubuntu system using proot-distro
 echo "Running system configuration in Ubuntu..."
 
-proot-distro login ubuntu -- bash -c '
+ubuntu -- bash -c '
 set -e
 
 echo "=== Configuring Ubuntu System ==="
