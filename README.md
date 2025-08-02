@@ -34,7 +34,9 @@ This stage includes:
 ### Stage 2: Manual chroot execution
 
 After completing stage 1, run these commands manually:
-
+```
+tar -xf ubuntu-rootfs.tar.xz -C ubuntu/
+```
 ```bash
 # Mount required file systems
 mount -t proc proc /data/local/chroot/ubuntu/proc
@@ -169,5 +171,6 @@ For reporting issues or requesting new features, please create an issue.
 ---
 
 **Note**: These scripts are designed for educational and development use. Use in production environments requires additional security reviews. 
+
 
 
