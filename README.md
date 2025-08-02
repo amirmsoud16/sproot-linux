@@ -120,7 +120,7 @@ chmod +x wine.sh
 ubuntu
 
 # Start as user / راه‌اندازی به عنوان کاربر
-ubuntu-user
+Su username
 ```
 
 ### VNC Desktop Access / دسترسی به دسکتاپ VNC
