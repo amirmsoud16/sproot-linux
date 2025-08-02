@@ -39,18 +39,7 @@ apt install -y \
     sudo \
     wget \
     curl \
-    git \
-    nano \
-    vim \
-    htop \
-    neofetch \
-    locales \
-    tzdata \
-    ca-certificates \
-    gnupg \
-    lsb-release \
-    software-properties-common \
-    apt-transport-https
+    git 
 
 # Configure locales
 echo "Configuring locales..."
