@@ -41,8 +41,8 @@ apt upgrade -y
 apt install wget curl proot tar git nano vim -y tsu unzip e2fsprogs
 ```
 ```bash
-git clone https://github.com/amirmsoud16/ubuntu-chroot-pk-.git
-cd ubuntu-chroot-pk-
+git clone https://github.com/amirmsoud16/ubuntu-proot.git
+cd ubuntu-proot
 ```
 ```bash
 chmod +x 01_setup_termux.sh
