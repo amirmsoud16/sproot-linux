@@ -1,25 +1,12 @@
 #!/bin/bash
 
-# Script 3: Desktop Environment, VNC, Fonts and Themes Installation using proot-distro
+# Script 3: Desktop Environment, VNC, Fonts and Themes Installation
+# This script is meant to be run inside the Ubuntu proot environment
 
 set -e
 
 echo "=== Desktop Environment Installation ==="
 echo ""
-
-# Check if Ubuntu is installed
-if ! proot-distro list --installed | grep -q ubuntu; then
-    echo "Error: Ubuntu not installed. Please run previous scripts first"
-    exit 1
-fi
-
-echo "Installing desktop environment and VNC server..."
-
-# Install desktop environment using proot-distro
-echo "Running desktop installation in Ubuntu..."
-
-proot-distro login ubuntu -- bash -c '
-set -e
 
 echo "=== Installing Desktop Environment ==="
 
@@ -108,9 +95,17 @@ echo "Configuring VNC for user..."
 
 # Switch to user and configure VNC
 su - user << 'USER_SETUP'
-# Create VNC password
-mkdir -p ~/.vnc
-echo "vnc123" | vncpasswd -f > ~/.vnc/passwd
+# Set VNC password with confirmation
+while true; do
+    echo "Please set a password for VNC access (at least 6 characters):"
+    vncpasswd
+    if [ $? -eq 0 ]; then
+        echo "VNC password set successfully!"
+        break
+    else
+        echo "Failed to set VNC password. Please try again."
+    fi
+done
 chmod 600 ~/.vnc/passwd
 
 # Create VNC startup script
@@ -206,37 +201,11 @@ apt autoclean
 echo ""
 echo "=== Desktop Installation Complete! ==="
 echo ""
-echo "VNC Server configured with password: vnc123"
-'
-
-# Create VNC startup script for Termux
-echo "Creating VNC startup script..."
-
-cat > $PREFIX/bin/start-vnc << 'EOF'
-#!/bin/bash
-
-echo "Starting VNC server..."
-
-# Start VNC server as user using proot-distro
-proot-distro login ubuntu --user user -- bash -c "vncserver :1 -geometry 1024x768 -depth 24"
-
+echo "To start VNC server, run:"
+echo "vncserver :1 -geometry 1024x768 -depth 24"
 echo ""
-echo "VNC Server started on display :1"
-echo ""
-echo "Connect with VNC client to: localhost:5901"
-echo "Password: vnc123"
-EOF
-
-chmod +x $PREFIX/bin/start-vnc
-
-# Create VNC stop script
-cat > $PREFIX/bin/stop-vnc << 'EOF'
-#!/bin/bash
-
-echo "Stopping VNC server..."
-
-# Stop VNC server using proot-distro
-proot-distro login ubuntu --user user -- bash -c "vncserver -kill :1"
+echo "To stop VNC server, run:"
+echo "vncserver -kill :1"
 
 echo "VNC server stopped"
 EOF
