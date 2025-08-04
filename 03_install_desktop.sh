@@ -15,7 +15,6 @@ sudo apt --fix-broken install -y
 echo "=== Updating package lists... ==="
 sudo apt update -y
 sudo apt install -y --no-install-recommends apt-utils
-sudo apt install dbus-x11
 
 # Install essential packages first
 echo "=== Installing essential packages... ==="
@@ -145,6 +144,19 @@ EOL
 echo "=== Configuring file sharing... ==="
 sudo systemctl enable --now smbd
 sudo systemctl enable --now nmbd
+
+# Create VNC autostart entry
+echo "=== Configuring VNC autostart... ==="
+mkdir -p ~/.config/autostart
+cat > ~/.config/autostart/vnc.desktop << 'EOL'
+[Desktop Entry]
+Name=VNC Server
+Exec=/home/user/start-vnc.sh
+Type=Application
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+EOL
 
 # Clean up
 echo "=== Cleaning up... ==="
