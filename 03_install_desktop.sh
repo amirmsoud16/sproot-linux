@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Script 3: KDE Plasma Desktop Environment Installation
-# This script installs and configures KDE Plasma desktop with VNC support
+# Wine Installation Script
+# This script installs Wine and all necessary drivers for running lightweight Windows software and games
 
 set -e
 
@@ -19,174 +19,229 @@ sudo apt --fix-broken install -y
 # Update package lists
 echo_section "Updating package lists"
 sudo apt update -y
+
+# Install apt-utils first
+echo_section "Installing apt-utils"
 sudo apt install -y --no-install-recommends apt-utils
 
-# Install essential packages first
-echo_section "Installing essential packages"
+# Install Wine and all necessary drivers/components
+echo_section "Installing Wine and all drivers"
 sudo apt install -y --no-install-recommends \
-    dbus-x11 \
-    x11-xserver-utils \
+    wine \
+    wine32 \
+    wine64 \
+    libwine \
+    fonts-wine \
+    wine-binfmt \
+    cabextract \
+    libgl1 \
+    libgl1-mesa-glx \
+    libgl1-mesa-dri \
+    libglu1 \
+    libglu1-mesa \
+    libasound2 \
+    libasound2-plugins \
+    alsa-utils \
+    alsa-oss \
+    pulseaudio \
+    pulseaudio-utils \
     x11-utils \
-    x11-xkb-utils \
-    xorg
+    x11-apps \
+    x11-xserver-utils \
+    libx11-6 \
+    libx11-xcb1 \
+    libxext6 \
+    libxrender1 \
+    libxrandr2 \
+    libxinerama1 \
+    libxi6 \
+    libxcursor1 \
+    libxxf86vm1 \
+    libxss1 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxfixes3 \
+    libx11-dev \
+    libxext-dev \
+    libxrender-dev \
+    libxrandr-dev \
+    libxinerama-dev \
+    libxi-dev \
+    libxcursor-dev \
+    libxxf86vm-dev \
+    libxss-dev \
+    libxcomposite-dev \
+    libxdamage-dev \
+    libxfixes-dev
 
-# Install KDE Plasma and VNC components
-echo_section "Installing KDE Plasma Desktop and VNC"
+# Install additional graphics libraries for better compatibility
+echo_section "Installing additional graphics libraries"
 sudo apt install -y --no-install-recommends \
-    kde-plasma-desktop \
-    kde-standard \
-    sddm \
-    tigervnc-standalone-server \
-    tigervnc-common \
-    tigervnc-xorg-extension \
-    tigervnc-viewer \
-    xfonts-base \
-    xfonts-100dpi \
-    xfonts-75dpi \
-    xfonts-scalable \
-    fonts-noto \
-    fonts-farsiweb \
-    fonts-liberation \
-    fonts-dejavu \
-    ubuntu-restricted-extras \
-    vlc \
-    samba \
-    samba-common \
-    gvfs-backends \
-    language-pack-fa \
-    language-pack-kde-fa \
-    kde-config-gtk-style \
-    kde-config-screenlocker \
-    kde-config-sddm \
-    xserver-xorg-core \
-    xserver-xorg-video-dummy \
-    xserver-xorg-input-libinput
+    libvulkan1 \
+    libvulkan-dev \
+    vulkan-tools \
+    mesa-vulkan-drivers \
+    mesa-vulkan-drivers:i386 \
+    libvkd3d1 \
+    libvkd3d-dev \
+    libvkd3d-demos
 
-# Set system language to Persian
-export LANGUAGE=fa_IR.UTF-8
-export LANG=fa_IR.UTF-8
-export LC_ALL=fa_IR.UTF-8
+# Install additional audio libraries
+echo_section "Installing additional audio libraries"
+sudo apt install -y --no-install-recommends \
+    libopenal1 \
+    libopenal-dev \
+    libsndio7.0 \
+    libsndio-dev
 
-# Generate Persian locale
-echo_section "Generating Persian locale"
-sudo locale-gen fa_IR.UTF-8
-sudo update-locale LANG=fa_IR.UTF-8
+# Install additional utilities for Windows software compatibility
+echo_section "Installing Windows compatibility utilities"
+sudo apt install -y --no-install-recommends \
+    winbind \
+    libgnutls30 \
+    libgnutls30:i386 \
+    dosbox \
+    dos2unix \
+    unix2dos
 
-# Create VNC configuration
-echo_section "Configuring VNC server"
-mkdir -p ~/.vnc
+# Configure Wine
+echo_section "Configuring Wine"
+# Create Wine directory and configuration files
+mkdir -p ~/.wine
 
-# Create xstartup file for KDE
-cat > ~/.vnc/xstartup << 'EOL'
+# Set up 32-bit and 64-bit Wine prefixes
+export WINEARCH=win64
+export WINEPREFIX=~/.wine
+
+# Initialize Wine
+wineboot --init
+
+# Create a simple Wine game launcher script
+echo_section "Creating Wine game launcher"
+cat > ~/wine-game-launcher.sh << 'EOL'
 #!/bin/bash
-unset SESSION_MANAGER
-unset DBUS_SESSION_BUS_ADDRESS
 
-# Set environment variables
-export XDG_SESSION_TYPE=x11
-export XDG_CURRENT_DESKTOP=KDE
-export XDG_SESSION_DESKTOP=KDE
-export XDG_CONFIG_DIRS=/etc/xdg/xdg-kde-plasma:/etc/xdg
-export XDG_DATA_DIRS=/usr/share/kde-plasma:/usr/local/share:/usr/share
+# Wine Game Launcher
+# Simple launcher to run Windows games and applications
 
-# Start KDE Plasma
-exec /usr/bin/startplasma-x11 > ~/.vnc/plasma-startup.log 2>&1
+echo "Wine Game Launcher"
+echo "=================="
+echo ""
+echo "Enter path to Windows executable (game or application):"
+read exe_path
+
+echo ""
+echo "Select graphics mode:"
+echo "1. Normal"
+echo "2. Virtual Desktop (1920x1080)"
+echo "3. Virtual Desktop (1366x768)"
+echo "4. Virtual Desktop (1024x768)"
+echo ""
+echo "Enter your choice (1-4):"
+read mode
+
+# Set graphics mode
+export WINEPREFIX=~/.wine
+export WINEARCH=win64
+
+case $mode in
+    1) 
+        # Normal mode
+        if [ -f "$exe_path" ]; then
+            wine "$exe_path"
+        else
+            echo "File not found: $exe_path"
+        fi
+        ;;
+    2) 
+        # 1920x1080 virtual desktop
+        if [ -f "$exe_path" ]; then
+            wine explorer /desktop=game,1920x1080 "$exe_path"
+        else
+            echo "File not found: $exe_path"
+        fi
+        ;;
+    3) 
+        # 1366x768 virtual desktop
+        if [ -f "$exe_path" ]; then
+            wine explorer /desktop=game,1366x768 "$exe_path"
+        else
+            echo "File not found: $exe_path"
+        fi
+        ;;
+    4) 
+        # 1024x768 virtual desktop
+        if [ -f "$exe_path" ]; then
+            wine explorer /desktop=game,1024x768 "$exe_path"
+        else
+            echo "File not found: $exe_path"
+        fi
+        ;;
+    *) 
+        echo "Invalid choice, running in normal mode"
+        if [ -f "$exe_path" ]; then
+            wine "$exe_path"
+        else
+            echo "File not found: $exe_path"
+        fi
+        ;;
+esac
 EOL
 
-chmod +x ~/.vnc/xstartup
+chmod +x ~/wine-game-launcher.sh
 
-# Set VNC password interactively
-echo_section "Setting VNC password"
-echo "Please set your VNC password (you will be prompted twice):"
-vncpasswd
+# Create desktop directory if it doesn't exist
+DESKTOP_DIR=~/Desktop
+mkdir -p "$DESKTOP_DIR"
 
-# Create VNC server config
-cat > ~/.vnc/config << 'EOL'
-# VNC Server Configuration
-desktop=KDE Plasma
-geometry=1920x1080
-depth=24
-localhost=no
-securitytypes=vncauth,tlsvnc
-EOL
-
-# Create VNC start/stop scripts
-echo_section "Creating VNC start/stop scripts"
-cat > ~/start-vnc.sh << 'EOL'
-#!/bin/bash
-# Start VNC server with KDE Plasma desktop
-vncserver -geometry 1920x1080 -depth 24 -localhost no :1
-echo "VNC server started at 1920x1080 resolution"
-echo "Connect with VNC viewer to: $(hostname -I | awk '{print $1}'):5901"
-EOL
-
-cat > ~/stop-vnc.sh << 'EOL'
-#!/bin/bash
-# Stop VNC server
-vncserver -kill :1 2>/dev/null
-rm -f /tmp/.X1-lock /tmp/.X11-unix/X1
-echo "VNC server stopped"
-EOL
-
-chmod +x ~/start-vnc.sh ~/stop-vnc.sh
-
-# Configure KDE settings
-echo_section "Configuring KDE Plasma desktop"
-# Create config directory if it doesn't exist
-mkdir -p ~/.config
-
-# Set Persian keyboard layout
-cat > ~/.config/kcminputrc << 'EOL'
-[Keyboard]
-Layout=us,ir
-LayoutList=us,ir
-Options=grp:alt_shift_toggle
-ResetOldOptions=true
-EOL
-
-# Set KDE theme to Breeze Dark
-cat > ~/.config/kdeglobals << 'EOL'
-[KDE]
-ColorScheme=BreezeDark
-LookAndFeelPackage=org.kde.breezedark.desktop
-widgetStyle=Breeze
-EOL
-
-# Enable file sharing
-echo_section "Configuring file sharing"
-sudo systemctl enable --now smbd
-sudo systemctl enable --now nmbd
-
-# Create VNC autostart entry
-echo_section "Configuring VNC autostart"
-mkdir -p ~/.config/autostart
-cat > ~/.config/autostart/vnc.desktop << 'EOL'
+# Create a single desktop icon for the game launcher
+create_wine_desktop_icon() {
+    local app_name=$1
+    local app_path=$2
+    local icon_name=$3
+    
+    cat > "$DESKTOP_DIR/$app_name.desktop" << EOL
 [Desktop Entry]
-Name=VNC Server
-Exec=/home/user/start-vnc.sh
+Name=$app_name
+Exec=$app_path
 Type=Application
-Hidden=false
-NoDisplay=false
-X-GNOME-Autostart-enabled=true
+Icon=$icon_name
+Comment=Run Windows games and applications with Wine
+Categories=Application;Game;
 EOL
+    
+    chmod +x "$DESKTOP_DIR/$app_name.desktop"
+    echo "Created desktop icon for $app_name"
+}
 
-# Clean up
-echo_section "Cleaning up"
-sudo apt autoremove -y
-sudo apt clean
-sudo rm -rf /var/lib/apt/lists/*
+# Create desktop icon for the game launcher script
+create_wine_desktop_icon "Wine Game Launcher" "~/wine-game-launcher.sh" "wine"
+
+# Install additional desktop integration packages
+echo_section "Installing desktop integration packages"
+sudo apt install -y --no-install-recommends \
+    desktop-file-utils \
+    xdg-utils
+
+# Update desktop database
+echo_section "Updating desktop database"
+sudo update-desktop-database
+
+# Install Wine icons
+echo_section "Installing Wine icons"
+sudo apt install -y --no-install-recommends \
+    wine-icon-theme
 
 # Final completion message
 echo ""
-echo "=== KDE Plasma Desktop Installation Complete! ==="
+echo "=== Wine Installation Complete! ==="
 echo ""
-echo "To start VNC server: ~/start-vnc.sh"
-echo "To stop VNC server:  ~/stop-vnc.sh"
+echo "Wine has been installed with all necessary drivers for running"
+echo "Windows games and applications."
 echo ""
-echo "Connect with VNC viewer to: $(hostname -I | awk '{print $1}'):5901"
+echo "A desktop icon has been created for the Wine Game Launcher."
+echo "Click on it to run your Windows games or applications."
 echo ""
-echo "File sharing is enabled. You can access shared folders from other devices."
-echo ""
-echo "The system will automatically start VNC on login."
-echo "To disable auto-start, remove: ~/.config/autostart/vnc.desktop"
+echo "To run a Windows application or game manually, use:"
+echo "  wine /path/to/application.exe"
 echo ""
