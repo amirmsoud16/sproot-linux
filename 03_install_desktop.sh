@@ -1,23 +1,28 @@
 #!/bin/bash
 
 # Script 3: KDE Plasma Desktop Environment Installation
-# This script installs and configures KDE Plasma desktop
+# This script installs and configures KDE Plasma desktop with VNC support
 
 set -e
 
+# Function to print section headers
+echo_section() {
+    echo "=== $1 ==="
+}
+
 # Clean up any existing locks and fix broken states
-echo "=== Fixing any existing dpkg/apt issues... ==="
+echo_section "Fixing any existing dpkg/apt issues"
 sudo rm -f /var/lib/dpkg/lock /var/lib/apt/lists/lock /var/cache/apt/archives/lock
 sudo dpkg --configure -a
 sudo apt --fix-broken install -y
 
 # Update package lists
-echo "=== Updating package lists... ==="
+echo_section "Updating package lists"
 sudo apt update -y
 sudo apt install -y --no-install-recommends apt-utils
 
 # Install essential packages first
-echo "=== Installing essential packages... ==="
+echo_section "Installing essential packages"
 sudo apt install -y --no-install-recommends \
     dbus-x11 \
     x11-xserver-utils \
@@ -26,7 +31,7 @@ sudo apt install -y --no-install-recommends \
     xorg
 
 # Install KDE Plasma and VNC components
-echo "=== Installing KDE Plasma Desktop and VNC... ==="
+echo_section "Installing KDE Plasma Desktop and VNC"
 sudo apt install -y --no-install-recommends \
     kde-plasma-desktop \
     kde-standard \
@@ -63,15 +68,15 @@ export LANG=fa_IR.UTF-8
 export LC_ALL=fa_IR.UTF-8
 
 # Generate Persian locale
+echo_section "Generating Persian locale"
 sudo locale-gen fa_IR.UTF-8
 sudo update-locale LANG=fa_IR.UTF-8
 
 # Create VNC configuration
-echo "=== Configuring VNC server... ==="
+echo_section "Configuring VNC server"
 mkdir -p ~/.vnc
 
 # Create xstartup file for KDE
-mkdir -p ~/.vnc
 cat > ~/.vnc/xstartup << 'EOL'
 #!/bin/bash
 unset SESSION_MANAGER
@@ -90,11 +95,12 @@ EOL
 
 chmod +x ~/.vnc/xstartup
 
-# Set VNC password (default: password)
-echo -e "password\npassword\nn" | vncpasswd >/dev/null 2>&1
+# Set VNC password interactively
+echo_section "Setting VNC password"
+echo "Please set your VNC password (you will be prompted twice):"
+vncpasswd
 
 # Create VNC server config
-mkdir -p ~/.vnc
 cat > ~/.vnc/config << 'EOL'
 # VNC Server Configuration
 desktop=KDE Plasma
@@ -105,8 +111,10 @@ securitytypes=vncauth,tlsvnc
 EOL
 
 # Create VNC start/stop scripts
+echo_section "Creating VNC start/stop scripts"
 cat > ~/start-vnc.sh << 'EOL'
 #!/bin/bash
+# Start VNC server with KDE Plasma desktop
 vncserver -geometry 1920x1080 -depth 24 -localhost no :1
 echo "VNC server started at 1920x1080 resolution"
 echo "Connect with VNC viewer to: $(hostname -I | awk '{print $1}'):5901"
@@ -114,6 +122,7 @@ EOL
 
 cat > ~/stop-vnc.sh << 'EOL'
 #!/bin/bash
+# Stop VNC server
 vncserver -kill :1 2>/dev/null
 rm -f /tmp/.X1-lock /tmp/.X11-unix/X1
 echo "VNC server stopped"
@@ -122,7 +131,10 @@ EOL
 chmod +x ~/start-vnc.sh ~/stop-vnc.sh
 
 # Configure KDE settings
-echo "=== Configuring KDE Plasma desktop... ==="
+echo_section "Configuring KDE Plasma desktop"
+# Create config directory if it doesn't exist
+mkdir -p ~/.config
+
 # Set Persian keyboard layout
 cat > ~/.config/kcminputrc << 'EOL'
 [Keyboard]
@@ -141,12 +153,12 @@ widgetStyle=Breeze
 EOL
 
 # Enable file sharing
-echo "=== Configuring file sharing... ==="
+echo_section "Configuring file sharing"
 sudo systemctl enable --now smbd
 sudo systemctl enable --now nmbd
 
 # Create VNC autostart entry
-echo "=== Configuring VNC autostart... ==="
+echo_section "Configuring VNC autostart"
 mkdir -p ~/.config/autostart
 cat > ~/.config/autostart/vnc.desktop << 'EOL'
 [Desktop Entry]
@@ -159,11 +171,12 @@ X-GNOME-Autostart-enabled=true
 EOL
 
 # Clean up
-echo "=== Cleaning up... ==="
+echo_section "Cleaning up"
 sudo apt autoremove -y
 sudo apt clean
 sudo rm -rf /var/lib/apt/lists/*
 
+# Final completion message
 echo ""
 echo "=== KDE Plasma Desktop Installation Complete! ==="
 echo ""
@@ -171,48 +184,9 @@ echo "To start VNC server: ~/start-vnc.sh"
 echo "To stop VNC server:  ~/stop-vnc.sh"
 echo ""
 echo "Connect with VNC viewer to: $(hostname -I | awk '{print $1}'):5901"
-echo "Default VNC password: password"
-echo ""
-echo "You can change the VNC password by running: vncpasswd"
 echo ""
 echo "File sharing is enabled. You can access shared folders from other devices."
 echo ""
 echo "The system will automatically start VNC on login."
 echo "To disable auto-start, remove: ~/.config/autostart/vnc.desktop"
 echo ""
-# Clean up
-echo "=== Cleaning up... ==="
-sudo apt autoremove -y
-sudo apt clean
-sudo rm -rf /var/lib/apt/lists/*
-
-echo ""
-echo "=== KDE Plasma Desktop Installation Complete! ==="
-echo ""
-echo "To start VNC server: ~/start-vnc.sh"
-echo "To stop VNC server:  ~/stop-vnc.sh"
-echo ""
-echo "Connect with VNC viewer to: $(hostname -I | awk '{print $1}'):5901"
-echo "Default VNC password: password"
-echo ""
-echo "You can change the VNC password by running: vncpasswd"
-echo ""
-echo "File sharing is enabled. You can access shared folders from other devices."
-echo ""
-echo "The system will automatically start VNC on login."
-
-echo ""
-echo "=== Desktop Environment Setup Complete! ==="
-echo ""
-echo "Available commands:"
-echo "  proot-distro login ubuntu           - Login as root"
-echo "  proot-distro login ubuntu --user user - Login as user"
-echo "  start-vnc   - Start VNC server"
-echo "  stop-vnc    - Stop VNC server"
-echo ""
-echo "VNC Connection Details:"
-echo "  Address: localhost:5901"
-echo "  Password: vnc123"
-echo ""
-echo "Desktop Environment: XFCE4 with Arc-Dark theme"
-echo "Keyboard Layout: US/Persian (Alt+Shift to switch)"
